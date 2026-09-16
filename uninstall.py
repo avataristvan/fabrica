@@ -41,12 +41,15 @@ def python_exe() -> str:
     return sys.executable
 
 
-def _hook_commands() -> tuple[str, str, str]:
+def _hook_commands() -> tuple[str, str, str, str]:
     py = python_exe()
     return (
         f"{py} -m ai_mem.hook 2>/dev/null || true",
         f"{py} -m ai_mem.userprompt_hook 2>/dev/null || true",
         f"{py} -m ai_mem.posttool_hook 2>/dev/null || true",
+        # pretool_hook is no longer registered by install.py (2026-09-12, push→pull migration)
+        # but is still removed here so pre-existing installations uninstall cleanly.
+        f"{py} -m ai_mem.pretool_hook 2>/dev/null || true",
     )
 
 
@@ -93,8 +96,8 @@ def _remove_hook_entries(hook_list: list, commands: set[str]) -> tuple[list, int
 # ── target: Claude Code ───────────────────────────────────────────────────────
 
 def unregister_claude(dry_run: bool) -> None:
-    hook_cmd, userprompt_cmd, posttool_cmd = _hook_commands()
-    hook_commands = {hook_cmd, userprompt_cmd, posttool_cmd}
+    hook_cmd, userprompt_cmd, posttool_cmd, pretool_cmd = _hook_commands()
+    hook_commands = {hook_cmd, userprompt_cmd, posttool_cmd, pretool_cmd}
 
     # MCP server — ~/.claude.json
     mcp_path = HOME / ".claude.json"
@@ -114,7 +117,7 @@ def unregister_claude(dry_run: bool) -> None:
     changed = False
 
     hooks = data.get("hooks", {})
-    for event in ("SessionStart", "UserPromptSubmit", "PostToolUse"):
+    for event in ("SessionStart", "UserPromptSubmit", "PostToolUse", "PreToolUse"):
         before = hooks.get(event, [])
         after, n = _remove_hook_entries(before, hook_commands)
         if n:

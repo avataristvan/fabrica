@@ -35,6 +35,24 @@ def python_exe() -> str:
     return sys.executable
 
 
+def _remove_hook_command(entries: list[dict], module: str) -> None:
+    """Strip any hook entry invoking `module` from `entries`, dropping groups left empty.
+
+    Used to retire a hook install.py no longer registers (PreToolUse push→pull migration,
+    2026-09-12) — re-running install.py on an existing installation self-heals by removing
+    the stale entry, same surgical per-hook-object removal as _upsert_hook_command's own
+    dedup path, so a user-customized group that bundles an unrelated hook keeps that hook.
+    """
+    marker = f"-m {module} "
+    for entry in list(entries):
+        hooks_list = entry.get("hooks", [])
+        if not any(marker in h.get("command", "") for h in hooks_list):
+            continue
+        entry["hooks"] = [h for h in hooks_list if marker not in h.get("command", "")]
+        if not entry["hooks"]:
+            entries[:] = [e for e in entries if e is not entry]
+
+
 def _upsert_hook_command(entries: list[dict], module: str, command: str, timeout: int, matcher: str | None = None) -> None:
     """Update the existing hook entry that invokes `module`, or append a new one.
 
@@ -233,7 +251,14 @@ def register_claude(workspace_root: str = ""):
 
     patch_json(mcp_path, update_mcp)
 
-    # SessionStart + UserPromptSubmit + PreToolUse + PostToolUse hooks + permissions → ~/.claude/settings.json
+    # SessionStart + PostToolUse hooks + permissions → ~/.claude/settings.json
+    # PreToolUse's automatic push (pretool_hook.py) was retired 2026-09-12 in favor of explicit
+    # pull (mem_query) from role-scoped collections in agent/command prompts — see
+    # <memory-entry> in ai-mem's own memory for the rationale.
+    # UserPromptSubmit's automatic push (userprompt_hook.py) was retired 2026-09-13 for the same
+    # reason: it fired on every single message (not just once per session like SessionStart),
+    # doing up to 4 parallel semantic queries each time — see
+    # <memory-entry> in ai-mem's own memory.
     settings_path = HOME / ".claude" / "settings.json"
     # Hooks run as separate subprocesses spawned by Claude Code directly — they do NOT inherit
     # the "env" block set on the MCP server entry above (that only applies to the MCP server's own
@@ -242,8 +267,6 @@ def register_claude(workspace_root: str = ""):
     # the same failure mode already documented for AI_MEM_PATH in ai-mem's own memory.
     env_prefix = f"AI_MEM_WORKSPACE_ROOT={workspace_root} " if workspace_root else ""
     hook_cmd = f"{env_prefix}{python_exe()} -m ai_mem.hook 2>/dev/null || true"
-    userprompt_cmd = f"{env_prefix}{python_exe()} -m ai_mem.userprompt_hook 2>/dev/null || true"
-    pretool_cmd = f"{env_prefix}{python_exe()} -m ai_mem.pretool_hook 2>/dev/null || true"
     posttool_cmd = f"{env_prefix}{python_exe()} -m ai_mem.posttool_hook 2>/dev/null || true"
 
     MCP_PERMISSIONS = [
@@ -264,11 +287,15 @@ def register_claude(workspace_root: str = ""):
         session_hooks = hooks.setdefault("SessionStart", [])
         _upsert_hook_command(session_hooks, "ai_mem.hook", hook_cmd, timeout=10)
 
-        up_hooks = hooks.setdefault("UserPromptSubmit", [])
-        _upsert_hook_command(up_hooks, "ai_mem.userprompt_hook", userprompt_cmd, timeout=8)
+        if "UserPromptSubmit" in hooks:
+            _remove_hook_command(hooks["UserPromptSubmit"], "ai_mem.userprompt_hook")
+            if not hooks["UserPromptSubmit"]:
+                del hooks["UserPromptSubmit"]
 
-        pre_hooks = hooks.setdefault("PreToolUse", [])
-        _upsert_hook_command(pre_hooks, "ai_mem.pretool_hook", pretool_cmd, timeout=5, matcher="Edit|Write")
+        if "PreToolUse" in hooks:
+            _remove_hook_command(hooks["PreToolUse"], "ai_mem.pretool_hook")
+            if not hooks["PreToolUse"]:
+                del hooks["PreToolUse"]
 
         pt_hooks = hooks.setdefault("PostToolUse", [])
         _upsert_hook_command(pt_hooks, "ai_mem.posttool_hook", posttool_cmd, timeout=10, matcher="Write|Edit")

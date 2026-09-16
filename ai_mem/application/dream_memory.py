@@ -17,8 +17,8 @@ _ADD_TARGET_RE = re.compile(
 _SPLIT_RE = re.compile(r"^\s*[-*•]\s+SPLIT\s+(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
 
 MODELS = {
-    "haiku": "claude-haiku-4-5-20251001",
-    "sonnet": "claude-sonnet-4-6",
+    "haiku": "haiku",
+    "sonnet": "sonnet",
 }
 
 MODES = ("single-haiku", "single-sonnet", "hier", "team")
@@ -189,8 +189,12 @@ def _call(model_key: str, prompt: str) -> str:
         input=prompt,
         capture_output=True,
         text=True,
-        check=True,
     )
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip() or "(no output on stdout/stderr)"
+        raise RuntimeError(
+            f"claude CLI failed (model={MODELS[model_key]!r}, exit={result.returncode}): {detail}"
+        )
     return result.stdout.strip()
 
 
