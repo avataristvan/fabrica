@@ -1,10 +1,10 @@
 # ai-mem
 
-Persistent semantic memory for AI agents. Stores, searches, and retrieves information across sessions using natural language. Backed by [ChromaDB](https://www.trychroma.com/) with an optional learned re-ranker that adapts to your access patterns over time.
+A pull-based knowledge base for AI agents — not automatic context injection. Stores, searches, and retrieves information across sessions using natural language, backed by [ChromaDB](https://www.trychroma.com/). Semantic search means you don't have to phrase a query the way an entry was written — "how do I avoid X" surfaces an anti-pattern about X even if it never uses those words.
 
 Works with **Claude Code**, **Gemini CLI**, and **Cursor**.
 
-> **Beyond memory.** Paired with the `/reflect` ritual and the Dreaming Agent, ai-mem forms an epistemology framework — a system for how agents come to *know* things, not just store them. Agents accumulate structured experience across tasks and projects, enabling a genuine Junior → Senior progression without model changes. [Read the framework docs →](docs/epistemology-framework.md) · [Wire your own skills and agents →](docs/skill-agent-integration.md)
+> **Beyond memory.** Paired with the `/reflect` ritual, ai-mem lets agents accumulate structured experience across tasks and projects — patterns that held, approaches that failed and why, decisions worth remembering. It's a knowledge base an agent queries deliberately, not a feed pushed into every prompt. [Read the framework docs →](docs/epistemology-framework.md) · [Wire your own skills and agents →](docs/skill-agent-integration.md)
 
 ## Workflow
 
@@ -40,7 +40,7 @@ python3 install.py
 | Tool | Description |
 |------|-------------|
 | `mem_add` | Store or update entries. Set `ttl_days` for automatic expiry. Set `type` for filtering (`feedback`, `project`, `reference`, `pattern`, `anti-pattern`). |
-| `mem_query` | Semantic search. Returns re-ranked results with scores. Optionally filter by `type` or `max_age_days`. |
+| `mem_query` | Semantic search. Returns results ordered by cosine similarity, with scores. Optionally filter by `type` or `max_age_days`. |
 | `mem_list` | List collections with counts, or list all entries in a specific collection. |
 | `mem_delete` | Delete entries by ID, or drop an entire collection. |
 | `mem_cleanup` | Remove expired (TTL) entries. Pass `stale_after_days` to prune entries not accessed within that window. |
@@ -65,16 +65,14 @@ The `SessionStart` hook injects the active collection on every session start.
 
 ## Lifecycle Hooks
 
-ai-mem registers four Claude Code hooks automatically during install:
+ai-mem registers two Claude Code hooks automatically during install:
 
 | Hook | Trigger | What it does |
 |------|---------|--------------|
-| `SessionStart` | Session opens | Injects `current_focus` + active collection routing |
-| `UserPromptSubmit` | Before each prompt | Anti-pattern warnings (always) + relevant memories when cosine score ≥ 0.3 |
-| `PreToolUse` | Before Write/Edit | Injects relevant past experiences for the file being touched |
+| `SessionStart` | Session opens | Announces the active collection (and, for a registered subagent, its own expert collection) — no memory content by default |
 | `PostToolUse` | After Write/Edit | Updates `last_accessed_at` and `access_count` on matched entries |
 
-**Context stays lean by design.** The `UserPromptSubmit` hook queries the active collection against each incoming prompt and injects only the top-3 relevant entries — never the full collection. A film-shoot prompt retrieves brand-voice context; a Kotlin bug prompt retrieves build conventions — automatically, from the same collection. This is the primary answer to context-bloat: not a global dump, but per-prompt semantic selection.
+**Pull, not push.** Earlier versions injected `current_focus` text, high-confidence entries, and even per-prompt semantic search results automatically. That got expensive and noisy — content unrelated to the task in hand was in context on every message. Now `SessionStart` only tells the agent *which* collection to use; retrieving anything from it is a deliberate `mem_query` or `mem_get` call the agent (or a skill like `/reflect`) makes on purpose. Set `session_start_verbose: true` in `agents.yaml` to opt back into the old push behavior — see `docs/hooks.md`.
 
 ## Confidence Lifecycle
 
@@ -85,10 +83,10 @@ Each entry carries a `confidence` score (0.0–1.0) that tracks its epistemic st
 | New entry | Starts at **0.7** — must earn its place |
 | `/reflect` confirms it was decisive | `mem_boost(delta=+0.1)` |
 | Dream cycle flags it as stale | `mem_boost(delta=-0.1)` |
-| `confidence > 0.9` + `access_count ≥ 3` | Injected at every session start as **[always-present]** |
+| `confidence > 0.9` + `access_count ≥ 3` + `boost_count ≥ 1` | Eligible for the **[available]** listing (id + title only, full text via `mem_get`) — shown when `session_start_verbose: true`, or on request |
 | `confidence < 0.3` | Flagged as decay candidate in `mem_dream` report |
 
-Retrieval uses ChromaDB's native cosine similarity. Confidence governs *which entries are always available*, not result ordering.
+Retrieval uses ChromaDB's native cosine similarity. Confidence governs *which entries qualify for `[available]`*, not result ordering.
 
 ## Typed Causal Edges
 
@@ -113,16 +111,23 @@ mem_edges(entry_id="pattern_abc", collection="repo.my-project")
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AI_MEM_PATH` | `~/.local/share/ai-mem` | Database and ranker weights location |
+| `AI_MEM_PATH` | `~/.local/share/ai-mem` | Database location |
 | `AI_MEM_WORKSPACE_ROOT` | unset (git-based detection) | Root directory used to name collections by folder structure instead of git remotes, e.g. `~/workspace` → `acme-project/filming` → `repo.acme-project.filming`. Set interactively during `install.py`, or manually in the `env` block of the `ai-mem` entry in `~/.claude.json`. |
 
-### Custom agents (`~/.config/ai-mem/agents.yaml`)
+### Wiring an agent into memory: `examples/agents/`, not a registry
 
-Register your own agents and tune hook parameters:
+Whether an agent uses ai-mem is decided per agent, by editing that agent's own prompt
+— not by listing it somewhere central. Copy `examples/agents/example-agent-with-memory.md`
+to `~/.claude/agents/<name>.md`, adapt it, and it pulls (`mem_query`) and stores
+(`mem_add`) on its own. See `docs/skill-agent-integration.md` for the full pattern.
+
+### Tuning hooks (`~/.config/ai-mem/agents.yaml`)
 
 ```yaml
 inject_agents:
-  - my-coding-agent       # subagents that receive ai-mem context even when spawned
+  - my-coding-agent       # let SessionStart's routing line name this custom agent's
+                           # own subagent.my-coding-agent collection (it still has to
+                           # query/write it itself — see examples/agents/ above)
 
 signatures:
   - name: my-coding-agent
@@ -130,8 +135,9 @@ signatures:
       - "unique phrase from the agent's system prompt"
 
 settings:
-  min_label_score: 0.50   # [0.0–1.0] posttool_hook label threshold
-  query_k: 5              # posttool_hook candidate count
+  min_label_score: 0.50          # [0.0–1.0] posttool_hook label threshold
+  query_k: 5                     # posttool_hook candidate count
+  session_start_verbose: false   # true restores focus text + [available] + deltas at session start
 ```
 
 Requires `pyyaml`: `pip install ai-mem[config]`. Falls back to defaults if absent.

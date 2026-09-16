@@ -1,101 +1,64 @@
 # Hook System
 
-ai-mem registers five Claude Code lifecycle hooks. All hooks are silent on failure (wrapped in try/except) so they never interrupt the session.
+ai-mem registers two Claude Code lifecycle hooks. Both are silent on failure (wrapped in try/except) so they never interrupt the session.
 
 ## SessionStart (`hook.py`)
 
 Fires at the start of every Claude Code session.
 
-**What it does:**
+**Default (pull-based):**
 1. Detects the repo context (git root + CLAUDE.md presence → collection name)
-2. Fetches `current_focus` entry from the repo collection and global collection
-3. Records a global injection stat (`record_injection`) regardless of whether focus was found
-4. If the repo collection is empty (count == 0) and global `injection_rate >= 0.60`, calls `_try_seed` to populate from CLAUDE.md H2 sections
-5. Prints `hookSpecificOutput` JSON with `additionalContext` containing focus entries + active collection routing hint
+2. Prints `hookSpecificOutput` JSON naming the active collection — and, inside a subagent whose type is registered for injection (see `agents.yaml`'s `inject_agents`), its own `subagent.<name>` expert collection
+3. No memory content is pushed. The agent decides when to pull — `mem_query`, `mem_get`, or the `[available]`-style listing a skill/agent prompt asks for explicitly.
 
-**Output format:**
+**Output format (default):**
 ```
 [ai-mem]
-[<scope_name> focus]
-<repo focus text>
-
-[global focus]
-<global focus text>
-
+Expert collection: "subagent.<name>". Store cross-project learnings there with collection="subagent.<name>".
 Active collection: "repo.<name>". Pass collection="repo.<name>" to mem_add and mem_query in this session.
 ```
+The expert-collection line only appears for a subagent whose type is registered to receive it. If there's no CLAUDE.md and no such subagent, the hook prints nothing.
+
+**Opt-in verbose mode:** set `session_start_verbose: true` under `settings:` in `~/.config/ai-mem/agents.yaml` to restore the pre-2026-09-16 push: `current_focus` text (repo + global + expert), the `[available]` high-confidence listing, expired-entry warnings, the entry-count delta since the last session, and git commits since the last session. See `agents.yaml.example`.
 
 If no parts are generated, the hook exits silently (no output).
 
-## SessionStop (`stop_hook.py`)
-
-Fires at the end of every Claude Code session.
-
-**What it does:**
-1. `_try_demote()` — silently runs MEMORY.md auto-demotion (see `memory_index.py`)
-2. Checks `git diff --name-only HEAD` for changed files
-3. If files changed: prints a reminder to update `current_focus` and exits with code 2 (signals Claude to show the message)
-
-Exit code 2 causes Claude Code to surface the reminder text to the agent.
-
-## UserPromptSubmit (`userprompt_hook.py`)
-
-Fires before each user prompt is processed.
-
-**Activation thresholds** (both must pass for a scope):
-- `labeled_count >= 10` — at least 10 labeled training examples in the buffer
-- `avg_top_3_score >= 0.55` — average score of top-3 results is high enough
-
-Checks global scope and repo scope independently; either qualifying triggers injection (OR logic).
-
-**What it does (when qualified):**
-1. Queries top-3 results from global + repo collections using the prompt text
-2. Formats results as `[collection score=X.XX] <text snippet (≤600 chars)>`
-3. Prints `hookSpecificOutput` JSON with `UserPromptSubmit` event
-4. Records injection stat
-
-**Constants:** `TOP_K = 3`, `MAX_CHARS_PER_HIT = 600`, `MIN_LABELED_EXAMPLES = 10`, `MIN_AVG_SCORE = 0.55`
-
-## PreToolUse (`pretool_hook.py`)
-
-Fires before each Write or Edit tool call. Injects relevant past experiences from memory to inform the upcoming file change.
-
-**What it does:**
-1. Extracts `file_path` from the tool input
-2. Queries top-2 results from global + repo collections using `"<ToolName> <filename> <path>"` as the query
-3. Prints `hookSpecificOutput` JSON with `PreToolUse` event and formatted results
-
-**Constants:** `TOP_K = 2`, `MAX_CHARS_PER_HIT = 500`
-
-Does not wrap the repo with BM25 — PreToolUse needs low latency, not high-precision retrieval.
-
 ## PostToolUse (`posttool_hook.py`)
 
-Fires after each Write or Edit tool call. Records a passive training signal for the ranker — no output to Claude.
+Fires after each Write or Edit tool call. Records a passive access signal — no output to Claude.
 
 **What it does:**
 1. Extracts `file_path` from the tool input
 2. Queries global + repo collections with `"<filename> <path>"` as the query
-3. `QueryMemoryUseCase` internally calls `TrackAccessUseCase`, setting `last_accessed_at = now` on matched entries
-4. Calls `train_step()` — matched entries get labeled positive in the 7-day access window
+3. `QueryMemoryUseCase` internally calls `TrackAccessUseCase`, setting `last_accessed_at` and incrementing `access_count` on matches above `min_label_score`
 
-**Why it matters:** Every file edit is implicit evidence that the matched memory entries were relevant. This feeds the ranker without any manual `mem_train` calls.
+**Why it matters:** Every file edit is implicit evidence that the matched memory entries were relevant, feeding the confidence lifecycle (see README's Confidence Lifecycle section) without any manual step.
 
 Does not wrap the repo with BM25 — the hook only needs semantic proximity, not high-precision ranking.
 
 ---
 
+## Retired hooks
+
+Two more hooks existed at various points and were removed because they pushed content rather than letting agents pull it:
+
+- **`UserPromptSubmit` (`userprompt_hook.py`)** — retired 2026-09-13. Ran a semantic query against every incoming prompt (up to 4 parallel lookups) and injected top-3 results once a ranker-confidence gate passed. Fired on every message, not once per session, so the token cost scaled with conversation length rather than with actual relevance.
+- **`PreToolUse` (`pretool_hook.py`)** — retired 2026-09-12. Injected top-2 results before every Write/Edit. Same problem: automatic push scaled with edit count.
+
+Both modules still exist in the repo (unwired) so pre-existing installations uninstall cleanly; `install.py` no longer registers either, and self-heals existing installs by removing their hook entries on re-run. See `<memory-entry>` and `<memory-entry>` in ai-mem's own memory for the full rationale.
+
+A `Stop` hook (`stop_hook.py`, MEMORY.md auto-demotion + a "update current_focus" reminder) is referenced in older design notes but was never wired into `install.py` and the module doesn't exist in this repo. `memory_index.py`'s auto-demotion logic is built but has no trigger.
+
+---
+
 ## Hook Registration
 
-Hooks are registered in `~/.claude/settings.json` by `install.py`. Each hook has a timeout (SessionStart: 10s, Stop: 10s, UserPromptSubmit: 8s, PreToolUse: 10s, PostToolUse: 10s).
+Hooks are registered in `~/.claude/settings.json` by `install.py`. Timeouts: SessionStart 10s, PostToolUse 10s.
 
 ```json
 {
   "hooks": {
     "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "python3 -m ai_mem.hook", "timeout": 10000}]}],
-    "Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "python3 -m ai_mem.stop_hook", "timeout": 10000}]}],
-    "UserPromptSubmit": [{"matcher": "", "hooks": [{"type": "command", "command": "python3 -m ai_mem.userprompt_hook", "timeout": 8000}]}],
-    "PreToolUse": [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "python3 -m ai_mem.pretool_hook", "timeout": 10000}]}],
     "PostToolUse": [{"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "python3 -m ai_mem.posttool_hook", "timeout": 10000}]}]
   }
 }

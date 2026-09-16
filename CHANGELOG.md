@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Breaking: SessionStart is pull-based by default
+
+`SessionStart` used to push `current_focus` text, the `[available]` high-confidence
+listing, expired-entry warnings, the entry-count delta, and recent git commits into
+every session automatically. It now prints only a one-line routing hint (the active
+collection, and a subagent's own `subagent.<name>` collection where applicable) —
+retrieving anything else is a deliberate `mem_query`/`mem_get` call the agent makes.
+
+**To restore the old behavior:** set `session_start_verbose: true` under `settings:`
+in `~/.config/ai-mem/agents.yaml` (see `agents.yaml.example`).
+
+This pairs with the `UserPromptSubmit`/`PreToolUse` push hooks retired earlier
+(2026-09-12/13, see `docs/hooks.md`) — SessionStart was the last remaining hook that
+pushed memory *content* rather than routing.
+
+`~/.config/ai-mem/agents.yaml`'s `inject_agents` no longer implies "this agent should
+receive ai-mem content" — it only lets SessionStart's routing line recognize a custom
+agent type and name its collection. Whether an agent actually uses ai-mem is now
+decided per agent, in the agent's own prompt — see `examples/agents/`.
+
 ### Breaking: boost_count gate for [always-present] (commit 2088853)
 
 Entries injected proactively at every session start (`[always-present]`) now require:

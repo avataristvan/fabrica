@@ -11,7 +11,7 @@ DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / 
 
 # Module-level imports for patchability in tests (same pattern as posttool_hook.py).
 try:
-    from ai_mem.agent_context import detect_for_session_start, write_to_env_file
+    from ai_mem.agent_context import _CONFIG_PATH, _load_settings, detect_for_session_start, write_to_env_file
     from ai_mem.application.get_memory import GetMemoryUseCase
     from ai_mem.application.list_collections import ListCollectionsUseCase
     from ai_mem.application.list_entries import title_of
@@ -19,6 +19,8 @@ try:
     from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION, detect_repo_context
     from ai_mem.session_stats import record_injection
 except ImportError:
+    _CONFIG_PATH = None  # type: ignore[assignment]
+    _load_settings = None  # type: ignore[assignment]
     detect_for_session_start = None  # type: ignore[assignment]
     write_to_env_file = None  # type: ignore[assignment]
     GetMemoryUseCase = None  # type: ignore[assignment]
@@ -31,6 +33,12 @@ except ImportError:
     record_injection = None  # type: ignore[assignment]
 
 FOCUS_ID = "current_focus"
+# Pull-based by default (2026-09-16): SessionStart only announces the active collection
+# so agents fetch context deliberately via mem_query instead of receiving an automatic
+# push of focus text, high-confidence entries, and session deltas on every launch. Set
+# session_start_verbose: true in ~/.config/ai-mem/agents.yaml to restore the old push
+# behavior for a workflow that wants it.
+_SETTING_VERBOSE = "session_start_verbose"
 _STATS_PATH = DB_PATH / "session_stats.json"
 _SESSION_START_FILE = DB_PATH / "session_start.txt"
 _PREV_SESSION_MAX_AGE_DAYS = 7
@@ -177,8 +185,43 @@ def main():
     except Exception:
         pass
 
+    verbose = False
+    try:
+        verbose = bool(_load_settings(_CONFIG_PATH).get(_SETTING_VERBOSE, False))
+    except Exception:
+        pass
+
     try:
         ctx = detect_repo_context()
+
+        parts = []
+
+        # Minimal, always-on routing info: which collection this session writes to.
+        # No memory content is pushed here — the agent pulls content itself via mem_query.
+        expert_collection: str | None = f"subagent.{agent_type}" if agent_type else None
+        if expert_collection:
+            parts.append(
+                f'Expert collection: "{expert_collection}". '
+                f'Store cross-project learnings there with collection="{expert_collection}".'
+            )
+        if ctx.has_claude_md:
+            parts.append(
+                f'Active collection: "{ctx.collection}". '
+                f'Pass collection="{ctx.collection}" to mem_add and mem_query in this session.'
+            )
+
+        if not verbose:
+            if not parts:
+                return
+            output = {
+                "hookSpecificOutput": {
+                    "hookEventName": "SessionStart",
+                    "additionalContext": "[ai-mem]\n" + "\n".join(parts),
+                }
+            }
+            print(json.dumps(output))
+            return
+
         repo = ChromaMemoryRepository(DB_PATH)
         get_memory = GetMemoryUseCase(repo)
 
@@ -194,10 +237,8 @@ def main():
         global_focus = _focus_text(get_memory, GLOBAL_COLLECTION)
 
         expert_focus: str | None = None
-        expert_collection: str | None = None
         expert_entries: list = []
         if agent_type:
-            expert_collection = f"subagent.{agent_type}"
             expert_focus = _focus_text(get_memory, expert_collection)
             _query = repo_focus or f"{ctx.collection} patterns and best practices"
             try:
@@ -211,7 +252,6 @@ def main():
         except Exception:
             pass
 
-        parts = []
         if repo_focus:
             # scope_name is None when CLAUDE.md sits at the workspace root itself
             # (collection falls back to WORKSPACE_COLLECTION); fall back to the
@@ -229,11 +269,6 @@ def main():
                     f"- {_truncate(entry.text, 200)}" for entry in expert_entries
                 )
             parts.append(block)
-        if expert_collection:
-            parts.append(
-                f'Expert collection: "subagent.{agent_type}". '
-                f'Store cross-project learnings there with collection="subagent.{agent_type}".'
-            )
         _hc_exclude = {FOCUS_ID}
         if ctx.has_claude_md:
             _hc_entries = _high_confidence_entries(repo, ctx.collection, _hc_exclude)
@@ -268,13 +303,8 @@ def main():
                 _exp_lines.append(f"⏰ {entry.id}: \"{preview}\" (expired {exp_date})")
             parts.append("[ai-mem expired]\n" + "\n".join(_exp_lines))
 
-        if ctx.has_claude_md:
-            parts.append(
-                f'Active collection: "{ctx.collection}". '
-                f'Pass collection="{ctx.collection}" to mem_add and mem_query in this session.'
-            )
-            if not repo_focus:
-                parts.append("No focus entry found. Add one via mem_add with id=\"current_focus\".")
+        if ctx.has_claude_md and not repo_focus:
+            parts.append("No focus entry found. Add one via mem_add with id=\"current_focus\".")
 
         delta = _session_delta(DB_PATH, current_count)
         if delta is not None:

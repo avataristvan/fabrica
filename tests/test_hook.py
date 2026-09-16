@@ -66,6 +66,7 @@ def _run_main(
     expired_entries_by_collection: dict[str, list] | None = None,
     has_claude_md: bool = False,
     scope_name: str = "test",
+    verbose: bool = True,
 ) -> str:
     """Run hook.main() with mocked dependencies; return captured stdout.
 
@@ -87,6 +88,10 @@ def _run_main(
     [available] call from the separate, unconditional GLOBAL_COLLECTION
     [available: global] call. Takes precedence over the flat
     `high_confidence_entries` when given.
+
+    verbose: patches _load_settings to control session_start_verbose (default True,
+    matching the pre-2026-09-16 push behavior these tests were written against). Pass
+    False to exercise the new pull-based default (routing lines only, no content).
     """
     if high_confidence_entries_by_collection is not None:
         def fake_high_confidence_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
@@ -136,6 +141,7 @@ def _run_main(
         patch.object(hook, "ListCollectionsUseCase", mock_list_uc),
         patch.object(hook, "_high_confidence_entries", side_effect=fake_high_confidence_entries),
         patch.object(hook, "_expired_entries", side_effect=fake_expired_entries),
+        patch.object(hook, "_load_settings", return_value={"session_start_verbose": verbose}),
     ):
         tmp_path.mkdir(parents=True, exist_ok=True)
         captured: list[str] = []
@@ -725,3 +731,79 @@ def test_always_present_text_truncated_to_title_length(tmp_path: Path) -> None:
     assert "pattern_long" in ctx
     assert "B" * 80 in ctx
     assert "mem_get" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Pull-based default (2026-09-16): session_start_verbose defaults to False,
+# so SessionStart announces routing only -- no focus text, [available] lists,
+# expired warnings, session deltas, or git commits get pushed automatically.
+# ---------------------------------------------------------------------------
+
+def test_default_is_non_verbose_routing_only(tmp_path: Path) -> None:
+    """With no agents.yaml override, only the Active collection line appears --
+    focus text and [available] entries, though present in the mocked data, are
+    never pulled into the output."""
+    entry = _make_mem_entry("pattern_x", "some pattern")
+    out = _run_main(
+        tmp_path,
+        focus_map={"repo.ai-mem": "repo focus text", "global": "global focus text"},
+        repo_collection="repo.ai-mem",
+        has_claude_md=True,
+        high_confidence_entries=[entry],
+        verbose=False,
+    )
+
+    parsed = json.loads(out)
+    ctx = parsed["hookSpecificOutput"]["additionalContext"]
+    assert 'Active collection: "repo.ai-mem"' in ctx
+    assert "repo focus text" not in ctx
+    assert "global focus text" not in ctx
+    assert "[available]" not in ctx
+    assert "focus]" not in ctx
+
+
+def test_non_verbose_still_names_expert_collection(tmp_path: Path) -> None:
+    """Routing to a subagent's own collection is not "content" -- it's the wiring a
+    self-directed agent needs to store its own learnings, so it stays on by default."""
+    out = _run_main(
+        tmp_path,
+        agent_type="the-coder",
+        repo_collection="repo.ai-mem",
+        has_claude_md=True,
+        verbose=False,
+    )
+
+    parsed = json.loads(out)
+    ctx = parsed["hookSpecificOutput"]["additionalContext"]
+    assert 'Expert collection: "subagent.the-coder"' in ctx
+    assert "expertise" not in ctx
+    assert "Relevant past learnings" not in ctx
+
+
+def test_non_verbose_silent_when_no_claude_md_and_no_agent_type(tmp_path: Path) -> None:
+    """No routing to announce and no subagent collection -> nothing is printed at all,
+    matching the silent-on-failure convention other hooks follow."""
+    out = _run_main(
+        tmp_path,
+        agent_type=None,
+        has_claude_md=False,
+        verbose=False,
+    )
+
+    assert out == ""
+
+
+def test_verbose_true_restores_full_push_behavior(tmp_path: Path) -> None:
+    """session_start_verbose: true in agents.yaml opts back into the pre-2026-09-16
+    behavior -- focus text included -- for workflows that want the push."""
+    out = _run_main(
+        tmp_path,
+        focus_map={"repo.ai-mem": "repo focus text"},
+        repo_collection="repo.ai-mem",
+        has_claude_md=True,
+        verbose=True,
+    )
+
+    parsed = json.loads(out)
+    ctx = parsed["hookSpecificOutput"]["additionalContext"]
+    assert "repo focus text" in ctx

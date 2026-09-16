@@ -34,7 +34,7 @@ Work
       ↓
 Session Close → mem_add (store transferable learnings)
       ↓
-/reflect → mem_train (label training examples from commits)
+/reflect → mem_boost (confirm what was decisive) / mem_link (connect to related entries)
 ```
 
 ---
@@ -90,7 +90,12 @@ Skip if nothing transferable happened.
 
 ## The Agent Pattern
 
-Agents start cold — no SessionStart injection, no conversation history. Compensate by querying the expert collection explicitly at task start, and writing back at task end.
+Agents start cold — no conversation history, and (by default) no memory content
+pushed at session start either. If the agent's type is registered in `agents.yaml`'s
+`inject_agents`, SessionStart names its `subagent.<name>` collection in a one-line
+routing hint — but pulling anything from it, and writing anything back, is the agent's
+own explicit `mem_query`/`mem_add` call. Compensate by wiring both into the agent's own
+prompt.
 
 **Minimal agent template** (add to `~/.claude/agents/<name>.md`):
 
@@ -132,6 +137,8 @@ mem_add(
 Skip if the session was project-specific with nothing transferable.
 ```
 
+**Reference implementation (shipped with this repo):** `examples/agents/example-agent-with-memory.md` — copy it to `~/.claude/agents/<name>.md`, rename, and fill in the actual job.
+
 **The `[retro]` block convention**
 
 When the orchestrator spawns an agent for a non-trivial task, it should request a `[retro]` block at the end of the agent's response:
@@ -146,7 +153,10 @@ next: <Vorschlag für nächstes Todo — oder "nothing">
 
 The orchestrator reads this block during /reflect (Step 4.5A) and decides whether learnings belong in the agent's expert collection.
 
-**Reference implementation:** `~/.claude/agents/the-coder.md`
+This convention is orthogonal to the memory sections above — a `[retro]` block is a
+fallback the orchestrator can request from *any* spawned agent, memory-wired or not;
+`examples/agents/example-agent-with-memory.md` doesn't include one by default since it
+already writes its own learnings directly via `mem_add`.
 
 ---
 
@@ -176,7 +186,7 @@ The orchestrator reads this block during /reflect (Step 4.5A) and decides whethe
 
 `python3 install.py` registers:
 - The MCP server (makes `mem_add`, `mem_query`, etc. available as tools)
-- SessionStart, UserPromptSubmit, PreToolUse, PostToolUse hooks
+- SessionStart (routing only by default, see `docs/hooks.md`) and PostToolUse hooks
 - `/mem-init` and `/reflect` commands
 
-It does **not** set up your skills or agents — those are local configuration that you own and maintain separately.
+It does **not** set up your skills or agents — those are local configuration that you own and maintain separately. `examples/agents/` and `skills/examples/` ship starting points to copy, not files installed automatically.

@@ -30,5 +30,7 @@ description: "One-line description shown in /help"
 Instructions for the agent...
 ```
 
-Skills can call any ai-mem MCP tool (`mem_add`, `mem_query`, `mem_train`, etc.).
+Skills can call any ai-mem MCP tool (`mem_add`, `mem_query`, `mem_get`, `mem_dream`, etc.).
 Use the active collection from the session context rather than hardcoding one.
+
+See `examples/agents/` for the equivalent pattern applied to subagents.
