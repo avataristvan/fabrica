@@ -31,17 +31,19 @@ The optional `type` metadata field on `mem_add` tags an entry for filtering (`me
 
 ## Special Entries
 
-- **`current_focus`** (id `"current_focus"`) — primary context entry per collection; the SessionStart hook injects it as `[scope focus]` text
-- The Stop hook reminds the agent to update `current_focus` whenever files changed during the session
+- **`current_focus`** (id `"current_focus"`) — primary context entry per collection. `SessionStart` no longer pushes its text by default (see `docs/hooks.md`) — an agent pulls it with `mem_get(ids=["current_focus"], collection=...)`, or it's shown as `[scope focus]` text when `session_start_verbose: true`.
+- Nothing currently reminds the agent to update `current_focus` automatically — that reminder used to come from a `Stop` hook that was never actually wired into `install.py` (the module doesn't exist in this repo). `/reflect` Step 5 is the place this happens today.
 
 ## Collection Lifecycle
 
-### First Session (auto-seed)
-When a `repo.*` collection is empty on SessionStart and the global `injection_rate >= 0.60`:
-1. `repo_seeder.py` reads CLAUDE.md from the git root
-2. Splits it into H2 sections (`## ` headings only; H1 intro excluded)
-3. Stores each section as `seed_<slug>` entry with `seeded_from: "CLAUDE.md"` metadata
-4. Gate ensures seeding only activates once memories are actually being used (not on day 1)
+### First Session (agent-driven seeding)
+Run `/mem-init` in a project to seed its `repo.*` collection: the agent explores the
+codebase (not just CLAUDE.md) and writes down what actually matters, deciding entry
+boundaries and types itself rather than mechanically splitting CLAUDE.md's H2 sections.
+This replaced an earlier automatic seeder (`repo_seeder.py`, removed) that split
+CLAUDE.md by heading once a global usage-rate threshold was crossed — agent-driven
+exploration produces better-scoped entries than a fixed heading split, and doesn't
+depend on an unrelated global stat to decide when to run.
 
 ### TTL Expiry
 Set `ttl_days` on `mem_add` to auto-expire entries. `mem_cleanup` removes expired entries.

@@ -45,7 +45,7 @@ Universal memory infrastructure, not Claude-specific. Backend: Supabase (Postgre
 |---|---|---|---|---|---|
 | Vector store | ChromaDB | ChromaDB (pluggable) | ChromaDB + SQLite | SQLite-vec / Milvus | PostgreSQL + pgvector |
 | Hybrid retrieval | BM25 + cosine | Vector + keyword + temporal | FTS5 + cosine | RRF (BM25 + vector) | Vector only |
-| Confidence lifecycle | confidence 0.0–1.0, [always-present] gate, dream decay | — | — | — | — |
+| Confidence lifecycle | confidence 0.0–1.0, [available] gate, dream decay | — | — | — | — |
 | Lifecycle hooks | 5 (incl. PostToolUse) | 2 | 5 | Plugin hooks (dev) | — |
 | Consolidation | mem_dream (Claude API) | — | AI compression | Local LLM | — |
 | Memory hierarchy | global → workspace → repo | Wings > Rooms > Drawers | Session-centric | tags/entities | Table schema |

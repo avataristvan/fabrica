@@ -33,10 +33,7 @@ python -m pytest tests/test_session_stats.py -v  # single file
 
 Test fixtures are in `tests/conftest.py`. Infrastructure tests use a real ChromaDB instance in a temp directory.
 
-## Test Counts (as of 2026-05-11)
-
-- Total: 188 tests, all green
-- New modules: posttool_hook (15), edges application (11), edges infra (6)
+Run the count yourself rather than trusting a number here — it drifts with every change: `python -m pytest tests/ -q | tail -1`.
 
 ## Working with Typed Edges
 
@@ -60,26 +57,24 @@ During `mem_query`, matched entries automatically surface their linked targets (
 
 - All timestamps stored as Unix float in ChromaDB metadata: `created_at`, `expires_at`, `last_accessed_at`, `access_count`
 - `mem_delete` with no `ids` returns `-1` (signals full collection drop, not count)
-- `_FETCH_K = 50` in `QueryMemoryUseCase` — hardcoded over-fetch before re-ranking
-- `RankingFeatures` is frozen: all derived values computed in `as_vector()`, raw fields are immutable
-- `RankerScope` validates its own invariants in `__post_init__`
-- `NullRanker` is the zero-dependency fallback — must not import torch
+- `QueryMemoryUseCase` returns results in ChromaDB's native cosine order — no re-ranking step, no over-fetch
 - Edges are stored as JSON-string in ChromaDB metadata (`edges` field). `_parse_edges()` in `chroma_repository.py` always returns `[]` on parse error.
+
+No ML ranker remains in the codebase (removed 2026-06) — no `RankingFeatures`, `RankerScope`, `NullRanker`, or ranker config file.
 
 ## Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `AI_MEM_PATH` | `~/.local/share/ai-mem` | Database + ranker weights location |
-
-Optional `{AI_MEM_PATH}/ranker_config.json` configures hybrid ranker groups. Restart the MCP server after editing.
+| `AI_MEM_PATH` | `~/.local/share/ai-mem` | Database location |
 
 ## Install / Registration
 
 ```bash
-python3 install.py   # registers MCP server + hooks in ~/.claude/settings.json
-pip install -e .     # editable install (no ML)
-pip install -e ".[ml]"  # with PyTorch re-ranker
+python3 install.py          # registers MCP server + hooks in ~/.claude/settings.json
+pip install -e .            # editable install (no BM25 hybrid search)
+pip install -e ".[hybrid]"  # with BM25 hybrid search (rank_bm25)
+pip install -e ".[config]"  # with pyyaml for agents.yaml support
 ```
 
 ## Module Entry Points
@@ -87,8 +82,9 @@ pip install -e ".[ml]"  # with PyTorch re-ranker
 ```bash
 python3 -m ai_mem.server          # MCP server (stdio)
 python3 -m ai_mem.hook            # SessionStart hook
-python3 -m ai_mem.stop_hook       # Stop hook
-python3 -m ai_mem.userprompt_hook # UserPromptSubmit hook
-python3 -m ai_mem.pretool_hook    # PreToolUse hook (pipe JSON payload on stdin)
 python3 -m ai_mem.posttool_hook   # PostToolUse hook (pipe JSON payload on stdin)
 ```
+
+`userprompt_hook.py` and `pretool_hook.py` still exist and remain directly runnable
+(`python3 -m ai_mem.userprompt_hook` / `.pretool_hook`), but `install.py` no longer
+registers either — see `docs/hooks.md` for why. There is no `stop_hook.py` module.

@@ -50,31 +50,23 @@ This is the input side. Raw experience becomes structured entries.
 The tool provides reliable storage and retrieval:
 
 - **ChromaDB** for semantic vector search
-- **BM25 hybrid layer** (optional) — fuses cosine + BM25 scores over 50 candidates
-- **Adaptive MLP re-ranker** `[10→32→16→1]` that learns from access patterns over time
+- **BM25 hybrid layer** (optional) — fuses cosine + BM25 scores
+- **Confidence lifecycle** — every entry carries a `confidence` score (starts at 0.7); `/reflect` boosts entries that were decisive, decays ones that turned out stale (see `docs/reranking.md`)
 - **TTL + forgetting curve** — `mem_cleanup` with `stale_after_days` removes entries not accessed within a window
-- **Typed entries** (`feedback`, `project`, `reference`, `user`, `pattern`, `anti-pattern`) for filtered retrieval
+- **Typed entries** (`feedback`, `project`, `reference`, `user`, `pattern`, `anti-pattern`, `dilemma`, `domain`) for filtered retrieval
 - **Typed causal edges** — directional relationships between entries (`contradicts`, `fixes`, `causes`, `related`)
 
-The re-ranker is the implicit learning signal: entries that get retrieved and accessed again within a 7-day window receive a positive label. BCE loss + 0.3× contrastive loss. No explicit feedback labels needed. Without PyTorch, the system falls back to cosine ranking.
+An earlier version of this pillar included an adaptive MLP re-ranker that learned from access patterns; it was removed in 2026-06 (see CLAUDE.md's Critical Invariants) in favor of ChromaDB's native cosine ordering plus the confidence lifecycle above — simpler, no training step, no PyTorch dependency.
 
-**Split-hint detection** is also code-backed: entries with `access_count ≥ 5` and `text ≥ 150 chars` are flagged in every `mem_query` response as candidates for splitting.
+**Split-hint detection** is also code-backed: entries with `access_count ≥ 5` and `text ≥ 500 chars` (or carrying structural markers — multiple headers, multiple `Tried:` blocks, a long numbered list) are flagged in every `mem_query` response as candidates for splitting.
 
-#### Lean Context by Design — Automatic Injection
+#### Lean Context by Design — Pull, Not Push
 
-Context bloat is the primary failure mode for memory-augmented agents: dumping the full collection into every prompt drowns the signal in noise. ai-mem solves this at the hook level, not the agent level.
+Context bloat is the primary failure mode for memory-augmented agents: dumping the full collection into every prompt drowns the signal in noise. ai-mem's answer to this changed shape over time.
 
-The `UserPromptSubmit` hook runs before every prompt and queries the active collection semantically against the incoming message. It injects only the **top-3 relevant entries** — never the full collection. A film-shoot prompt retrieves brand-voice context; a Kotlin bug prompt retrieves build conventions. Same collection, different selection, every time.
+An earlier version solved it at the hook level: a `UserPromptSubmit` hook queried the active collection against every incoming prompt and injected the top-3 relevant entries, gated by a ranker-confidence threshold. That hook (and a `PreToolUse` counterpart that did the same before every file edit) was retired in 2026-09 — see `docs/hooks.md` — because firing on every message or every edit meant the token cost scaled with conversation length or edit count, not with actual relevance, regardless of how tight the per-call selection was.
 
-Two injection paths run independently:
-
-1. **Anti-pattern early warning** — fires unconditionally whenever a repo collection exists. Queries `type="anti-pattern"` at a high-recall threshold (`score ≥ 0.4`). Missing a warning is worse than a false alarm. Output: `[ai-mem warnings]` block with `⚠` prefix, prepended before the regular context block. Bypasses the ranker gate entirely.
-
-2. **Context injection** — fires once the ranker is calibrated (≥10 labeled examples, avg score ≥ 0.55). Injects the top-3 semantically relevant entries from the active collection.
-
-**What the code does:** `userprompt_hook.py` runs both paths on every `UserPromptSubmit` event. The ranker gate on path 2 prevents low-quality injections during early sessions before enough signal has accumulated. The anti-pattern path has no gate — warnings are always relevant.
-
-This is the primary answer to context-bloat: not summarization, not compression, but per-prompt semantic selection at the hook level before the agent sees the message.
+The current answer is pull, not push: `SessionStart` announces which collection to use (a one-line routing hint, no content), and the agent decides when to query it — `mem_query` for a semantic search, `mem_get` for a known id. The selection discipline (top-k, never the full collection) still applies to every `mem_query` call; what changed is *who decides to call it*, not how tightly the results are scoped once called.
 
 #### Typed Causal Edges — Knowledge as a Graph
 
@@ -134,7 +126,7 @@ Periodically (currently triggered manually by the Navigator), the Dreaming Agent
 
 - It does not split large entries — splitting is a separate tool (`mem_split`) triggered independently
 
-**Trigger placement:** `mem_dream` is invoked as part of the `/reflect` ritual (convention), not via a hook. Hook-based auto-triggering would fire for every subagent session, not just the orchestrator — the same structural problem that caused the Stop-hook to be retired. Keeping the trigger in `/reflect` ensures it runs exactly once per task cycle, always at the orchestrator level, always deliberately.
+**Trigger placement:** `mem_dream` is invoked as part of the `/reflect` ritual (convention), not via a hook. Hook-based auto-triggering would fire for every subagent session, not just the orchestrator — the same class of problem that got the `UserPromptSubmit`/`PreToolUse` push hooks retired (see `docs/hooks.md`). Keeping the trigger in `/reflect` ensures it runs exactly once per task cycle, always at the orchestrator level, always deliberately.
 
 **Upward propagation** is handled during the same Step 6 of `/reflect`. When `mem_dream` runs in `hier` mode it sees all collections simultaneously. ADD proposals that target a higher-level collection than their source (e.g. a `repo.*` pattern proposed for `workspace`) are surfaced as propagation candidates. The Orchestrator confirms; `mem_add` copies the entry into the target collection. The source entry is kept — propagation copies upward, it does not move. This keeps the decision in the agent's judgment rather than in code, consistent with the rest of the convention layer.
 
@@ -164,7 +156,7 @@ global
         └── [expert agents]  (cross-project — convention only, no schema enforcement)
 ```
 
-The `subagent` level and `expert.*` collections can be created manually by naming them accordingly. The `SessionStart` hook (`hook.py`) injects the active repo collection and `current_focus`; it also detects whether it is running inside a subagent via `agent_context.py`, but does not automatically create a separate subagent-scoped collection.
+The `subagent` level and `expert.*` collections can be created manually by naming them accordingly. The `SessionStart` hook (`hook.py`) names the active repo collection (and a registered subagent's own collection); by default it does not push `current_focus` text — an agent pulls it with `mem_get`. It also detects whether it is running inside a subagent via `agent_context.py`, but does not automatically create a separate subagent-scoped collection.
 
 A learning starts at the level where it was experienced. Upward propagation — from `repo.*` to `workspace` to `global` — is a design goal; the Dreaming Agent currently identifies candidates but does not execute the cross-collection move.
 
@@ -184,7 +176,7 @@ The progression:
 | Mid-level | Memory of what was done |
 | Senior | Memory of what worked, what failed, and in which context — organized by the Dreaming Agent |
 
-The key distinction from simple retrieval systems: a senior does not just remember more — they remember *better organized* knowledge. The re-ranker + Dreaming Agent provide that organization over time.
+The key distinction from simple retrieval systems: a senior does not just remember more — they remember *better organized* knowledge. The confidence lifecycle + Dreaming Agent provide that organization over time.
 
 ---
 
@@ -238,10 +230,10 @@ Task
        mem_add
      (feedback / antipattern / project / current_focus)
           ↓
-     Reranker learns from access patterns  [code, implicit]
+     PostToolUse tracks access_count       [code, implicit]
           ↓
-   /reflect Step 3.5: git-commit check     [convention]
-     → mem_train (explicit outcome signal)
+   /reflect Step 3.1/3.5: confidence check [convention]
+     → mem_boost (explicit outcome signal)
           ↓
    /reflect Step 6: mem_dream hier         [convention]
      → compresses, merges, deletes
@@ -265,11 +257,11 @@ A full competitive analysis (MemPalace, claude-mem, mcp-memory-service, OB1) is 
 | Dimension | OB1 + OpenClaw | ai-mem framework |
 |---|---|---|
 | Who drives memory? | The user (weekly review, manual capture) | The agent (Taskly after every task) |
-| Feedback loop | None — capture only | Reranker (implicit) + Taskly (explicit) |
+| Feedback loop | None — capture only | Confidence lifecycle (implicit) + Taskly (explicit) |
 | Consolidation | None | Dreaming Agent (manual trigger today, auto-trigger planned) |
 | Knowledge hierarchy | Flat collections | global → workspace → repo (subagent: convention) |
 | Expert agents | Not modeled | Convention-based pattern, no code schema |
-| Junior → Senior effect | Not achievable structurally | Built into the loop (reranker + dream) |
+| Junior → Senior effect | Not achievable structurally | Built into the loop (confidence lifecycle + dream) |
 
 OB1 is a **capture tool**. The ai-mem framework is a **learning system**. The difference is not the storage backend — it is whether there is a feedback loop that closes.
 
@@ -291,19 +283,20 @@ The framework is epistemological: it concerns how knowledge is acquired and stru
 |---|---|
 | ChromaDB storage, TTL, typed entries | Implemented |
 | BM25 hybrid retrieval | Implemented |
-| Adaptive MLP re-ranker (`[10→32→16→1]`) | Implemented |
+| Adaptive MLP re-ranker (`[10→32→16→1]`) | Removed 2026-06 — replaced by the confidence lifecycle below |
+| Confidence lifecycle (`mem_boost`, `[available]` gate) | Implemented |
 | Typed causal edges (`mem_link`, `mem_edges`) | Implemented |
-| PostToolUse passive training signal | Implemented |
+| PostToolUse passive access-count signal | Implemented |
+| `SessionStart` push (focus text, `[available]`, deltas, git commits) | Opt-in (`session_start_verbose: true`) — routing-only by default since 2026-09-16 |
+| `UserPromptSubmit` / `PreToolUse` push hooks | Removed 2026-09 — see `docs/hooks.md` |
 | Split-hint detection | Implemented |
 | `mem_split` (manual) | Implemented |
 | `mem_dream` (manual trigger) | Implemented |
-| Outcome signal via git-commit in `/reflect` Step 3.5 | Convention — `mem_train` triggered when session produced a commit |
-| Explicit `label=1.0` per injected entry in `mem_train` | Planned code extension |
+| Outcome signal via `/reflect` Step 3.1 | Convention — `mem_boost` on entries confirmed decisive |
 | `mem_dream` trigger via `/reflect` ritual | Convention (by design — hook placement causes subagent chain problem) |
 | Upward propagation via `/reflect` Step 6 | Convention — `mem_dream hier` surfaces candidates, Orchestrator confirms |
-| Auto-split via Stop-hook | Planned |
 | `/reflect` Taskly ritual | Convention (Skill prompt) |
 | `[retro]` block parsing | Convention (LLM reasoning) |
 | Orchestrator-only write constraint | Convention |
-| Expert-agent collection schema | Convention |
-| `subagent.*` auto-detection | Not implemented |
+| Expert-agent collection schema, wiring | Convention — see `examples/agents/` for a starting template |
+| `subagent.*` auto-detection | Not implemented (transcript-signature matching via `agents.yaml` gets a custom agent type recognized, not the collection itself) |
