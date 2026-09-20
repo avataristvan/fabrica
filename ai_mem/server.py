@@ -216,8 +216,12 @@ async def list_tools() -> list[types.Tool]:
                 "Modes: 'single-haiku', 'single-sonnet', 'hier' (Haiku fast pass → Sonnet synthesis, default), "
                 "'team' (4-turn Haiku↔Sonnet exchange). "
                 "Invoked via the claude CLI — no API key required. "
-                "Returns a structured diff proposal. Set 'auto_delete' to true to automatically "
-                "execute DELETE actions identified by the synthesis. "
+                "Returns a structured diff proposal (UPDATE, MERGE, DELETE, ADD, SPLIT, LINK, SUPERSEDE). "
+                "Set 'auto_delete' to true to automatically execute DELETE actions, 'auto_link' to "
+                "create the proposed LINK edges, and 'auto_supersede' to apply SUPERSEDE actions "
+                "(flags the old entry, keeps it readable). Actions that cannot be applied are listed "
+                "with their reason. MERGE proposals that conflict with a 'contradicts' or 'supersedes' "
+                "edge are flagged in the report. "
                 "Use 'focus_hint' to steer consolidation — e.g. for expert collections: "
                 "'These are cross-project learnings. Flag entries too project-specific to be worth keeping.'"
             ),
@@ -235,6 +239,16 @@ async def list_tools() -> list[types.Tool]:
                         "type": "boolean",
                         "default": False,
                         "description": "Automatically delete entries identified as safe to remove",
+                    },
+                    "auto_link": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Automatically create the edges proposed by LINK actions",
+                    },
+                    "auto_supersede": {
+                        "type": "boolean",
+                        "default": False,
+                        "description": "Automatically apply SUPERSEDE actions (old entry is flagged, not deleted)",
                     },
                     "focus_hint": {
                         "type": "string",
@@ -526,7 +540,11 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         col_arg = arguments.get("collection") or None
         auto_delete = bool(arguments.get("auto_delete", False))
         focus_hint = arguments.get("focus_hint") or None
-        result = await asyncio.to_thread(_dream.execute, col_arg, mode, auto_delete, focus_hint)
+        result = await asyncio.to_thread(
+            _dream.execute, col_arg, mode, auto_delete, focus_hint,
+            auto_link=bool(arguments.get("auto_link", False)),
+            auto_supersede=bool(arguments.get("auto_supersede", False)),
+        )
         return [types.TextContent(type="text", text=result)]
 
     if name == "mem_split":

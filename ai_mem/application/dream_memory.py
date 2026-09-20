@@ -6,8 +6,10 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import get_args
 
-from ai_mem.domain.memory import MemoryEntry, MemoryRepository
+from ai_mem.application.add_edge import AddEdgeUseCase
+from ai_mem.domain.memory import EdgeType, MemoryEntry, MemoryRepository
 
 _DELETE_RE = re.compile(r"^\s*[-*•]\s+DELETE\s+(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
 _ADD_TARGET_RE = re.compile(
@@ -15,6 +17,16 @@ _ADD_TARGET_RE = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 _SPLIT_RE = re.compile(r"^\s*[-*•]\s+SPLIT\s+(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+_MERGE_RE = re.compile(r"^\s*[-*•]\s+MERGE\s+(\S+)\s*\+\s*(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+_LINK_RE = re.compile(
+    r"^\s*[-*•]\s+LINK\s+(\S+)\s*->\s*(\S+)\s+\[type=([^\]]+)\]\s*:",
+    re.MULTILINE | re.IGNORECASE,
+)
+_SUPERSEDE_RE = re.compile(r"^\s*[-*•]\s+SUPERSEDE\s+(\S+)\s*->\s*(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+
+# LINK covers the relational edge types. Derived from EdgeType so a new type cannot drift out of
+# sync; 'supersedes' has its own action (SUPERSEDE) because it also flags its target.
+_LINK_EDGE_TYPES = tuple(edge_type for edge_type in get_args(EdgeType) if edge_type != "supersedes")
 
 MODELS = {
     "haiku": "haiku",
@@ -40,6 +52,12 @@ knowledge and coding technique are different axes even when they discuss the sam
 Avoid DELETE or MERGE unless clearly redundant.
 - If two entries share an edge, the edge makes both necessary. \
 Verify the relationship before proposing structural changes.
+- If two related entries have no edge yet, propose LINK to document the relationship explicitly \
+instead of leaving it implicit. Prefer LINK over MERGE when the entries have different types or \
+already share an edge.
+- When an entry has been overtaken by a newer entry that exists on its own (a decision reversed, a \
+fact replaced), propose SUPERSEDE <new-id> -> <old-id> instead of DELETE or MERGE: the old entry \
+stays readable as history and is flagged. Both entries must be in the same collection.
 - Exception: a 'supersedes' edge marks its target as overtaken (shown as superseded_by=<id> on the \
 target). That target is protected neither by the edge nor by access_count. Propose DELETE only if \
 the successor already carries the full rationale; otherwise leave it as history, or propose an \
@@ -58,18 +76,27 @@ COLLECTION HIERARCHY (lower → higher scope):
 A pattern documented in a repo collection that recurs across multiple projects belongs \
 in a higher-level collection. Use the target= field on ADD proposals to express this."""
 
-_ACTION_FORMAT = """\
+_ACTION_FORMAT = f"""\
 Format each action as:
 - UPDATE <id>: <what to change>
 - MERGE <id1> + <id2>: <into what>
 - DELETE <id>: <reason>
 - ADD <suggested-id> [target=<collection>]: <content summary>
 - SPLIT <id>: <list the sub-concept titles to split into>
+- LINK <source-id> -> <target-id> [type=<edge_type>]: <reason>
+  (edge_type: {" | ".join(_LINK_EDGE_TYPES)})
+- SUPERSEDE <new-id> -> <old-id>: <reason>
 
 For ADD, set target= to the collection where the entry belongs:
   - Same collection as the source entry if it is project-specific.
   - A higher-level collection (workspace or global) if the pattern applies broadly \
-across multiple projects — this flags it as a propagation candidate."""
+across multiple projects — this flags it as a propagation candidate.
+
+For LINK: use when two entries are related but must stay separate (e.g. an anti-pattern \
+contradicting a pattern, a fix addressing a cause). Source and target must be in the same collection.
+
+For SUPERSEDE: <new-id> replaces <old-id>; use it when the old entry is overtaken but its \
+reasoning is still worth reading. Both ids must be in the same collection."""
 
 _P_SINGLE = """\
 You are a memory consolidation agent. The memories below come from AI assistant sessions \
@@ -187,6 +214,69 @@ def _format_entries(entries: list[MemoryEntry]) -> str:
         )
         parts.append(f"[{entry.id}] (collection: {col}){meta_str}\n{entry.text}")
     return "\n\n---\n\n".join(parts) if parts else "(empty)"
+
+
+def _build_edge_index(entries: list[MemoryEntry]) -> dict[tuple[str, str], str]:
+    """Return {(source_id, target_id): edge_type} from the loaded entries' metadata.
+
+    A `superseded_by` flag also yields a (successor, entry) 'supersedes' pair, so the merge guard
+    still sees a supersession whose edge was never written (e.g. flagged by hand).
+    """
+    index: dict[tuple[str, str], str] = {}
+    for entry in entries:
+        try:
+            for edge in json.loads(entry.metadata.get("edges", "[]")):
+                index[(entry.id, edge["target_id"])] = edge["edge_type"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+        if successor := entry.metadata.get("superseded_by"):
+            index[(successor, entry.id)] = "supersedes"
+    return index
+
+
+def _check_merge_conflicts(synthesis: str, edge_index: dict[tuple[str, str], str]) -> list[str]:
+    """Warn about MERGE proposals whose two entries share a `contradicts` or `supersedes` edge."""
+    warnings = []
+    for match in _MERGE_RE.finditer(synthesis):
+        first, second = match.group(1), match.group(2)
+        edge_types = {edge_index.get((first, second)), edge_index.get((second, first))}
+        if "contradicts" in edge_types:
+            warnings.append(
+                f"⚠ MERGE {first} + {second} conflicts with an existing `contradicts` edge — "
+                f"use LINK to document the relationship instead."
+            )
+        elif "supersedes" in edge_types:
+            warnings.append(
+                f"⚠ MERGE {first} + {second}: one entry supersedes the other — merging would erase the "
+                f"history. Keep the old entry as flagged history, or DELETE it once the successor "
+                f"carries the full rationale."
+            )
+    return warnings
+
+
+def _parse_link_proposals(synthesis: str) -> list[tuple[str, str, str]]:
+    """Return (source_id, target_id, edge_type) for each LINK proposal in the synthesis."""
+    return [(m.group(1), m.group(2), m.group(3).strip()) for m in _LINK_RE.finditer(synthesis)]
+
+
+def _parse_supersede_proposals(synthesis: str) -> list[tuple[str, str]]:
+    """Return (new_id, old_id) for each SUPERSEDE proposal in the synthesis."""
+    return [(m.group(1), m.group(2)) for m in _SUPERSEDE_RE.finditer(synthesis)]
+
+
+def _shared_collection(id_to_cols: dict[str, set[str]], source_id: str, target_id: str) -> tuple[str | None, str]:
+    """Return (collection, "") when both ids live in exactly one common collection, else
+    (None, reason). Edges are stored per collection, so a link across collections cannot exist."""
+    if source_id not in id_to_cols:
+        return None, f"unknown id '{source_id}'"
+    if target_id not in id_to_cols:
+        return None, f"unknown id '{target_id}'"
+    shared = id_to_cols[source_id] & id_to_cols[target_id]
+    if not shared:
+        return None, "the entries are in different collections (edges cannot span collections)"
+    if len(shared) > 1:
+        return None, f"both ids exist in several collections ({', '.join(sorted(shared))}) — ambiguous"
+    return next(iter(shared)), ""
 
 
 def _call(model_key: str, prompt: str) -> str:
@@ -362,6 +452,8 @@ class DreamMemoryUseCase:
         auto_delete: bool = False,
         focus_hint: str | None = None,
         collections_filter: list[str] | None = None,
+        auto_link: bool = False,
+        auto_supersede: bool = False,
     ) -> str:
         if mode not in MODES:
             raise ValueError(f"mode must be one of {MODES}")
@@ -419,6 +511,18 @@ class DreamMemoryUseCase:
             if pull_report:
                 report += "\n\n" + pull_report
 
+        conflicts = _check_merge_conflicts(synthesis, _build_edge_index(all_entries))
+        if conflicts:
+            report += "\n\n---\n\n## ⚠ Merge Conflicts\n\n" + "\n".join(conflicts)
+
+        if auto_link:
+            proposals = _parse_link_proposals(synthesis)
+            report += self._edge_report("Links", "LINK", proposals, all_entries, allowed_types=_LINK_EDGE_TYPES)
+
+        if auto_supersede:
+            proposals = [(new_id, old_id, "supersedes") for new_id, old_id in _parse_supersede_proposals(synthesis)]
+            report += self._edge_report("Supersessions", "SUPERSEDE", proposals, all_entries)
+
         if auto_delete:
             deleted = self._auto_apply_deletes(synthesis, all_entries)
             if deleted:
@@ -466,6 +570,42 @@ class DreamMemoryUseCase:
             f"## Sonnet: Final Synthesis\n\n{sonnet_final}"
         )
         return sonnet_final, report
+
+    def _edge_report(self, title: str, action: str, proposals: list[tuple[str, str, str]],
+                     all_entries: list[MemoryEntry], allowed_types: tuple[str, ...] | None = None) -> str:
+        """Apply (source, target, edge_type) proposals via AddEdgeUseCase and render a report section.
+
+        Nothing is dropped silently: every proposal that could not be applied is listed with its
+        reason (invalid type, unknown id, ids in different collections, or the use case's own error).
+        """
+        id_to_cols: dict[str, set[str]] = {}
+        for entry in all_entries:
+            id_to_cols.setdefault(entry.id, set()).add(entry.metadata["_collection"])
+
+        applied: list[str] = []
+        skipped: list[str] = []
+        for source_id, target_id, edge_type in proposals:
+            label = f"`{source_id} -> {target_id}`" + ("" if edge_type == "supersedes" else f" [{edge_type}]")
+            if allowed_types is not None and edge_type not in allowed_types:
+                skipped.append(f"- {label}: invalid edge type (expected one of {', '.join(allowed_types)})")
+                continue
+            collection, reason = _shared_collection(id_to_cols, source_id, target_id)
+            if collection is None:
+                skipped.append(f"- {label}: {reason}")
+                continue
+            try:
+                AddEdgeUseCase(self._repo).execute(collection, source_id, target_id, edge_type)
+            except Exception as exc:  # ValueError from the use case, or a repository failure
+                skipped.append(f"- {label}: {exc}")
+                continue
+            applied.append(f"- Applied {label} in `{collection}`")
+
+        if not proposals:
+            return f"\n\n---\n\n## Auto-Applied {title}\n\nNone (no {action} actions found)."
+        section = f"\n\n---\n\n## Auto-Applied {title}\n\n" + ("\n".join(applied) if applied else "None applied.")
+        if skipped:
+            section += f"\n\n### Skipped {title}\n\n" + "\n".join(skipped)
+        return section
 
     def _auto_apply_deletes(self, synthesis: str, all_entries: list[MemoryEntry]) -> list[str]:
         """Parse DELETE <id>: lines from synthesis and delete matching entries."""

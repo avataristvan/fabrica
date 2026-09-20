@@ -59,3 +59,29 @@ def test_mem_link_schema_lists_supersedes():
     tools = asyncio.run(server_module.list_tools())
     link = next(tool for tool in tools if tool.name == "mem_link")
     assert "supersedes" in link.inputSchema["properties"]["edge_type"]["enum"]
+
+
+def test_mem_dream_passes_auto_link_and_auto_supersede_to_the_use_case():
+    dream = MagicMock()
+    dream.execute.return_value = "report"
+
+    result = _call(
+        "mem_dream",
+        {"collection": "col", "mode": "hier", "auto_delete": True, "auto_link": True, "auto_supersede": True},
+        _dream=dream,
+    )
+
+    dream.execute.assert_called_once_with("col", "hier", True, None, auto_link=True, auto_supersede=True)
+    assert result[0].text == "report"
+
+
+def test_mem_dream_new_flags_default_to_false_and_are_in_the_schema():
+    dream = MagicMock()
+    dream.execute.return_value = "report"
+
+    _call("mem_dream", {}, _dream=dream)
+
+    dream.execute.assert_called_once_with(None, "hier", False, None, auto_link=False, auto_supersede=False)
+    tools = asyncio.run(server_module.list_tools())
+    properties = next(tool for tool in tools if tool.name == "mem_dream").inputSchema["properties"]
+    assert {"auto_link", "auto_supersede"} <= set(properties)

@@ -227,6 +227,7 @@ mem_dream(mode="hier", auto_delete=false)
 
 Review the proposal with the user:
 - DELETE / UPDATE / MERGE proposals → apply to the source collection with `mem_add` / `mem_delete`
+- **LINK / SUPERSEDE proposals** → apply with `mem_link` (`related` / `contradicts` / `fixes` / `causes`, or `supersedes` with the newer entry as source), or let `mem_dream` do it via `auto_link=true` / `auto_supersede=true`. Prefer SUPERSEDE over DELETE when the old entry's reasoning is still worth reading; check the "Skipped" and "Merge Conflicts" sections of the report
 - **ADD proposals where `target_collection` is higher than the source** (e.g. `workspace` or `global`) → these are **propagation candidates**: a pattern that proved universal across projects
 
 For each propagation candidate, ask:

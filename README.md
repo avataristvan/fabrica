@@ -45,7 +45,7 @@ python3 install.py
 | `mem_delete` | Delete entries by ID, or drop an entire collection. |
 | `mem_cleanup` | Remove expired (TTL) entries. Pass `stale_after_days` to prune entries not accessed within that window. |
 | `mem_split` | Split a long entry into focused sub-entries for more precise retrieval. |
-| `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. |
+| `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. Proposes UPDATE / MERGE / DELETE / ADD / SPLIT / LINK / SUPERSEDE; `auto_delete`, `auto_link` and `auto_supersede` apply the respective actions. |
 | `mem_get` | Fetch entries by ID directly — bypasses semantic search and ranking. Use when the exact ID is known. |
 | `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`). |
 | `mem_edges` | List all outgoing edges for an entry. |

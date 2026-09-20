@@ -119,6 +119,10 @@ Periodically (currently triggered manually by the Navigator), the Dreaming Agent
 - **MERGE** — combine two related entries
 - **DELETE** — remove redundant or stale entries (auto-applied when `auto_delete=true`)
 - **ADD** — propose a new generalized entry
+- **LINK** — document a relationship between two entries that must stay separate (`contradicts`, `fixes`, `causes`, `related`); applied when `auto_link=true`
+- **SUPERSEDE** — mark an entry as overtaken by a newer one instead of deleting it (the old entry stays readable and is flagged); applied when `auto_supersede=true`
+
+Actions that cannot be applied (unknown ids, ids in different collections, invalid edge types) are listed with their reason rather than dropped. MERGE proposals that conflict with an existing `contradicts` or `supersedes` edge are flagged in the report.
 
 `mem_dream` operates within a single collection or across all collections (`mode=hier`). It also supports a `team` mode for cross-agent consolidation.
 

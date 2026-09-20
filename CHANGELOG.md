@@ -12,6 +12,19 @@ no longer treats a `supersedes` target as protected by its edge or by `access_co
 Note: edges are stored on the source entry only, so other edge types still surface from the
 source's side alone — `supersedes` works from the target's side because of the metadata flag.
 
+### Added: `mem_dream` proposes and applies LINK and SUPERSEDE
+
+- **LINK** (`- LINK <source> -> <target> [type=<edge_type>]: <reason>`) documents a relationship between
+  two entries instead of merging them; `auto_link=true` creates the edges. The valid types are derived
+  from `EdgeType` (minus `supersedes`), so a new edge type cannot drift out of the prompt or the parser.
+- **SUPERSEDE** (`- SUPERSEDE <new> -> <old>: <reason>`) flags the old entry via the `supersedes` edge;
+  `auto_supersede=true` applies it. The old entry stays readable.
+- Actions that cannot be applied — unknown ids, ids in different collections, invalid types, a source that
+  is itself superseded — are listed under "Skipped" with their reason instead of being dropped silently.
+- MERGE proposals whose entries share a `contradicts` or `supersedes` edge are flagged under
+  "Merge Conflicts". Based on the LINK action and merge guard from the review branch, reworked for the
+  current code (the branch itself is not mergeable: it predates the removal of the ML ranker).
+
 ### Breaking: SessionStart is pull-based by default
 
 `SessionStart` used to push `current_focus` text, the `[available]` high-confidence
