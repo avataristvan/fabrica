@@ -40,6 +40,10 @@ knowledge and coding technique are different axes even when they discuss the sam
 Avoid DELETE or MERGE unless clearly redundant.
 - If two entries share an edge, the edge makes both necessary. \
 Verify the relationship before proposing structural changes.
+- Exception: a 'supersedes' edge marks its target as overtaken (shown as superseded_by=<id> on the \
+target). That target is protected neither by the edge nor by access_count. Propose DELETE only if \
+the successor already carries the full rationale; otherwise leave it as history, or propose an \
+UPDATE of the successor that absorbs what is missing.
 - Entries covering multiple independent concepts (multiple ## sections, multiple Tried: blocks, \
 or 4+ enumerated items that don't build on each other) should be proposed for SPLIT, not MERGE. \
 Each sub-entry should cover exactly one concept so queries pull in only what's relevant."""
@@ -175,6 +179,8 @@ def _format_entries(entries: list[MemoryEntry]) -> str:
                     shown["edges"] = [f"{ed['target_id']}({ed['edge_type']})" for ed in edges]
             except (json.JSONDecodeError, KeyError, TypeError):
                 pass
+        if superseded_by := entry.metadata.get("superseded_by"):
+            shown["superseded_by"] = superseded_by
         meta_str = (
             " [" + ", ".join(f"{key}={val}" for key, val in shown.items()) + "]"
             if shown else ""

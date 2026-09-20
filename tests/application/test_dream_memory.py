@@ -40,6 +40,16 @@ class TestFormatEntries:
         out = _format_entries([e])
         assert "p2(contradicts)" in out
 
+    def test_shows_superseded_by_only_when_set(self):
+        stale = _entry("old", "old rule", superseded_by="new")
+        revived = _entry("undone", "revived rule", superseded_by="")
+        out = _format_entries([stale, revived])
+        assert "[old] (collection: repo.test) [superseded_by=new]" in out
+        assert "superseded_by" not in out.split("---")[1]
+
+    def test_type_rules_exempt_supersedes_target_from_edge_protection(self):
+        assert "'supersedes' edge marks its target as overtaken" in _TYPE_RULES
+
     def test_excludes_raw_timestamps(self):
         e = _entry("e1", "text", created_at=1234567890.0, last_accessed_at=9999.0)
         out = _format_entries([e])

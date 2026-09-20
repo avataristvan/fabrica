@@ -273,9 +273,14 @@ async def list_tools() -> list[types.Tool]:
                 "Add a typed causal edge between two memory entries. "
                 "Useful for linking an anti-pattern to the pattern it contradicts, "
                 "a bug fix to the cause, or related concepts. "
-                "When either entry is retrieved by mem_query, its linked partner is automatically "
-                "appended to the results (1-hop, budget: 2 linked entries per query). "
-                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related'."
+                "When the source entry is retrieved by mem_query, its linked target is automatically "
+                "appended to the results (1-hop, budget: 2 linked entries per query; edges are "
+                "stored on the source only). "
+                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes'. "
+                "'supersedes' (source = the newer entry, target = the entry it replaces) flags the "
+                "target as superseded: mem_query keeps returning it but marks it with "
+                "'superseded_by' and appends the successor. To undo, mem_add the target with "
+                "metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]."
             ),
             inputSchema={
                 "type": "object",
@@ -284,7 +289,7 @@ async def list_tools() -> list[types.Tool]:
                     "target_id": {"type": "string", "description": "ID of the target entry"},
                     "edge_type": {
                         "type": "string",
-                        "enum": ["contradicts", "fixes", "causes", "related"],
+                        "enum": ["contradicts", "fixes", "causes", "related", "supersedes"],
                         "description": "Relationship type from source to target",
                     },
                     "collection": {"type": "string", "description": f"Collection containing both entries (default: '{DEFAULT_COLLECTION}')"},
@@ -454,6 +459,8 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                     "id": result.id,
                     "score": result.score,
                     "confidence": float(result.metadata.get("confidence", 0.0)),
+                    # Top-level so a superseded (stale) hit cannot be mistaken for a current one.
+                    **({"superseded_by": result.metadata["superseded_by"]} if result.metadata.get("superseded_by") else {}),
                     "metadata": result.metadata,
                     "text": result.text,
                 }

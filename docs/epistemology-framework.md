@@ -54,7 +54,7 @@ The tool provides reliable storage and retrieval:
 - **Confidence lifecycle** — every entry carries a `confidence` score (starts at 0.7); `/reflect` boosts entries that were decisive, decays ones that turned out stale (see `docs/reranking.md`)
 - **TTL + forgetting curve** — `mem_cleanup` with `stale_after_days` removes entries not accessed within a window
 - **Typed entries** (`feedback`, `project`, `reference`, `user`, `pattern`, `anti-pattern`, `dilemma`, `domain`) for filtered retrieval
-- **Typed causal edges** — directional relationships between entries (`contradicts`, `fixes`, `causes`, `related`)
+- **Typed causal edges** — directional relationships between entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes` — the last one marks an entry as overtaken without deleting it; retrieval flags it and appends the successor)
 
 An earlier version of this pillar included an adaptive MLP re-ranker that learned from access patterns; it was removed in 2026-06 (see CLAUDE.md's Critical Invariants) in favor of ChromaDB's native cosine ordering plus the confidence lifecycle above — simpler, no training step, no PyTorch dependency.
 

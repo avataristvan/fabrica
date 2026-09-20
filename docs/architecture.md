@@ -33,7 +33,7 @@ ai_mem/
 - `QueryResult` — rank, id, score, text, metadata
 - `SplitHint` — id, text_preview (first 80 chars), access_count — surfaced by `detect_split_hints.py`
 - `CollectionInfo` — name, count
-- `EdgeType` — `Literal["contradicts", "fixes", "causes", "related"]`
+- `EdgeType` — `Literal["contradicts", "fixes", "causes", "related", "supersedes"]`
 - `MemoryEdge` — target_id, edge_type
 - `MemoryRepository` Protocol — `upsert`, `query`, `get_by_ids`, `list_collections`, `delete`, `delete_expired`, `record_access`, `delete_stale`, `get_all`, `add_edge`, `get_edges`
 

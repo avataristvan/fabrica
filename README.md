@@ -47,7 +47,7 @@ python3 install.py
 | `mem_split` | Split a long entry into focused sub-entries for more precise retrieval. |
 | `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. |
 | `mem_get` | Fetch entries by ID directly — bypasses semantic search and ranking. Use when the exact ID is known. |
-| `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`). |
+| `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`). |
 | `mem_edges` | List all outgoing edges for an entry. |
 
 ## Memory Scoping
@@ -96,9 +96,11 @@ Entries can be linked with directional typed edges to model relationships betwee
 mem_link(source_id="antipattern_xyz", target_id="pattern_abc", edge_type="contradicts", collection="repo.my-project")
 ```
 
-Edge types: `contradicts` · `fixes` · `causes` · `related`
+Edge types: `contradicts` · `fixes` · `causes` · `related` · `supersedes`
 
 During `mem_query`, linked entries are automatically surfaced alongside their source (1-hop, budget: 2 entries per query). Appended entries are tagged with `via_edge` and `via_source` in their metadata.
+
+**Superseding an entry.** `mem_link(source_id=<new>, target_id=<old>, edge_type="supersedes")` marks `<old>` as overtaken instead of deleting it: `mem_query` still returns it, flagged with a top-level `superseded_by`, and appends the newest surviving successor (following chains) ahead of ordinary edge targets. The old entry keeps its reasoning; a superseded entry cannot itself supersede another, which rules out cycles. To undo, `mem_add` the old entry with `metadatas=[{"superseded_by": "", "valid_until": ""}]`. `mem_dream` does not treat a `supersedes` target as protected.
 
 **Primary use case:** link `type=anti-pattern` entries to the `type=pattern` they contradict. When you retrieve a best-practice, the matching anti-pattern surfaces automatically — and vice versa.
 

@@ -6,6 +6,8 @@ from collections import defaultdict
 from ai_mem.application.track_access import TrackAccessUseCase
 from ai_mem.domain.memory import MemoryRepository, QueryResult
 
+_MAX_SUCCESSOR_HOPS = 5
+
 
 class QueryMemoryUseCase:
     def __init__(
@@ -54,9 +56,33 @@ class QueryMemoryUseCase:
     def _append_linked(
         self, collection: str, results: list[QueryResult], result_ids: set[str]
     ) -> list[QueryResult]:
-        """Follow 1-hop edges from result entries and append linked entries (budget: 2)."""
+        """Append linked entries (budget: 2): first the live successor of every superseded
+        result (so a stale hit always comes with what replaced it), then 1-hop edge targets."""
         linked: list[QueryResult] = []
+
+        def append(entry, via_edge: str, via_source: str) -> None:
+            linked_meta = dict(entry.metadata)
+            linked_meta["via_edge"] = via_edge
+            linked_meta["via_source"] = via_source
+            linked.append(
+                QueryResult(
+                    rank=len(results) + len(linked) + 1,
+                    id=entry.id,
+                    score=0.0,
+                    text=entry.text,
+                    metadata=linked_meta,
+                )
+            )
+            result_ids.add(entry.id)
+
         try:
+            for result in results:
+                if len(linked) >= 2:
+                    break
+                successor = self._live_successor(collection, result.metadata)
+                if successor is not None and successor.id not in result_ids:
+                    append(successor, "superseded_by", result.id)
+
             for result in results:
                 if len(linked) >= 2:
                     break
@@ -69,20 +95,28 @@ class QueryMemoryUseCase:
                     entries = self._repo.get_by_ids(collection, [edge.target_id])
                     if not entries:
                         continue
-                    entry = entries[0]
-                    linked_meta = dict(entry.metadata)
-                    linked_meta["via_edge"] = edge.edge_type
-                    linked_meta["via_source"] = result.id
-                    linked.append(
-                        QueryResult(
-                            rank=len(results) + len(linked) + 1,
-                            id=entry.id,
-                            score=0.0,
-                            text=entry.text,
-                            metadata=linked_meta,
-                        )
-                    )
-                    result_ids.add(edge.target_id)
+                    append(entries[0], edge.edge_type, result.id)
         except Exception:
             pass
         return results + linked
+
+    def _live_successor(self, collection: str, metadata: dict):
+        """Follow `superseded_by` links to the newest entry that still exists, or None.
+
+        Stops at a missing entry (deleted successor) and on cycles or after
+        _MAX_SUCCESSOR_HOPS, so corrupt metadata cannot loop. The returned entry may itself
+        still carry `superseded_by` when the chain ends in a deleted entry.
+        """
+        successor = None
+        seen: set[str] = set()
+        next_id = metadata.get("superseded_by")
+        for _ in range(_MAX_SUCCESSOR_HOPS):
+            if not next_id or next_id in seen:
+                break
+            seen.add(next_id)
+            fetched = self._repo.get_by_ids(collection, [next_id])
+            if not fetched:
+                break
+            successor = fetched[0]
+            next_id = successor.metadata.get("superseded_by")
+        return successor

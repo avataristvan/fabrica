@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added: `supersedes` edge — flag overtaken entries instead of deleting them
+
+`mem_link(source_id=<new>, target_id=<old>, edge_type="supersedes")` marks `<old>` with
+`superseded_by` / `valid_until` metadata. `mem_query` keeps returning it but flags it
+(top-level `superseded_by` in the result) and appends the newest surviving successor before
+ordinary edge targets. A superseded entry cannot supersede another (no cycles). `mem_dream`
+no longer treats a `supersedes` target as protected by its edge or by `access_count`.
+Note: edges are stored on the source entry only, so other edge types still surface from the
+source's side alone — `supersedes` works from the target's side because of the metadata flag.
+
 ### Breaking: SessionStart is pull-based by default
 
 `SessionStart` used to push `current_focus` text, the `[available]` high-confidence

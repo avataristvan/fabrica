@@ -42,7 +42,7 @@ Link two entries with a typed causal edge:
 mem_link(source_id="abc", target_id="xyz", edge_type="contradicts", collection="repo.my-project")
 ```
 
-Available edge types: `contradicts`, `fixes`, `causes`, `related`.
+Available edge types: `contradicts`, `fixes`, `causes`, `related`, `supersedes`.
 
 Query edges for an entry:
 ```
