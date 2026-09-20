@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Stage B: replay queries against cosine and hybrid retrieval and report where the gold entry lands.
 
-Read-only (calls repo.query directly, so no access tracking). Usage:
+Read-only (calls repo.query directly, so no access tracking). Gold entry ids are read from
+gold_ids.local.json ({"<case_id>": ["<entry id>", ...]}, not tracked); without it ranks are not
+computed and only the top hit is shown. Usage:
     python3 scripts/eval_pull/replay.py [--collection repo.ai-mem] [--queries queries.json] [-k 8]
 
 Always replays each case's question verbatim ("question" source). --queries adds agent-written
@@ -30,6 +32,10 @@ def main() -> None:
     args = ap.parse_args()
 
     cases = json.loads((HERE / "cases.json").read_text())["cases"]
+    gold_path = HERE / "gold_ids.local.json"
+    gold_ids = json.loads(gold_path.read_text()) if gold_path.exists() else {}
+    if not gold_ids:
+        print("note: no gold_ids.local.json -- ranks are not computed, showing the top hit only")
     harvested = json.loads(args.queries.read_text()) if args.queries else {}
 
     cosine = ChromaMemoryRepository(DB_PATH)
@@ -38,7 +44,7 @@ def main() -> None:
 
     print(f"{'case':22s} {'src':8s} {'config':7s} {'rank':>4s} {'top1':>5s}  top1_id")
     for case in cases:
-        gold = set(case["gold_ids"])
+        gold = set(gold_ids.get(case["id"], []))
         queries = [("question", case["question"])] + [("agent", q) for q in harvested.get(case["id"], [])]
         for source, query in queries:
             for name, repo in configs.items():

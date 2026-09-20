@@ -48,8 +48,8 @@ def test_return_count_matches_found_entries(tmp_repo):
 
 
 # ---------------------------------------------------------------------------
-# track_access wiring: a positive boost is the /reflect citation signal
-# (<memory-entry> chunk 3) -- a decay must not count as usage.
+# track_access wiring: a positive boost is the /reflect citation signal;
+# a decay must not count as usage.
 # ---------------------------------------------------------------------------
 
 def test_without_track_access_does_not_error(tmp_repo):

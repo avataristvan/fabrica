@@ -268,10 +268,10 @@ def _confidence_report(entries: list[MemoryEntry]) -> str:
 
 def _pull_through_report(entries: list[MemoryEntry], log_path: Path) -> str:
     """Return a markdown report of what fraction of pushed (userprompt_hook-injected) ids were
-    later deliberately used, per collection -- see <memory-entry>, point 6.
+    later deliberately used, per collection (the data that decides whether a push hook is worth keeping).
 
     "Deliberately used" means last_accessed_at (bumped only by mem_get, a positive mem_boost, or
-    a strong PostToolUse match -- see <memory-entry> in repo.ai-mem) moved past the push
+    a strong PostToolUse match) moved past the push
     timestamp. Entries deleted since their push, or never accessed at all, count as not pulled.
     Returns an empty string if no push events are logged for any collection in `entries`.
     """

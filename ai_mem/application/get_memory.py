@@ -12,8 +12,8 @@ class GetMemoryUseCase:
 
     def execute(self, collection: str, ids: list[str]) -> list[MemoryEntry]:
         entries = self._repo.get_by_ids(collection, ids)
-        # Fetching by explicit id is a deliberate-use signal (see
-        # <memory-entry> chunk 3) -- only found entries are tracked,
+        # Fetching by explicit id is a deliberate-use signal
+        # (access_count means deliberate use) -- only found entries are tracked,
         # missing ids leave no trace. track_access is optional: callers that fetch entries as
         # internal plumbing rather than an agent's deliberate choice (e.g. hook.py's SessionStart
         # current_focus lookup) omit it so that automatic reads don't inflate access_count.

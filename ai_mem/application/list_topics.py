@@ -2,7 +2,7 @@
 {id, title} dump and mem_get's full text, so a large collection stays browsable.
 
 Mirrors the list_tool_categories -> list_tools_in_category -> get_tool_signature
-pattern (see <memory-entry> in repo.ai-mem): mem_topics is
+pattern (progressive disclosure): mem_topics is
 the "list_tools_in_category" rung, grouping by the 'type' metadata field that already
 exists on every entry (pattern/anti-pattern/domain/project/fact/feedback/reference/dilemma).
 """

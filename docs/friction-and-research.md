@@ -9,7 +9,7 @@
 ### 1. Cold-Start Problem
 UserPromptSubmit requires ≥10 labeled examples before firing. In the first sessions of a new project, there is no context beyond `current_focus`. This is when the most avoidable mistakes happen.
 
-**Resolution direction:** Expert agent collections (`subagent.<agent_type>`) accumulate cross-project experience over time. Cold start is epistemologically acceptable for a genuinely new agent — the problem is when an agent *could* have had prior experience but starts cold anyway. See `<memory-entry>`.
+**Resolution direction:** Expert agent collections (`subagent.<agent_type>`) accumulate cross-project experience over time. Cold start is epistemologically acceptable for a genuinely new agent — the problem is when an agent *could* have had prior experience but starts cold anyway.
 
 ### 2. Anti-Pattern Retrieval Comes Too Late ← *priority*
 PreToolUse helps right before a file edit. But design decisions happen earlier — in conversation, before any file is touched. That is exactly when "you tried this before and it failed because X" would be most valuable. Currently, the anti-pattern surfaces after the decision has already been made.

@@ -21,9 +21,6 @@
       "id": "g1_pretool_numbers",
       "kind": "gap",
       "question": "Warum wirft ai-mem mir nichts mehr in den Kontext, bevor ich eine Datei bearbeite? Früher war das mal anders. Was hat die Entscheidung ausgelöst?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "Generic 'token cost scaled with edits' (docs/hooks.md says roughly that) or 'it was buggy/slow'",
       "discriminator": "Trigger was a usage scan by another session over 50 transcripts: 348 Edit/Write calls ~ 67.6k tokens ~ 92% of ai-mem's whole context footprint; the maintainer then chose a full switch to pull",
       "vetted_absent": [
@@ -37,9 +34,6 @@
       "id": "g2_origin",
       "kind": "gap",
       "question": "Woher kommt eigentlich die Idee hinter ai-mem, dass es aus Nutzungsverhalten lernt statt mit einem fertigen Modell zu arbeiten?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "Rationalisation from code/docs: 'simplicity, no training step, no torch dependency'",
       "discriminator": "Origin (2026-04-25): a conversation about NPUs, sensor fusion and local on-device ML; sensor data -> frequency space -> micro-model learning from actual states without labels/cloud/pretrained model; Bayesian bandit + CUSUM; 'no cloud upload' philosophy",
       "vetted_absent": [
@@ -51,9 +45,6 @@
       "id": "g3_dream_history",
       "kind": "gap",
       "question": "In der Git-Historie sieht man, dass mem_dream mal nur mit 'exit status 1' abgebrochen ist. Was war damals die Ursache, und was hat man geändert?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "'The pinned claude-sonnet-4-6 tag was stale, so the CLI rejected it' (the diff invites exactly this reading)",
       "discriminator": "The stale versioned tag was NOT proven to be the trigger: a manual repro with the old tag still exited 0. The real diagnostic blocker was check=True hiding stderr (CalledProcessError str() has only the exit code). Fix: bare aliases + RuntimeError carrying stderr/stdout",
       "vetted_absent": [
@@ -64,9 +55,6 @@
       "id": "g4_userprompt_trigger",
       "kind": "gap",
       "question": "Was war der eigentliche Auslöser dafür, dass der UserPromptSubmit-Hook am 13. September entfernt wurde?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "CLAUDE.md says both push hooks were retired after token-cost/noise measurements -> answer 'cost'",
       "discriminator": "Trigger was the maintainer noticing that an attempted deactivation of ai-mem auto-inject had no effect; an audit of all settings layers found none where ai-mem was actually disabled, and the hooks kept firing",
       "vetted_absent": []
@@ -75,9 +63,6 @@
       "id": "g5_code_review",
       "kind": "gap",
       "question": "Ich bin mit einer größeren Änderung fertig und die Tests laufen durch. Soll ich vor dem Commit noch etwas einplanen, oder ist das dann gut?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "'Tests green -> commit' (project instructions only ask for a test run)",
       "discriminator": "The maintainer rates code-review runs as worthwhile for stability/security; run one after non-trivial work before committing (a past run found 8 verified findings, incl. a bug in the fix itself)",
       "vetted_absent": []
@@ -86,9 +71,6 @@
       "id": "g6_status_notes",
       "kind": "gap",
       "question": "Ich will für die nächste Session festhalten, woran ich gerade arbeite und wo wir stehen. Wie formuliere ich das am besten?",
-      "gold_ids": [
-        "<memory-entry>"
-      ],
       "wrong_instinct": "Write explicit status words ('in progress', 'not committed yet')",
       "discriminator": "Never embed mutable status strings in entry text; reference commit SHA / ticket id and update when it exists. Evidence: three entries from 2026-07-31 had stale 'NOT YET COMMITTED' markers within the same session",
       "vetted_absent": [
@@ -99,7 +81,6 @@
       "id": "c1_device_latency",
       "kind": "control",
       "question": "Welche Inferenz-Latenz hat ai-mem auf einem Smartphone gemessen?",
-      "gold_ids": [],
       "expected": "Not documented anywhere. The origin entry mentions a phone only as the idea's origin, no measurements. Tests the 'neighbour' failure: confident answer from adjacent material.",
       "vetted_absent": [
         "device latency measurements"
@@ -109,7 +90,6 @@
       "id": "c2_pypi",
       "kind": "control",
       "question": "Wann wurde entschieden, ai-mem als PyPI-Paket zu veröffentlichen, und warum?",
-      "gold_ids": [],
       "expected": "No such decision recorded anywhere.",
       "vetted_absent": [
         "pypi"

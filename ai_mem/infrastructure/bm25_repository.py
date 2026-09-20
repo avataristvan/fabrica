@@ -6,8 +6,7 @@ from rank_bm25 import BM25Okapi
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, QueryResult
 
 _BM25_FETCH = 50
-# Empirically derived from the live-DB median nonzero raw BM25 score (~1.6), not a guess —
-# see ai-mem entry <memory-entry> for the full derivation.
+# Empirically derived from the live-DB median nonzero raw BM25 score (~1.6), not a guess.
 _BM25_SATURATION_K = 2.0
 
 

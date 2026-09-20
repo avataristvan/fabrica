@@ -17,8 +17,8 @@ MAX_TOTAL_CHARS = 1500
 # was fixed by replacing it with a saturating transform (bm25_repository.py::_saturate) — the
 # measurements and thresholds below predate that fix and reflect the OLD distribution. The
 # thresholds have NOT yet been re-measured against the new fused-score distribution; do not
-# trust them as calibrated. See ai-mem entry <memory-entry>
-# and CLAUDE.md's Critical Invariants for the pending recalibration follow-up.
+# trust them as calibrated. Recalibrating them against the new fused-score
+# distribution is a pending follow-up.
 #
 # Thresholds recalibrated 2026-07-31 against the live ~/.local/share/ai-mem DB after the
 # Chunk 1/2 scoring fixes (real cosine similarity + non-double-normalized BM25 fusion), using

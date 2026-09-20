@@ -46,14 +46,13 @@ Used to query global + repo collections against every incoming prompt (once a ra
 confidence gate passed) and inject the top-3 results. Retired 2026-09-13: it fired on
 every single message rather than once per session, so token cost scaled with
 conversation length, not with actual relevance. `install.py` no longer registers the
-hook; re-running it on an existing install self-heals by removing the stale entry. Full
-rationale: `<memory-entry>` in ai-mem's own memory.
+hook; re-running it on an existing install self-heals by removing the stale entry.
 
 ### PreToolUse Auto-Injection (`pretool_hook.py`)
 
 Same shape, different trigger: injected top-2 results before every Write/Edit. Retired
 2026-09-12 for the same reason — automatic push that scaled with edit count instead of
-relevance. Full rationale: `<memory-entry>`.
+relevance.
 
 ## The current loop
 

@@ -45,7 +45,7 @@ Two more hooks existed at various points and were removed because they pushed co
 - **`UserPromptSubmit` (`userprompt_hook.py`)** — retired 2026-09-13. Ran a semantic query against every incoming prompt (up to 4 parallel lookups) and injected top-3 results once a ranker-confidence gate passed. Fired on every message, not once per session, so the token cost scaled with conversation length rather than with actual relevance.
 - **`PreToolUse` (`pretool_hook.py`)** — retired 2026-09-12. Injected top-2 results before every Write/Edit. Same problem: automatic push scaled with edit count.
 
-Both modules still exist in the repo (unwired) so pre-existing installations uninstall cleanly; `install.py` no longer registers either, and self-heals existing installs by removing their hook entries on re-run. See `<memory-entry>` and `<memory-entry>` in ai-mem's own memory for the full rationale.
+Both modules still exist in the repo (unwired) so pre-existing installations uninstall cleanly; `install.py` no longer registers either, and self-heals existing installs by removing their hook entries on re-run.
 
 A `Stop` hook (`stop_hook.py`, MEMORY.md auto-demotion + a "update current_focus" reminder) is referenced in older design notes but was never wired into `install.py` and the module doesn't exist in this repo. `memory_index.py`'s auto-demotion logic is built but has no trigger.
 

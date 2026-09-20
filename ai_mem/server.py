@@ -51,7 +51,7 @@ _split = SplitMemoryUseCase(_repo, _add)
 _add_edge = AddEdgeUseCase(_repo)
 _get_edges = GetEdgesUseCase(_repo)
 # track_access here means "deliberate use": explicit mem_get by id, or a positive mem_boost
-# (the /reflect citation signal) -- see <memory-entry> chunk 3.
+# (the /reflect citation signal).
 _get_memory = GetMemoryUseCase(_repo, _track_access)
 _boost = BoostConfidenceUseCase(_repo, _track_access)
 _move = MoveMemoryUseCase(_repo)

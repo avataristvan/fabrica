@@ -256,12 +256,10 @@ def register_claude(workspace_root: str = ""):
 
     # SessionStart + PostToolUse hooks + permissions → ~/.claude/settings.json
     # PreToolUse's automatic push (pretool_hook.py) was retired 2026-09-12 in favor of explicit
-    # pull (mem_query) from role-scoped collections in agent/command prompts — see
-    # <memory-entry> in ai-mem's own memory for the rationale.
+    # pull (mem_query) from role-scoped collections in agent/command prompts.
     # UserPromptSubmit's automatic push (userprompt_hook.py) was retired 2026-09-13 for the same
     # reason: it fired on every single message (not just once per session like SessionStart),
-    # doing up to 4 parallel semantic queries each time — see
-    # <memory-entry> in ai-mem's own memory.
+    # doing up to 4 parallel semantic queries each time.
     settings_path = HOME / ".claude" / "settings.json"
     # Hooks run as separate subprocesses spawned by Claude Code directly — they do NOT inherit
     # the "env" block set on the MCP server entry above (that only applies to the MCP server's own

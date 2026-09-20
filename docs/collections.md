@@ -25,7 +25,7 @@ The optional `type` metadata field on `mem_add` tags an entry for filtering (`me
 | `domain` | `Decision: / Why: / Scope:` | Business/domain knowledge — why a rule exists, a domain constraint — as opposed to a coding technique |
 | `feedback`, `project`, `reference`, `user` | free-form | Descriptive entries, no fixed structure |
 
-`domain` entries should be written as soon as the knowledge surfaces during coding, not deferred to an end-of-session reflection step — that kind of insight is easy to lose if it isn't captured immediately. There's no hook that forces this (recognizing a domain decision requires semantic judgment a deterministic hook can't reliably make); it's agent discipline, reinforced by the `type` description on `mem_add` itself and by the `<memory-entry>` entry in the `global` collection.
+`domain` entries should be written as soon as the knowledge surfaces during coding, not deferred to an end-of-session reflection step — that kind of insight is easy to lose if it isn't captured immediately. There's no hook that forces this (recognizing a domain decision requires semantic judgment a deterministic hook can't reliably make); it's agent discipline, reinforced by the `type` description on `mem_add` itself.
 
 `mem-dream` never merges a `pattern`/`anti-pattern` entry with a `domain` entry — technique and business rationale are different axes even when they discuss the same code.
 

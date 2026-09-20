@@ -32,8 +32,8 @@ class BoostConfidenceUseCase:
 
         self._repo.upsert(collection, updated)
 
-        # A positive boost is the /reflect citation signal (see
-        # <memory-entry> chunk 3): the agent deliberately confirmed this
+        # A positive boost is the /reflect citation signal (access_count
+        # means deliberate use): the agent deliberately confirmed this
         # entry mattered, which is stronger evidence of use than a passive query hit. A decay
         # (delta <= 0) is the opposite signal -- the entry was wrong or unhelpful -- and must not
         # inflate access_count.

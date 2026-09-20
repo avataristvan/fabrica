@@ -5,8 +5,9 @@ reach knowledge that lives only in ai-mem? Method: knowledge exists only in memo
 question without a hint, and a memory arm is compared against a no-memory arm. Cases and answer keys are in
 `cases.json`.
 
-`gold_ids` refer to entries in the maintainer's own memory collection. To reuse the harness, replace the
-cases with questions whose answers live only in your own entries.
+Gold entry ids are not part of the public cases: `replay.py` reads them from `gold_ids.local.json`
+(`{"<case_id>": ["<entry id>", ...]}`, keep it untracked). To reuse the harness, replace the cases with
+questions whose answers live only in your own entries and list their entry ids there.
 
 ## Stage A — agent runs (costs tokens; not automated)
 

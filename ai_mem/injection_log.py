@@ -1,6 +1,6 @@
 """Logs which memory ids userprompt_hook pushed to context, so mem-dream can measure whether
-pushed entries were later deliberately used (pull-through) -- see <memory-entry>,
-point 6 (userprompt_hook's fate is decided after real usage data, not guessed)."""
+pushed entries were later deliberately used (pull-through), so the push hook's fate is decided on real
+usage data, not guessed."""
 from __future__ import annotations
 
 import json

@@ -38,9 +38,8 @@ class QueryMemoryUseCase:
         returned_ids = {result.id for result in results}
         self._session_hits[collection].update(returned_ids)
 
-        # access_count means deliberate use, not passive surfacing (see
-        # <memory-entry> chunk 3) -- a result merely appearing in a
-        # semantic search does not, by itself, count as access. min_score_for_tracking is an
+        # access_count means deliberate use, not passive surfacing -- a result merely appearing
+        # in a semantic search does not, by itself, count as access. min_score_for_tracking is an
         # explicit opt-in for callers with a real usage signal beyond "it matched": posttool_hook
         # passes a threshold because a strong match to the file just edited is itself evidence of
         # relevance, distinct from a query merely returning a candidate. Without a threshold, no

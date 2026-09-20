@@ -48,9 +48,8 @@ def test_query_type_filter_restricts_results(tmp_repo, track_access):
 
 
 def test_query_without_min_score_for_tracking_does_not_track_access(tmp_repo, track_access):
-    """access_count means deliberate use, not passive surfacing (chunk 3 of
-    <memory-entry>) -- a plain query, with no explicit tracking
-    threshold, must never bump access_count just because a result was returned."""
+    """access_count means deliberate use, not passive surfacing -- a plain
+    query, with no explicit tracking threshold, must never bump access_count just because a result was returned."""
     AddMemoryUseCase(tmp_repo).execute(
         collection="test_col",
         documents=["the cat sat on the mat"],
