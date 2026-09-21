@@ -12,6 +12,18 @@ no longer treats a `supersedes` target as protected by its edge or by `access_co
 Note: edges are stored on the source entry only, so other edge types still surface from the
 source's side alone — `supersedes` works from the target's side because of the metadata flag.
 
+### Added: experience index — `cue` on entries, shown at SessionStart
+
+Agents only fetched memory when an entry id already stood in their context (`scripts/eval_pull`),
+so `SessionStart` now also prints a small `[experience index]`: up to 20 lines
+`<situation> -> <entry id>: <title>`, derived on every read from entries whose metadata carries a `cue`.
+- `mem_boost` takes an optional `cue` (one sentence, max 140 chars, whitespace collapsed; empty string clears it).
+  `delta=0` records the cue without a boost. `/reflect` Step 3.1 asks for it.
+- Membership is decided by the cue, not by `confidence`/`access_count`. Superseded and expired entries are
+  left out, so the index cannot go stale. Over the cap, higher `boost_count`, then newer entries stay and a
+  `(+N more cues)` line reports the rest.
+- `session_start_index: false` in `agents.yaml` switches it off; it appears in default and verbose mode.
+
 ### Added: `mem_dream` proposes and applies LINK and SUPERSEDE
 
 - **LINK** (`- LINK <source> -> <target> [type=<edge_type>]: <reason>`) documents a relationship between

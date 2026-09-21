@@ -47,6 +47,7 @@ python3 install.py
 | `mem_split` | Split a long entry into focused sub-entries for more precise retrieval. |
 | `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. Proposes UPDATE / MERGE / DELETE / ADD / SPLIT / LINK / SUPERSEDE; `auto_delete`, `auto_link` and `auto_supersede` apply the respective actions. |
 | `mem_get` | Fetch entries by ID directly — bypasses semantic search and ranking. Use when the exact ID is known. |
+| `mem_boost` | Raise or lower an entry's `confidence` after `/reflect`. Optional `cue` names the situation in which the entry would have helped and puts it into the experience index shown at session start. |
 | `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`). |
 | `mem_edges` | List all outgoing edges for an entry. |
 
@@ -73,6 +74,8 @@ ai-mem registers two Claude Code hooks automatically during install:
 | `PostToolUse` | After Write/Edit | Updates `last_accessed_at` and `access_count` on matched entries |
 
 **Pull, not push.** Earlier versions injected `current_focus` text, high-confidence entries, and even per-prompt semantic search results automatically. That got expensive and noisy — content unrelated to the task in hand was in context on every message. Now `SessionStart` only tells the agent *which* collection to use; retrieving anything from it is a deliberate `mem_query` or `mem_get` call the agent (or a skill like `/reflect`) makes on purpose. Set `session_start_verbose: true` in `agents.yaml` to opt back into the old push behavior — see `docs/hooks.md`.
+
+**One exception: the experience index.** Agents rarely think to query memory unless something in their context points at an entry (`scripts/eval_pull` measured this). So `SessionStart` also prints a small fixed-size block of `situation -> entry` lines (max 20), built from entries that carry a `cue`. You write the cue during `/reflect` by answering "in which moment would this have helped me?" (`mem_boost(ids=[...], delta=0.1, cue="...")`). The block is derived on every read, so superseded, expired or deleted entries fall out on their own, and entries earn a line by cue, not by score. `session_start_index: false` turns it off.
 
 ## Confidence Lifecycle
 
@@ -140,6 +143,7 @@ settings:
   min_label_score: 0.50          # [0.0–1.0] posttool_hook label threshold
   query_k: 5                     # posttool_hook candidate count
   session_start_verbose: false   # true restores focus text + [available] + deltas at session start
+  session_start_index: true      # false drops the experience index from session start
 ```
 
 Requires `pyyaml`: `pip install ai-mem[config]`. Falls back to defaults if absent.

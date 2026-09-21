@@ -67,6 +67,8 @@ def _run_main(
     has_claude_md: bool = False,
     scope_name: str = "test",
     verbose: bool = True,
+    extra_settings: dict | None = None,
+    chroma_cls: MagicMock | None = None,
 ) -> str:
     """Run hook.main() with mocked dependencies; return captured stdout.
 
@@ -92,6 +94,10 @@ def _run_main(
     verbose: patches _load_settings to control session_start_verbose (default True,
     matching the pre-2026-09-16 push behavior these tests were written against). Pass
     False to exercise the new pull-based default (routing lines only, no content).
+
+    extra_settings: further keys merged into the patched settings dict (e.g. session_start_index).
+
+    chroma_cls: replaces the ChromaMemoryRepository class mock, to assert on or break construction.
     """
     if high_confidence_entries_by_collection is not None:
         def fake_high_confidence_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
@@ -114,7 +120,7 @@ def _run_main(
     mock_list_uc = MagicMock()
     mock_list_uc.return_value.execute.return_value = []
 
-    mock_chroma_cls = MagicMock()
+    mock_chroma_cls = chroma_cls if chroma_cls is not None else MagicMock()
     mock_repo_instance = mock_chroma_cls.return_value
     mock_repo_instance.query.return_value = expert_query_results or []
 
@@ -141,7 +147,7 @@ def _run_main(
         patch.object(hook, "ListCollectionsUseCase", mock_list_uc),
         patch.object(hook, "_high_confidence_entries", side_effect=fake_high_confidence_entries),
         patch.object(hook, "_expired_entries", side_effect=fake_expired_entries),
-        patch.object(hook, "_load_settings", return_value={"session_start_verbose": verbose}),
+        patch.object(hook, "_load_settings", return_value={"session_start_verbose": verbose, **(extra_settings or {})}),
     ):
         tmp_path.mkdir(parents=True, exist_ok=True)
         captured: list[str] = []
@@ -807,3 +813,93 @@ def test_verbose_true_restores_full_push_behavior(tmp_path: Path) -> None:
     parsed = json.loads(out)
     ctx = parsed["hookSpecificOutput"]["additionalContext"]
     assert "repo focus text" in ctx
+
+
+# ---------------------------------------------------------------------------
+# Experience index (chunk 3): the one content block SessionStart still pushes.
+# ---------------------------------------------------------------------------
+
+def test_index_block_appears_in_default_mode_after_routing(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.return_value = "- before merging -> a: Title"
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    assert ctx.index('Active collection: "repo.x"') < ctx.index("[experience index]")
+    assert "- before merging -> a: Title" in ctx
+    index_uc.return_value.execute.assert_called_once_with(["repo.x", "global"])
+
+
+def test_index_uses_only_global_without_claude_md(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.return_value = "- g -> b: T"
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(tmp_path, has_claude_md=False, verbose=False)
+    assert "- g -> b: T" in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    index_uc.return_value.execute.assert_called_once_with(["global"])
+
+
+def test_no_index_block_when_index_is_empty(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.return_value = ""
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    assert "experience index" not in out
+
+
+def test_index_failure_does_not_break_routing(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.side_effect = RuntimeError("chroma exploded")
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    assert 'Active collection: "repo.x"' in ctx and "experience index" not in ctx
+
+
+def test_index_setting_false_suppresses_block(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.return_value = "- x -> a: T"
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(
+            tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False,
+            extra_settings={"session_start_index": False},
+        )
+    assert "experience index" not in out
+    index_uc.return_value.execute.assert_not_called()
+
+
+def test_index_block_also_appears_in_verbose_mode(tmp_path: Path) -> None:
+    index_uc = MagicMock()
+    index_uc.return_value.execute.return_value = "- x -> a: T"
+    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
+        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=True)
+    assert "[experience index]" in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_repo_construction_failure_keeps_routing_line(tmp_path: Path) -> None:
+    """A locked or broken database must not cost the agent its collection routing."""
+    out = _run_main(
+        tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False,
+        chroma_cls=MagicMock(side_effect=RuntimeError("chroma db locked")),
+    )
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    assert 'Active collection: "repo.x"' in ctx and "experience index" not in ctx
+
+
+def test_repo_construction_failure_in_verbose_mode_falls_back_to_routing(tmp_path: Path) -> None:
+    out = _run_main(
+        tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=True,
+        chroma_cls=MagicMock(side_effect=RuntimeError("chroma db locked")),
+    )
+    assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_repo_not_built_when_index_disabled_in_default_mode(tmp_path: Path) -> None:
+    """With the index off, the default path touches no storage, as before the index existed."""
+    chroma = MagicMock()
+    out = _run_main(
+        tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False,
+        extra_settings={"session_start_index": False}, chroma_cls=chroma,
+    )
+    chroma.assert_not_called()
+    assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]

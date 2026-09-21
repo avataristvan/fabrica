@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart hook — injects repo/global current_focus and collection routing into Claude's context."""
+"""SessionStart hook — announces the active collection and prints the experience index; verbose mode adds focus text."""
 import json
 import os
 import sys
@@ -12,6 +12,7 @@ DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / 
 # Module-level imports for patchability in tests (same pattern as posttool_hook.py).
 try:
     from ai_mem.agent_context import _CONFIG_PATH, _load_settings, detect_for_session_start, write_to_env_file
+    from ai_mem.application.experience_index import ExperienceIndexUseCase
     from ai_mem.application.get_memory import GetMemoryUseCase
     from ai_mem.application.list_collections import ListCollectionsUseCase
     from ai_mem.application.list_entries import title_of
@@ -23,6 +24,7 @@ except ImportError:
     _load_settings = None  # type: ignore[assignment]
     detect_for_session_start = None  # type: ignore[assignment]
     write_to_env_file = None  # type: ignore[assignment]
+    ExperienceIndexUseCase = None  # type: ignore[assignment]
     GetMemoryUseCase = None  # type: ignore[assignment]
     ListCollectionsUseCase = None  # type: ignore[assignment]
     title_of = None  # type: ignore[assignment]
@@ -39,6 +41,11 @@ FOCUS_ID = "current_focus"
 # session_start_verbose: true in ~/.config/ai-mem/agents.yaml to restore the old push
 # behavior for a workflow that wants it.
 _SETTING_VERBOSE = "session_start_verbose"
+# The experience index (chunk 3) is the one content block SessionStart still pushes: a fixed,
+# small frame of "situation -> entry" lines built from cues written during /reflect. It exists
+# because agents do not think to query memory unless something in their context points at an
+# entry (eval_pull). Set session_start_index: false to get the routing line alone.
+_SETTING_INDEX = "session_start_index"
 _STATS_PATH = DB_PATH / "session_stats.json"
 _SESSION_START_FILE = DB_PATH / "session_start.txt"
 _PREV_SESSION_MAX_AGE_DAYS = 7
@@ -155,6 +162,25 @@ def _expired_entries(repo, collection: str, now_ts: float) -> list:
         return []
 
 
+def _experience_block(repo, ctx) -> str | None:
+    """The experience index for this session's scope plus global, or None when empty."""
+    if ExperienceIndexUseCase is None:
+        return None
+    collections = [ctx.collection, GLOBAL_COLLECTION] if ctx.has_claude_md else [GLOBAL_COLLECTION]
+    try:
+        lines = ExperienceIndexUseCase(repo).execute(collections)
+    except Exception:
+        return None
+    if not lines:
+        return None
+    return (
+        "[experience index]\n"
+        "If the situation you are in matches a line, fetch the entry before acting: "
+        f'mem_get(ids=[...], collection="{collections[0]}") (collection shown in brackets when different).\n'
+        + lines
+    )
+
+
 def main():
     try:
         stdin_json: dict = json.load(sys.stdin)
@@ -185,11 +211,13 @@ def main():
     except Exception:
         pass
 
-    verbose = False
+    settings: dict = {}
     try:
-        verbose = bool(_load_settings(_CONFIG_PATH).get(_SETTING_VERBOSE, False))
+        settings = _load_settings(_CONFIG_PATH)
     except Exception:
         pass
+    verbose = bool(settings.get(_SETTING_VERBOSE, False))
+    with_index = bool(settings.get(_SETTING_INDEX, True))
 
     try:
         ctx = detect_repo_context()
@@ -210,19 +238,31 @@ def main():
                 f'Pass collection="{ctx.collection}" to mem_add and mem_query in this session.'
             )
 
-        if not verbose:
-            if not parts:
+        # The default path used to touch no storage at all. Build the repo only when the index or
+        # verbose mode reads it, and never let a failing build swallow the routing line.
+        repo = None
+        if with_index or verbose:
+            try:
+                repo = ChromaMemoryRepository(DB_PATH)
+            except Exception:
+                repo = None
+        index_block = _experience_block(repo, ctx) if with_index and repo is not None else None
+
+        if not verbose or repo is None:
+            if not parts and not index_block:
                 return
+            body = "\n".join(parts)
+            if index_block:
+                body = f"{body}\n\n{index_block}" if body else index_block
             output = {
                 "hookSpecificOutput": {
                     "hookEventName": "SessionStart",
-                    "additionalContext": "[ai-mem]\n" + "\n".join(parts),
+                    "additionalContext": "[ai-mem]\n" + body,
                 }
             }
             print(json.dumps(output))
             return
 
-        repo = ChromaMemoryRepository(DB_PATH)
         get_memory = GetMemoryUseCase(repo)
 
         collections = ListCollectionsUseCase(repo).execute()
@@ -302,6 +342,9 @@ def main():
                 preview = _truncate(entry.text, _EXPIRED_PREVIEW_CHARS)
                 _exp_lines.append(f"⏰ {entry.id}: \"{preview}\" (expired {exp_date})")
             parts.append("[ai-mem expired]\n" + "\n".join(_exp_lines))
+
+        if index_block:
+            parts.append(index_block)
 
         if ctx.has_claude_md and not repo_focus:
             parts.append("No focus entry found. Add one via mem_add with id=\"current_focus\".")

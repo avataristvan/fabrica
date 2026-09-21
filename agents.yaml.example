@@ -31,3 +31,5 @@ settings:
   #                                # [available] entries, expired warnings, session deltas,
   #                                # git commits. Default (false) prints only the active/expert
   #                                # collection name — agents pull content via mem_query instead.
+  # session_start_index: true      # false drops the experience index (situation -> entry lines
+  #                                # from entries with a cue) that SessionStart prints by default.

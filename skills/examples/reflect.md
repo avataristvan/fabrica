@@ -99,6 +99,21 @@ mem_boost(ids=["<memory_id>"], collection=<active>, delta=-0.1)
 
 Die Memory-IDs stehen im `[ai-mem]`-Kontext vom Session-Start. Überspring diesen Schritt still wenn keine Memories eingespielt wurden oder keine davon den Unterschied gemacht hat.
 
+### Cue: in welchem Moment hätte dir das geholfen?
+
+Der Erfahrungsindex im `[ai-mem]`-Kontext ("Situation → Eintrag") besteht nur aus Einträgen mit Cue. Frag dich bei jeder Erkenntnis, die du in dieser Session gewonnen oder bestätigt hast: **In welcher Situation hätte ich das gebraucht, ohne zu wissen, dass ich danach fragen muss?** Formuliere die Situation aus der Sicht dessen, der noch nichts weiß (was er gerade tut oder vorhat), nicht als Stichwort der Lösung.
+
+```
+mem_boost(
+    ids=["<memory_id>"],
+    collection=<active>,
+    delta=0.1,                                  # 0 = nur den Cue setzen
+    cue="bevor ein fremder Branch gemergt wird",   # ein Satz, max. 140 Zeichen
+)
+```
+
+Nur was du wirklich in einer Situation wiederfinden würdest, bekommt einen Cue: der Index hat einen festen Rahmen und lebt davon, klein zu bleiben. Ist ein Cue überholt oder falsch, entferne ihn mit `cue=""`. Überholte Einträge (`supersedes`) verschwinden von selbst aus dem Index.
+
 ---
 
 ## Step 3.5 — Feedback signal

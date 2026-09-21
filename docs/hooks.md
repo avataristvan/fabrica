@@ -9,7 +9,7 @@ Fires at the start of every Claude Code session.
 **Default (pull-based):**
 1. Detects the repo context (git root + CLAUDE.md presence → collection name)
 2. Prints `hookSpecificOutput` JSON naming the active collection — and, inside a subagent whose type is registered for injection (see `agents.yaml`'s `inject_agents`), its own `subagent.<name>` expert collection
-3. No memory content is pushed. The agent decides when to pull — `mem_query`, `mem_get`, or the `[available]`-style listing a skill/agent prompt asks for explicitly.
+3. No memory content is pushed apart from the experience index (below). The agent decides when to pull — `mem_query`, `mem_get`, or the `[available]`-style listing a skill/agent prompt asks for explicitly.
 
 **Output format (default):**
 ```
@@ -17,7 +17,16 @@ Fires at the start of every Claude Code session.
 Expert collection: "subagent.<name>". Store cross-project learnings there with collection="subagent.<name>".
 Active collection: "repo.<name>". Pass collection="repo.<name>" to mem_add and mem_query in this session.
 ```
-The expert-collection line only appears for a subagent whose type is registered to receive it. If there's no CLAUDE.md and no such subagent, the hook prints nothing.
+The expert-collection line only appears for a subagent whose type is registered to receive it. If there's no CLAUDE.md and no such subagent, the hook prints nothing unless the experience index has lines (global cues still print).
+
+**Experience index:** the one content block the default mode still pushes. When live entries in the active collection or `global` carry a `cue` (set with `mem_boost(cue=...)` during `/reflect`), the hook appends up to 20 lines:
+```
+[experience index]
+If the situation you are in matches a line, fetch the entry before acting: mem_get(ids=[...], collection="repo.<name>") (collection shown in brackets when different).
+- before merging a foreign branch -> pattern_x: Do not merge review branches
+- ...
+```
+It is derived on every read from the cues, not stored, so a superseded, expired or deleted entry drops out on its own. Membership is decided by the cue, not by a score; when more than 20 entries have one, those with the higher `boost_count` (then the newer ones) stay and a `(+N more cues)` line says so. It exists because agents don't query memory unless something in their context points at an entry (`scripts/eval_pull`). Set `session_start_index: false` to switch it off.
 
 **Opt-in verbose mode:** set `session_start_verbose: true` under `settings:` in `~/.config/ai-mem/agents.yaml` to restore the pre-2026-09-16 push: `current_focus` text (repo + global + expert), the `[available]` high-confidence listing, expired-entry warnings, the entry-count delta since the last session, and git commits since the last session. See `agents.yaml.example`.
 

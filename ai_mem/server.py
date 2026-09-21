@@ -329,13 +329,17 @@ async def list_tools() -> list[types.Tool]:
                 "Apply a confidence delta to existing memory entries. "
                 "Use in /reflect to boost entries that proved crucial in a session (+0.1), "
                 "or to decay entries that turned out misleading (-0.1). "
-                "Entries not found are silently skipped. Delta is clamped to keep confidence in [0.0, 1.0]."
+                "Entries not found are silently skipped. Delta is clamped to keep confidence in [0.0, 1.0]. "
+                "Pass 'cue' to put the entry into the experience index shown at session start: one sentence "
+                "naming the situation in which it would have helped (empty string removes the cue); "
+                "delta=0 records the cue alone."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
                     "ids": {"type": "array", "items": {"type": "string"}, "description": "Entry IDs to boost or decay"},
-                    "delta": {"type": "number", "description": "Confidence delta, e.g. 0.1 for boost, -0.1 for decay"},
+                    "delta": {"type": "number", "description": "Confidence delta, e.g. 0.1 for boost, -0.1 for decay, 0 for none"},
+                    "cue": {"type": "string", "description": "Situation in which this entry would have helped (one sentence, max 140 chars); empty string clears it"},
                     "collection": {"type": "string", "description": f"Collection name (default: '{DEFAULT_COLLECTION}')"},
                 },
                 "required": ["ids", "delta"],
@@ -591,7 +595,10 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         col = arguments.get("collection") or DEFAULT_COLLECTION
         ids = arguments["ids"]
         delta = float(arguments["delta"])
-        boosted = _boost.execute(col, ids, delta)
+        try:
+            boosted = _boost.execute(col, ids, delta, cue=arguments.get("cue"))
+        except ValueError as exc:
+            return [types.TextContent(type="text", text=f"Error: {exc}")]
         return [types.TextContent(type="text", text=f"Boosted {boosted} entr{'y' if boosted == 1 else 'ies'} in '{col}'.")]
 
     raise ValueError(f"Unknown tool: {name}")

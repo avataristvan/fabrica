@@ -45,3 +45,13 @@ hybrid the server uses; shows the top-1 score on controls.
 - `vetted_absent` terms were checked against repo files, git log/diffs, project instructions and the
   auto-memory dir on 2026-09-20; re-check after docs change.
 - Agent tool logs are self-reported.
+
+## Arm with the experience index (chunk 3)
+
+Subagents do not receive the SessionStart hook output (a probe agent reported no `[ai-mem]` block), so the
+index is pasted into the prompt as "context handed over at session start". Both arms then carry the routing
+line; the index arm additionally carries the `[experience index]` block. This makes the baseline differ from
+the stage A baseline above: the routing line names `mem_query`, and one baseline agent (g2) queried memory
+because of it. Compare index arm against this routing-line baseline, not against the earlier no-hint run.
+The cues were written by the same agent that knew the questions (g5, g6 cues derived from the entries'
+own `When:` lines, not from the question wording); treat the result as a direction, not a rate.

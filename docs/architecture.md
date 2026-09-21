@@ -52,7 +52,8 @@ There is no ranking-related domain type (`RankingFeatures`, `LearnedRanker`, etc
 | `list_topics.py` | `ListTopicsUseCase` | group a collection's entries by `type` — the rung between `mem_list`'s flat dump and `mem_get`'s full text |
 | `cleanup_memory.py` | `CleanupMemoryUseCase` | TTL expiry + optional stale-entry delete |
 | `track_access.py` | `TrackAccessUseCase` | bump `last_accessed_at` + `access_count` |
-| `boost_confidence.py` | `BoostConfidenceUseCase` | adjust `confidence`; a positive delta also bumps `access_count` (the `/reflect` citation signal) |
+| `boost_confidence.py` | `BoostConfidenceUseCase` | adjust `confidence`; a positive delta also bumps `access_count` (the `/reflect` citation signal); optional `cue` sets/clears the entry's experience-index cue |
+| `experience_index.py` | `ExperienceIndexUseCase` | render "situation -> entry" lines from live entries that carry a `cue` (superseded/expired excluded, capped); computed on read, never stored |
 | `add_edge.py` | `AddEdgeUseCase` | validate both endpoints exist, dedup on (target_id, edge_type), persist via `repo.add_edge()` |
 | `get_edges.py` | `GetEdgesUseCase` | thin wrapper over `repo.get_edges()` |
 | `move_memory.py` | `MoveMemoryUseCase` | move entries between collections verbatim (bypasses `AddMemoryUseCase`'s merge — see CLAUDE.md) |
