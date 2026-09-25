@@ -68,6 +68,7 @@ There is no ranking-related domain type (`RankingFeatures`, `LearnedRanker`, etc
 | File | Class | Notes |
 |------|-------|-------|
 | `chroma_repository.py` | `ChromaMemoryRepository` | timestamps as Unix float metadata; edges stored as a JSON string in the `edges` metadata field; owns its own embedding function with a per-text LRU cache |
+| `markdown_adr_repository.py` | `MarkdownAdrRepository` | wraps `ChromaMemoryRepository`, sitting between it and the optional BM25 wrapper; projects `domain`/`pattern`/`anti-pattern` entries onto ADR-style Markdown files under `docs/decisions/` (or `$AI_MEM_ADR_DIR`), diffing against the existing file content before writing so confidence-only mutations never touch it; `delete(ids=None)` never removes files |
 | `bm25_repository.py` | `BM25MemoryRepository` | wraps any `MemoryRepository`; fetches extra candidates and fuses BM25 + cosine scores; delegates `add_edge`/`get_edges` to the inner repo |
 
 No ranker infrastructure remains (`torch_ranker.py`, `null_ranker.py`, `ranker_storage.py` are gone with the 2026-06 removal).

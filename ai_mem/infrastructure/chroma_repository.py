@@ -13,7 +13,7 @@ from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, QueryResult
 
 
-_PERMANENT_TYPES = {"pattern", "anti-pattern"}
+_PERMANENT_TYPES = {"pattern", "anti-pattern", "domain"}
 _EMBEDDING_CACHE_MAXSIZE = 128
 
 

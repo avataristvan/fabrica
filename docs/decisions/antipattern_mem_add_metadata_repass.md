@@ -1,0 +1,8 @@
+id: antipattern_mem_add_metadata_repass
+type: anti-pattern
+created: 1781434290.659998
+---
+
+Tried: Manually re-passing all existing metadata fields (access_count, boost_count, confidence, created_at, edges) when calling mem_add to update an entry's text.
+Failed because: AddMemoryUseCase already preserves all existing metadata by default — it fetches prior_meta and merges with {**prior_meta, **user_meta}, then explicitly protects created_at, last_accessed_at, and access_count. Re-passing them was redundant and introduced risk of stale values.
+Instead: For a text-only update, call mem_add with just documents + ids. Only pass metadatas when you explicitly want to change a field.

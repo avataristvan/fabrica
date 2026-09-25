@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import threading
 import time
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
 
 from ai_mem.application.add_memory import AddMemoryUseCase
+from ai_mem.domain.memory import MemoryEntry
 
 
 def _mock_query_result(distances: list[float]) -> dict:
@@ -132,3 +134,19 @@ def test_concurrent_identical_text_queries_embed_only_once(tmp_repo):
         t.join(timeout=5.0)
 
     assert len(calls) == 1
+
+
+def test_delete_stale_preserves_domain_entries(tmp_repo):
+    """`domain` joined `_PERMANENT_TYPES` (Chunk 2 of the ADR migration) alongside
+    pattern/anti-pattern -- Decision Records are long-lived, replaced via `supersedes`,
+    not disposed of by the forgetting-curve."""
+    old_ts = datetime.now(tz=timezone.utc).timestamp() - 1000 * 86400
+    tmp_repo.upsert(
+        "col",
+        [MemoryEntry(id="domain_old", text="Decision: ...", metadata={"type": "domain", "last_accessed_at": old_ts})],
+    )
+
+    removed = tmp_repo.delete_stale("col", stale_after_days=30)
+
+    assert removed == 0
+    assert tmp_repo.get_by_ids("col", ["domain_old"]) != []

@@ -25,17 +25,28 @@ from ai_mem.application.move_memory import MoveMemoryUseCase
 from ai_mem.application.query_memory import QueryMemoryUseCase
 from ai_mem.application.split_memory import SplitMemoryUseCase
 from ai_mem.application.track_access import TrackAccessUseCase
+from ai_mem.infrastructure.adr_paths import ADR_TYPES, record_collection_root, resolve_repo_root_for_collection
 from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+from ai_mem.infrastructure.markdown_adr_repository import MarkdownAdrRepository
+from ai_mem.repo_context import detect_repo_context
 
 DEFAULT_COLLECTION = "workspace"
 
 _db_path = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
 _inner_repo = ChromaMemoryRepository(_db_path)
-try:
-    from ai_mem.infrastructure.bm25_repository import BM25MemoryRepository
-    _repo = BM25MemoryRepository(_inner_repo)
-except ImportError:
+
+if os.environ.get("AI_MEM_ADR_DISABLED") == "1":
     _repo = _inner_repo
+else:
+    _adr_repo = MarkdownAdrRepository(_inner_repo, _db_path)
+    _ctx = detect_repo_context()
+    if _ctx.git_root or _ctx.claude_md_dir:
+        record_collection_root(_db_path, _ctx.collection, _ctx.git_root or _ctx.claude_md_dir)
+    try:
+        from ai_mem.infrastructure.bm25_repository import BM25MemoryRepository
+        _repo = BM25MemoryRepository(_adr_repo)
+    except ImportError:
+        _repo = _adr_repo
 
 _track_access = TrackAccessUseCase(_repo)
 _add = AddMemoryUseCase(_repo)
@@ -437,6 +448,12 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             ttl_days=arguments.get("ttl_days"),
         )
         base_text = f"Stored {count} entry/entries in '{collection}'."
+
+        if type_tag in ADR_TYPES and resolve_repo_root_for_collection(_db_path, collection) is None:
+            base_text = (
+                f"{base_text}\n\nnote: not persisted as a Markdown file — "
+                f"could not resolve a repo root for collection '{collection}' yet."
+            )
 
         if type_tag == "anti-pattern":
             suggestion = _suggest_pattern_links(

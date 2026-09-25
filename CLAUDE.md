@@ -25,6 +25,24 @@ mem-dream --expert          # consolidate all subagent.* collections with expert
 - `session_stats.py` — rolling per-scope injection tracking (20-entry window). `record_injection()` is called from `hook.py` (SessionStart). `injection_rate()` has no production caller besides its own test; whether to delete it is an open decision.
 - `memory_index.py` — MEMORY.md auto-demotion (180→160 line threshold) — **built but not yet deployed, no trigger wired**
 
+## Decision Records
+
+`domain`/`pattern`/`anti-pattern`-Wissen ist git-nativ unter `docs/decisions/` (eine
+Markdown-Datei pro Entscheidung, Dateiname = ai-mem-Entry-ID) — direkt durchsuchbar mit
+grep/ls/Read, ohne ai-mem-Tools. ChromaDB ist ein lokal regenerierbarer Semantik-Index
+darüber (`mem-adr-sync import` baut ihn aus den Dateien neu auf), nicht die Wahrheitsquelle.
+
+**Offen, durch diese Migration NICHT gelöst:** das generelle mem_query-Retrieval-Trigger-
+Problem (`eval_pull_gap_test_2026_09_20`, Collection `repo.ai-mem`) — ein Agent, der eine
+Frage hat, ruft mem_query in den meisten Fällen nicht von sich aus auf. Dieser Abschnitt
+macht `docs/decisions/` nur über den Kanal auffindbar, der im Gap-Test nachweislich
+funktionierte (CLAUDE.md-Verweis + Repo-Grep), löst aber nicht das Trigger-Problem für
+ai-mems eigene Query-Tools.
+
+`docs/decisions/INDEX.md` listet alle Entscheidungen kompakt (id + Titel + Status) —
+bei vielen Dateien zuerst diese eine Datei lesen statt einzeln zu greppen;
+`mem-adr-sync reindex`/`export` hält sie aktuell.
+
 ## Critical Invariants
 
 Things that will bite you in the first hour. Current-state facts only.
@@ -47,3 +65,4 @@ Things that will bite you in the first hour. Current-state facts only.
 - `mem_dream`'s `claude` CLI subprocess call (`dream_memory.py::_call()`) uses bare model aliases (`"sonnet"`, `"haiku"`), not versioned tags — a versioned tag is a bitrot risk since the CLI can stop resolving it whenever Anthropic retires it. On failure it raises with the CLI's actual `stderr`/`stdout` included, not just a bare exit code.
 - Daemon (`daemon.py`) is thread-per-connection with a locked `record_access()` write path; `ChromaMemoryRepository` caches embeddings per-text with per-key locking.
 - `injection_log.py` logs every SessionStart push; `mem-dream` cross-references it against `last_accessed_at` to report per-collection pull-through rate on demand (not a live counter — a push's "was it pulled" outcome isn't knowable until later).
+- `MarkdownAdrRepository` additionally persists `domain`/`pattern`/`anti-pattern` entries as Markdown under `docs/decisions/` (or `$AI_MEM_ADR_DIR`); `confidence`/`access_count`/`boost_count`/`last_accessed_at`/`cue` are never written to the file — `mem_boost` never produces a file diff. Both `server.py` and `dream_cli.py`'s `_build_repo()` wire it in identically (not optional): `mem-dream --auto_delete/--auto_link/--auto_supersede` mutate the same repository stack and would otherwise orphan or silently desync a `.md` file. `AI_MEM_ADR_DISABLED=1` skips the Markdown layer entirely as a rollback escape hatch.
