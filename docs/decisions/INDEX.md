@@ -17,5 +17,7 @@
 | pattern_lightweight_as_feature | Rule: ai-mem's lightweight design (ChromaDB + cosine similarity, no local infere | active |
 | pattern_load_bearing_entries_require_maintenance_discipline | Rule: When a change alters observable system behavior (thresholds, renamed conce | active |
 | pattern_quality_at_write_time | Rule: Memory quality is determined at write time (type tagging, anti-pattern for | active |
+| pattern_stale_by_neighbouring_retirement | Rule: Einträge, die kurz vor einem Retirement-Commit geschrieben oder zuletzt be | active |
 | pattern_status_markers_rot_in_memory | Rule: Never embed mutable status strings ("NOT YET COMMITTED", "not started", "n | active |
 | pattern_taxonomy_as_quality_gate | Rule: The type taxonomy (anti-pattern, dilemma) is the quality-control mechanism | active |
+| pattern_triggers_beat_storage_and_ranking | Rule: Was einen Agenten zum Memory-Zugriff bewegt, ist ein ID-Pointer oder eine  | active |
