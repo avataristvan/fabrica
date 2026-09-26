@@ -20,10 +20,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=7.0",
-  "rank_bm25>=0.7",
+  "rank_bm25>=0.2",
 ]
 hybrid = [
-  "rank_bm25>=0.7",
+  "rank_bm25>=0.2",
 ]
 config = [
   "pyyaml>=6.0",

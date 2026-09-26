@@ -7,7 +7,6 @@ Agent-facing supplement to README.md. Dev commands and critical contributor gotc
 ```bash
 pip install -e .            # editable install (no ML, no BM25)
 pip install -e ".[hybrid]"  # with BM25 hybrid search
-pip install -e ".[dream]"   # with Anthropic SDK for mem-dream
 pip install -e ".[config]"  # with pyyaml for agents.yaml support
 python3 -m ai_mem.server    # run MCP server directly
 python3 install.py          # register with Claude Code / Gemini CLI / Cursor
