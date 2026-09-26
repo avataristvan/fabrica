@@ -14,7 +14,7 @@ from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.boost_confidence import BoostConfidenceUseCase
 from ai_mem.application.cleanup_memory import CleanupMemoryUseCase
 from ai_mem.application.delete_memory import DeleteMemoryUseCase
-from ai_mem.application.detect_split_hints import DetectSplitHintsUseCase
+from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS, DetectSplitHintsUseCase
 from ai_mem.application.dream_memory import DreamMemoryUseCase, MODES
 from ai_mem.application.get_edges import GetEdgesUseCase
 from ai_mem.application.get_memory import GetMemoryUseCase
@@ -84,8 +84,10 @@ async def list_tools() -> list[types.Tool]:
                 "pass that project's collection explicitly (e.g. 'repo.my-app') — never rely on the active collection default for cross-project intent. "
                 "Set 'ttl_days' to expire the entry automatically (e.g. 30 for one month). "
                 "When updating an existing entry (same id), existing metadata is preserved by default — "
-                "confidence, access_count, boost_count, created_at, edges, and type are all kept intact. "
-                "You do NOT need to re-pass existing metadata fields for a text-only update."
+                "boost_count, created_at, edges, and type are all kept intact (any legacy confidence or "
+                "access_count from an older entry also survives untouched, though this tool no longer "
+                "sets or computes either). You do NOT need to re-pass existing metadata fields for a "
+                "text-only update."
             ),
             inputSchema={
                 "type": "object",
@@ -104,8 +106,8 @@ async def list_tools() -> list[types.Tool]:
             name="mem_query",
             description=(
                 "Search memory semantically. Returns an object with 'results' (ranked entries with "
-                "similarity scores and confidence) and 'split_hints' (entries with high access_count "
-                "and long text that may benefit from being split into more granular sub-topics). "
+                "similarity scores) and 'split_hints' (long entries that may benefit from being split "
+                "into more granular sub-topics). "
                 f"Leave 'collection' empty to search the default ('{DEFAULT_COLLECTION}'). "
                 "Use the repo collection injected at session start (e.g. 'repo.ai-mem') for repo-specific context, "
                 "or 'global' for cross-session general knowledge. "
@@ -279,7 +281,7 @@ async def list_tools() -> list[types.Tool]:
             description=(
                 "Split a coarse memory entry into 2-3 focused sub-entries using Claude. "
                 "If 'entry_id' is omitted, auto-splits all hinted entries in the collection "
-                f"(access_count ≥ {5} and text ≥ {150} chars). "
+                f"(text ≥ {SPLIT_MIN_TEXT_CHARS} chars, or carrying multiple structural sections). "
                 "The original entry is deleted and replaced by the sub-entries. "
                 f"Leave 'collection' empty to use the default ('{DEFAULT_COLLECTION}')."
             ),
@@ -301,11 +303,13 @@ async def list_tools() -> list[types.Tool]:
                 "When the source entry is retrieved by mem_query, its linked target is automatically "
                 "appended to the results (1-hop, budget: 2 linked entries per query; edges are "
                 "stored on the source only). "
-                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes'. "
+                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes' | 'confirms'. "
                 "'supersedes' (source = the newer entry, target = the entry it replaces) flags the "
                 "target as superseded: mem_query keeps returning it but marks it with "
                 "'superseded_by' and appends the successor. To undo, mem_add the target with "
-                "metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]."
+                "metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]. "
+                "'confirms' (source = the later entry, target = the earlier one it bears out) records "
+                "where and how an insight held up again -- traceable evidence instead of a score."
             ),
             inputSchema={
                 "type": "object",
@@ -314,7 +318,7 @@ async def list_tools() -> list[types.Tool]:
                     "target_id": {"type": "string", "description": "ID of the target entry"},
                     "edge_type": {
                         "type": "string",
-                        "enum": ["contradicts", "fixes", "causes", "related", "supersedes"],
+                        "enum": ["contradicts", "fixes", "causes", "related", "supersedes", "confirms"],
                         "description": "Relationship type from source to target",
                     },
                     "collection": {"type": "string", "description": f"Collection containing both entries (default: '{DEFAULT_COLLECTION}')"},
@@ -337,23 +341,22 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_boost",
             description=(
-                "Apply a confidence delta to existing memory entries. "
-                "Use in /reflect to boost entries that proved crucial in a session (+0.1), "
-                "or to decay entries that turned out misleading (-0.1). "
-                "Entries not found are silently skipped. Delta is clamped to keep confidence in [0.0, 1.0]. "
+                "Record a /reflect citation on existing memory entries: increments boost_count, "
+                "the signal that an entry mattered enough to cite. To flag an entry as wrong or "
+                "outdated, use mem_link with edge_type 'contradicts' or 'supersedes' instead; to record "
+                "that an entry held up again, use mem_link with edge_type 'confirms'. "
+                "Entries not found are silently skipped. "
                 "Pass 'cue' to put the entry into the experience index shown at session start: one sentence "
-                "naming the situation in which it would have helped (empty string removes the cue); "
-                "delta=0 records the cue alone."
+                "naming the situation in which it would have helped (empty string removes the cue)."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "Entry IDs to boost or decay"},
-                    "delta": {"type": "number", "description": "Confidence delta, e.g. 0.1 for boost, -0.1 for decay, 0 for none"},
+                    "ids": {"type": "array", "items": {"type": "string"}, "description": "Entry IDs to boost"},
                     "cue": {"type": "string", "description": "Situation in which this entry would have helped (one sentence, max 140 chars); empty string clears it"},
                     "collection": {"type": "string", "description": f"Collection name (default: '{DEFAULT_COLLECTION}')"},
                 },
-                "required": ["ids", "delta"],
+                "required": ["ids"],
             },
         ),
     ]
@@ -493,7 +496,6 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                     "rank": result.rank,
                     "id": result.id,
                     "score": result.score,
-                    "confidence": float(result.metadata.get("confidence", 0.0)),
                     # Top-level so a superseded (stale) hit cannot be mistaken for a current one.
                     **({"superseded_by": result.metadata["superseded_by"]} if result.metadata.get("superseded_by") else {}),
                     "metadata": result.metadata,
@@ -502,7 +504,7 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                 for result in results
             ],
             "split_hints": [
-                {"id": hint.id, "text_preview": hint.text_preview, "access_count": hint.access_count}
+                {"id": hint.id, "text_preview": hint.text_preview}
                 for hint in split_hints
             ],
         }
@@ -611,9 +613,10 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     if name == "mem_boost":
         col = arguments.get("collection") or DEFAULT_COLLECTION
         ids = arguments["ids"]
-        delta = float(arguments["delta"])
+        # 'delta' is no longer read: dropped from the schema, but a caller/skill still sending
+        # it (backward compat) is silently ignored rather than rejected.
         try:
-            boosted = _boost.execute(col, ids, delta, cue=arguments.get("cue"))
+            boosted = _boost.execute(col, ids, cue=arguments.get("cue"))
         except ValueError as exc:
             return [types.TextContent(type="text", text=f"Error: {exc}")]
         return [types.TextContent(type="text", text=f"Boosted {boosted} entr{'y' if boosted == 1 else 'ies'} in '{col}'.")]

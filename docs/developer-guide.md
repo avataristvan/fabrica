@@ -42,7 +42,7 @@ Link two entries with a typed causal edge:
 mem_link(source_id="abc", target_id="xyz", edge_type="contradicts", collection="repo.my-project")
 ```
 
-Available edge types: `contradicts`, `fixes`, `causes`, `related`, `supersedes`.
+Available edge types: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`.
 
 Query edges for an entry:
 ```
@@ -55,7 +55,7 @@ During `mem_query`, matched entries automatically surface their linked targets (
 
 ## Conventions
 
-- All timestamps stored as Unix float in ChromaDB metadata: `created_at`, `expires_at`, `last_accessed_at`, `access_count`
+- All timestamps stored as Unix float in ChromaDB metadata: `created_at`, `expires_at`, `last_accessed_at`. `access_count` (and `confidence`) may still appear as legacy metadata on older entries but are no longer written or read (dropped 2026-09-26 — see CLAUDE.md)
 - `mem_delete` with no `ids` returns `-1` (signals full collection drop, not count)
 - `QueryMemoryUseCase` returns results in ChromaDB's native cosine order — no re-ranking step, no over-fetch
 - Edges are stored as JSON-string in ChromaDB metadata (`edges` field). `_parse_edges()` in `chroma_repository.py` always returns `[]` on parse error.

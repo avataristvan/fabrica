@@ -18,20 +18,22 @@ def test_missing_ids_silently_skipped(tmp_repo):
     assert result[0].id == "a"
 
 
-def test_without_track_access_does_not_bump_access_count(tmp_repo):
+def test_without_track_access_does_not_bump_last_accessed_at(tmp_repo):
     """Default (no track_access injected) -- e.g. hook.py's SessionStart current_focus lookup,
     which is automatic plumbing, not a deliberate agent choice, and must not count as usage."""
     AddMemoryUseCase(tmp_repo).execute(collection="col", documents=["x"], ids=["a"])
+    created_at = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata["created_at"]
     GetMemoryUseCase(tmp_repo).execute("col", ["a"])
     fetched = GetMemoryUseCase(tmp_repo).execute("col", ["a"])
-    assert fetched[0].metadata.get("access_count", 0) == 0
+    assert fetched[0].metadata["last_accessed_at"] == created_at
 
 
-def test_with_track_access_bumps_access_count_for_found_ids_only(tmp_repo, track_access):
+def test_with_track_access_bumps_last_accessed_at_for_found_ids_only(tmp_repo, track_access):
     AddMemoryUseCase(tmp_repo).execute(collection="col", documents=["x"], ids=["a"])
+    created_at = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata["created_at"]
     GetMemoryUseCase(tmp_repo, track_access).execute("col", ["a", "does-not-exist"])
     fetched = GetMemoryUseCase(tmp_repo).execute("col", ["a"])
-    assert fetched[0].metadata["access_count"] == 1
+    assert fetched[0].metadata["last_accessed_at"] > created_at
 
 
 def test_track_access_not_called_when_nothing_found(tmp_repo):

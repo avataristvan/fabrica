@@ -2,8 +2,8 @@
 anti-pattern entries onto ADR Markdown files under docs/decisions/.
 
 Uses a minimal in-memory fake for the inner MemoryRepository (not ChromaMemoryRepository)
-so these tests exercise the decorator's own logic -- the diff-before-write confidence-
-lifecycle boundary, the file-lifecycle on delete, and the add_edge resync -- in isolation.
+so these tests exercise the decorator's own logic -- the diff-before-write volatile-field
+boundary, the file-lifecycle on delete, and the add_edge resync -- in isolation.
 """
 from __future__ import annotations
 

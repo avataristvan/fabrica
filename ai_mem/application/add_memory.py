@@ -1,9 +1,11 @@
 """Add or update memory entries, injecting timestamps and TTL.
 
 Re-adding an entry with an existing id preserves its history (created_at,
-last_accessed_at, access_count). Only the document text, custom metadata, and
-TTL are updated. This keeps the access-tracking signal intact across mem_add
-calls that overwrite the same id."""
+last_accessed_at, and any other metadata already stored -- including legacy
+confidence/access_count values from before they were dropped as trust signals,
+see domain_drop_confidence_for_evidence_and_librarian). Only the document text,
+custom metadata, and TTL are updated. This use case no longer defaults, computes,
+or carries forward confidence or access_count for new or updated entries."""
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -34,20 +36,9 @@ class AddMemoryUseCase:
             user_meta = dict(metadatas[idx]) if metadatas and idx < len(metadatas) else {}
             prior_meta = existing[id_].metadata if id_ in existing else {}
 
-            prior_confidence = float(prior_meta["confidence"]) if "confidence" in prior_meta else 0.7
-            if "confidence_delta" in user_meta:
-                delta = float(user_meta.pop("confidence_delta"))
-                confidence = max(0.0, min(1.0, prior_confidence + delta))
-            elif "confidence" in user_meta:
-                confidence = float(user_meta["confidence"])
-            else:
-                confidence = prior_confidence
-
             meta = {**prior_meta, **user_meta}
             meta["created_at"] = prior_meta.get("created_at", now_ts)
             meta["last_accessed_at"] = prior_meta.get("last_accessed_at", now_ts)
-            meta["access_count"] = int(prior_meta.get("access_count", 0))
-            meta["confidence"] = confidence
             if expires_at is not None:
                 meta["expires_at"] = expires_at.timestamp()
 

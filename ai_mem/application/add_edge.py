@@ -27,10 +27,15 @@ class AddEdgeUseCase:
         target can warn and point at the successor -- edges are only stored on the source, so
         the edge alone would never surface from the target's side. Raises ValueError when the
         source is the target itself or is already superseded (which would allow cycles).
+
+        A 'confirms' edge (source is the later entry bearing out the earlier target) is evidence,
+        not a score: it only stores the edge. Raises ValueError when the source is the target.
         """
         # Checked before the fetch: get_by_ids([x, x]) makes ChromaDB raise DuplicateIDError.
         if edge_type == "supersedes" and source_id == target_id:
             raise ValueError(f"An entry cannot supersede itself: '{source_id}'")
+        if edge_type == "confirms" and source_id == target_id:
+            raise ValueError(f"An entry cannot confirm itself: '{source_id}'")
 
         entries = {entry.id: entry for entry in self._repo.get_by_ids(collection, [source_id, target_id])}
         missing = [id_ for id_ in (source_id, target_id) if id_ not in entries]

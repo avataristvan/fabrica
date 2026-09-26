@@ -48,8 +48,6 @@ Consolidation constraints:
 If they share an edge (shown in metadata), verify the relationship is accurate — do not collapse it.
 - NEVER propose MERGE between a "domain" entry and a "pattern"/"anti-pattern" entry — domain \
 knowledge and coding technique are different axes even when they discuss the same code.
-- Entries with access_count ≥ 5 are load-bearing (frequently retrieved). \
-Avoid DELETE or MERGE unless clearly redundant.
 - If two entries share an edge, the edge makes both necessary. \
 Verify the relationship before proposing structural changes.
 - If two related entries have no edge yet, propose LINK to document the relationship explicitly \
@@ -59,7 +57,7 @@ already share an edge.
 fact replaced), propose SUPERSEDE <new-id> -> <old-id> instead of DELETE or MERGE: the old entry \
 stays readable as history and is flagged. Both entries must be in the same collection.
 - Exception: a 'supersedes' edge marks its target as overtaken (shown as superseded_by=<id> on the \
-target). That target is protected neither by the edge nor by access_count. Propose DELETE only if \
+target). The edge does not protect that target from DELETE. Propose DELETE only if \
 the successor already carries the full rationale; otherwise leave it as history, or propose an \
 UPDATE of the successor that absorbs what is missing.
 - Entries covering multiple independent concepts (multiple ## sections, multiple Tried: blocks, \
@@ -197,8 +195,6 @@ def _format_entries(entries: list[MemoryEntry]) -> str:
         shown: dict[str, object] = {}
         if entry_type := entry.metadata.get("type"):
             shown["type"] = entry_type
-        if access_count := entry.metadata.get("access_count"):
-            shown["access_count"] = int(access_count)
         if raw_edges := entry.metadata.get("edges"):
             try:
                 edges = json.loads(raw_edges)
@@ -296,64 +292,6 @@ def _call(model_key: str, prompt: str) -> str:
 
 def _collection_context(collections: list[str]) -> str:
     return _COLLECTION_CONTEXT.format(collections="\n".join(f"  - {col_name}" for col_name in collections))
-
-
-def _confidence_report(entries: list[MemoryEntry]) -> str:
-    """Return a markdown report of decay and promotion candidates based on confidence metadata.
-
-    Entries without a 'confidence' field are silently skipped.
-    Returns an empty string when no candidates exist in either category.
-    """
-    decay: list[tuple[str, str, float, int]] = []    # (id, collection, confidence, access_count)
-    promote: list[tuple[str, str, float, int, str]] = []  # (id, collection, confidence, access_count, type)
-
-    for entry in entries:
-        raw = entry.metadata.get("confidence")
-        if raw is None:
-            continue
-        try:
-            conf = float(raw)
-        except (ValueError, TypeError):
-            continue
-
-        col = entry.metadata.get("_collection", "?")
-        access_count = int(entry.metadata.get("access_count", 0))
-        entry_type = str(entry.metadata.get("type", ""))
-
-        if conf < 0.3:
-            decay.append((entry.id, col, conf, access_count))
-        if conf > 0.9 and access_count >= 3 and not entry.metadata.get("keep_in_ai_mem"):
-            promote.append((entry.id, col, conf, access_count, entry_type))
-
-    if not decay and not promote:
-        return ""
-
-    sections: list[str] = ["---", "", "## Confidence Report"]
-
-    if decay:
-        sections += [
-            "",
-            "### Decay Candidates",
-            "",
-            "Consider DELETE or mem-dream review:",
-            "",
-        ]
-        for eid, col, conf, access_count in decay:
-            sections.append(f"- `{eid}` ({col}) — confidence={conf:.2f}, access_count={access_count}")
-
-    if promote:
-        sections += [
-            "",
-            "### Promotion Candidates",
-            "",
-            "Consider promoting to CLAUDE.md (stable, frequently accessed):",
-            "",
-        ]
-        for eid, col, conf, access_count, etype in promote:
-            type_tag = f", type={etype}" if etype else ""
-            sections.append(f"- `{eid}` ({col}) — confidence={conf:.2f}, access_count={access_count}{type_tag}")
-
-    return "\n" + "\n".join(sections)
 
 
 def _pull_through_report(entries: list[MemoryEntry], log_path: Path) -> str:
@@ -501,10 +439,6 @@ class DreamMemoryUseCase:
         split_report = _split_candidates(synthesis, all_entries)
         if split_report:
             report += split_report
-
-        conf_report = _confidence_report(all_entries)
-        if conf_report:
-            report += "\n\n" + conf_report
 
         if self._injection_log_path is not None:
             pull_report = _pull_through_report(all_entries, self._injection_log_path)

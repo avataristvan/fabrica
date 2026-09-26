@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""PostToolUse hook for Write|Edit — updates access_count in ai-mem.
+"""PostToolUse hook for Write|Edit — records last_accessed_at in ai-mem.
 
 After a file is written or edited, the file path is used as a query signal.
 Matching memory entries get their last_accessed_at updated (via TrackAccessUseCase
-inside QueryMemoryUseCase), which feeds the confidence lifecycle.
+inside QueryMemoryUseCase) as a record of deliberate use.
 
 No output is produced — the hook is fully silent.
 """

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal, Protocol
 
-EdgeType = Literal["contradicts", "fixes", "causes", "related", "supersedes"]
+EdgeType = Literal["contradicts", "fixes", "causes", "related", "supersedes", "confirms"]
 
 
 @dataclass
@@ -23,7 +23,6 @@ class MemoryEntry:
     created_at: datetime | None = None
     expires_at: datetime | None = None
     last_accessed_at: datetime | None = None
-    access_count: int = 0
 
 
 @dataclass
@@ -39,7 +38,6 @@ class QueryResult:
 class SplitHint:
     id: str
     text_preview: str   # first 80 chars of the original text
-    access_count: int
 
 
 @dataclass
@@ -75,7 +73,7 @@ class MemoryRepository(Protocol):
         ...
 
     def record_access(self, collection: str, ids: list[str]) -> None:
-        """Bump last_accessed_at and access_count for the given ids. Missing ids are silently skipped."""
+        """Bump last_accessed_at for the given ids. Missing ids are silently skipped."""
         ...
 
     def delete_stale(self, collection: str, stale_after_days: float) -> int:

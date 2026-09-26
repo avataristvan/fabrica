@@ -47,8 +47,8 @@ python3 install.py
 | `mem_split` | Split a long entry into focused sub-entries for more precise retrieval. |
 | `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. Proposes UPDATE / MERGE / DELETE / ADD / SPLIT / LINK / SUPERSEDE; `auto_delete`, `auto_link` and `auto_supersede` apply the respective actions. |
 | `mem_get` | Fetch entries by ID directly — bypasses semantic search and ranking. Use when the exact ID is known. |
-| `mem_boost` | Raise or lower an entry's `confidence` after `/reflect`. Optional `cue` names the situation in which the entry would have helped and puts it into the experience index shown at session start. |
-| `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`). |
+| `mem_boost` | Cite an entry as decisive during `/reflect`: increments `boost_count` and bumps `last_accessed_at`. No `delta` parameter. Optional `cue` names the situation in which the entry would have helped and puts it into the experience index shown at session start. |
+| `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`). |
 | `mem_edges` | List all outgoing edges for an entry. |
 
 ## Memory Scoping
@@ -71,25 +71,22 @@ ai-mem registers two Claude Code hooks automatically during install:
 | Hook | Trigger | What it does |
 |------|---------|--------------|
 | `SessionStart` | Session opens | Announces the active collection (and, for a registered subagent, its own expert collection) — no memory content by default |
-| `PostToolUse` | After Write/Edit | Updates `last_accessed_at` and `access_count` on matched entries |
+| `PostToolUse` | After Write/Edit | Updates `last_accessed_at` on matched entries |
 
 **Pull, not push.** Earlier versions injected `current_focus` text, high-confidence entries, and even per-prompt semantic search results automatically. That got expensive and noisy — content unrelated to the task in hand was in context on every message. Now `SessionStart` only tells the agent *which* collection to use; retrieving anything from it is a deliberate `mem_query` or `mem_get` call the agent (or a skill like `/reflect`) makes on purpose. Set `session_start_verbose: true` in `agents.yaml` to opt back into the old push behavior — see `docs/hooks.md`.
 
-**One exception: the experience index.** Agents rarely think to query memory unless something in their context points at an entry (`scripts/eval_pull` measured this). So `SessionStart` also prints a small fixed-size block of `situation -> entry` lines (max 20), built from entries that carry a `cue`. You write the cue during `/reflect` by answering "in which moment would this have helped me?" (`mem_boost(ids=[...], delta=0.1, cue="...")`). The block is derived on every read, so superseded, expired or deleted entries fall out on their own, and entries earn a line by cue, not by score. `session_start_index: false` turns it off.
+**One exception: the experience index.** Agents rarely think to query memory unless something in their context points at an entry (`scripts/eval_pull` measured this). So `SessionStart` also prints a small fixed-size block of `situation -> entry` lines (max 20), built from entries that carry a `cue`. You write the cue during `/reflect` by answering "in which moment would this have helped me?" (`mem_boost(ids=[...], cue="...")`). The block is derived on every read, so superseded, expired or deleted entries fall out on their own, and entries earn a line by cue, not by score. `session_start_index: false` turns it off.
 
-## Confidence Lifecycle
+## Trust Signals
 
-Each entry carries a `confidence` score (0.0–1.0) that tracks its epistemic status over time:
+`confidence` and `access_count` were dropped 2026-09-26 as trust signals in favor of evidence edges and a librarian-style retrieval agent — see `docs/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md`. They are no longer written or read; legacy values remain untouched in stored metadata. What's current:
 
 | Event | Effect |
 |-------|--------|
-| New entry | Starts at **0.7** — must earn its place |
-| `/reflect` confirms it was decisive | `mem_boost(delta=+0.1)` |
-| Dream cycle flags it as stale | `mem_boost(delta=-0.1)` |
-| `confidence > 0.9` + `access_count ≥ 3` + `boost_count ≥ 1` | Eligible for the **[available]** listing (id + title only, full text via `mem_get`) — shown when `session_start_verbose: true`, or on request |
-| `confidence < 0.3` | Flagged as decay candidate in `mem_dream` report |
+| `/reflect` cites an entry as decisive | `mem_boost(ids=[...])` — increments `boost_count`, bumps `last_accessed_at` |
+| `boost_count ≥ 1` | Eligible for the **[available]** listing (id + title only, full text via `mem_get`), sorted by `boost_count` desc — shown when `session_start_verbose: true`, or on request |
 
-Retrieval uses ChromaDB's native cosine similarity. Confidence governs *which entries qualify for `[available]`*, not result ordering.
+Retrieval uses ChromaDB's native cosine similarity, unaffected by this change.
 
 ## Typed Causal Edges
 
@@ -99,7 +96,7 @@ Entries can be linked with directional typed edges to model relationships betwee
 mem_link(source_id="antipattern_xyz", target_id="pattern_abc", edge_type="contradicts", collection="repo.my-project")
 ```
 
-Edge types: `contradicts` · `fixes` · `causes` · `related` · `supersedes`
+Edge types: `contradicts` · `fixes` · `causes` · `related` · `supersedes` · `confirms` (later record → earlier one it bears out)
 
 During `mem_query`, linked entries are automatically surfaced alongside their source (1-hop, budget: 2 entries per query). Appended entries are tagged with `via_edge` and `via_source` in their metadata.
 

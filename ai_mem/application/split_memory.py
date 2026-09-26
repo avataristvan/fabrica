@@ -7,7 +7,7 @@ import sys
 from dataclasses import dataclass, field
 
 from ai_mem.application.add_memory import AddMemoryUseCase
-from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS, SPLIT_THRESHOLD_ACCESSES
+from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS
 from ai_mem.domain.memory import MemoryEntry, MemoryRepository
 
 _MODEL = "claude-haiku-4-5-20251001"
@@ -55,8 +55,7 @@ class SplitMemoryUseCase:
         else:
             entries = [
                 entry for entry in self._repo.get_all(collection)
-                if int(entry.metadata.get("access_count", 0)) >= SPLIT_THRESHOLD_ACCESSES
-                and len(entry.text) >= SPLIT_MIN_TEXT_CHARS
+                if len(entry.text) >= SPLIT_MIN_TEXT_CHARS
             ]
 
         return [self._split_one(collection, entry) for entry in entries]

@@ -46,15 +46,17 @@ shape is not reformatted into a different ADR prose style).
 These fields are ChromaDB-only, volatile operational telemetry — they are never
 written to the Markdown frontmatter even if present in the input metadata dict:
 
-- `confidence`
-- `access_count`
+- `confidence` (legacy metadata only — no longer written or read anywhere; dropped 2026-09-26, see CLAUDE.md)
+- `access_count` (legacy metadata only — no longer written or read anywhere; dropped 2026-09-26, see CLAUDE.md)
 - `boost_count`
 - `last_accessed_at`
 - `cue`
 
 Rationale: the Markdown file is a derived projection of the current ChromaDB
-state *minus* these volatile fields. A `mem_boost` or `record_access` call
-mutates confidence/access_count but must never cause a file rewrite — see the
+state *minus* these volatile fields. A `mem_boost` call mutates `boost_count`
+(and `last_accessed_at`, and optionally `cue`) and a `record_access` call
+mutates `last_accessed_at`, but neither must ever cause a file rewrite — see the
 "Confidence-Lifecycle" section of `docs/adr-migration-chunk-plan.md` for the
-full reasoning and the diff-before-write requirement this implies for the
+original reasoning (historical: predates the 2026-09-26 confidence/access_count
+removal) and the diff-before-write requirement this implies for the
 repository decorator that writes these files.

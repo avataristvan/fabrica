@@ -85,40 +85,31 @@ def test_multiline_cue_is_flattened(tmp_repo):
 
 def test_boost_with_cue_sets_cue_and_boosts(tmp_repo):
     _add(tmp_repo, "col", "a")
-    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0.1, cue="  when   X happens ")
+    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], cue="  when   X happens ")
     meta = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata
     assert meta["cue"] == "when X happens"
     assert meta["boost_count"] == 1
 
 
-def test_delta_zero_records_cue_without_boost(tmp_repo):
-    _add(tmp_repo, "col", "a")
-    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0, cue="when X")
-    meta = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata
-    assert meta["cue"] == "when X"
-    assert "boost_count" not in meta
-    assert meta["confidence"] == 0.7
-
-
 def test_empty_cue_clears_it(tmp_repo):
     _add(tmp_repo, "col", "a", cue="when X")
-    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0, cue="")
+    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], cue="")
     assert not GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata.get("cue")
     assert ExperienceIndexUseCase(tmp_repo).execute(["col"]) == ""
 
 
 def test_boost_without_cue_leaves_cue_alone(tmp_repo):
     _add(tmp_repo, "col", "a", cue="when X")
-    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0.1)
+    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"])
     assert GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata["cue"] == "when X"
 
 
 def test_too_long_cue_is_rejected_before_any_write(tmp_repo):
     _add(tmp_repo, "col", "a")
     with pytest.raises(ValueError, match="max"):
-        BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0.1, cue="x" * (MAX_CUE_CHARS + 1))
+        BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], cue="x" * (MAX_CUE_CHARS + 1))
     meta = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata
-    assert meta["confidence"] == 0.7 and not meta.get("cue")
+    assert "boost_count" not in meta and not meta.get("cue")
 
 
 def test_normalize_cue_boundary():
@@ -132,9 +123,12 @@ def test_non_positive_max_lines_yields_no_block(tmp_repo):
     assert ExperienceIndexUseCase(tmp_repo).execute(["col"], max_lines=-1) == ""
 
 
-def test_delta_zero_does_not_create_confidence(tmp_repo):
-    """An entry written without a confidence key must not gain one (default 1.0) from a cue-only call."""
+def test_boost_does_not_create_confidence_or_access_count(tmp_repo):
+    """An entry written without confidence/access_count keys must not gain them from a boost call --
+    those signals were dropped, mem_boost never writes them."""
     from ai_mem.domain.memory import MemoryEntry
     tmp_repo.upsert("col", [MemoryEntry(id="a", text="x", metadata={"created_at": 1.0})])
-    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], 0, cue="when X")
-    assert "confidence" not in GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata
+    BoostConfidenceUseCase(tmp_repo).execute("col", ["a"], cue="when X")
+    meta = GetMemoryUseCase(tmp_repo).execute("col", ["a"])[0].metadata
+    assert "confidence" not in meta
+    assert "access_count" not in meta

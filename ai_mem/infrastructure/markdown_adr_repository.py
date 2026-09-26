@@ -27,9 +27,10 @@ class MarkdownAdrRepository:
 
         new_content = adr_markdown.serialize(entry.id, entry.metadata.get("type"), entry.text, entry.metadata)
 
-        # Confidence-lifecycle boundary: a mem_boost-only upsert (confidence/access_count
-        # changed, structural fields unchanged) must not touch the file, or every boost
-        # would generate a spurious git diff. serialize()'s fixed field order (Chunk 1)
+        # Volatile-field boundary: a mem_boost-only upsert (boost_count/cue/last_accessed_at
+        # changed, structural fields unchanged -- confidence/access_count no longer change at
+        # all, but a legacy value would be equally exempt) must not touch the file, or every
+        # boost would generate a spurious git diff. serialize()'s fixed field order (Chunk 1)
         # is what makes this a reliable content comparison rather than key-order churn.
         if file_path.exists() and file_path.read_text() == new_content:
             return

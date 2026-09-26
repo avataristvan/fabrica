@@ -92,10 +92,11 @@ class ChromaMemoryRepository:
     def __init__(self, db_path: Path) -> None:
         db_path.mkdir(parents=True, exist_ok=True)
         self._client = chromadb.PersistentClient(path=str(db_path))
-        # record_access does a read-modify-write (get, bump access_count, update) that races
+        # record_access does a read-modify-write (get, bump last_accessed_at, update) that races
         # when the same entry is hit by concurrent callers (e.g. the daemon serving multiple
         # connections at once) -- confirmed empirically: 8 threads x 20 unlocked increments on
-        # the same id landed at ~32 instead of 160. Only this method needs the lock; the daemon
+        # the same id landed at ~32 instead of 160 (back when this also bumped access_count).
+        # Only this method needs the lock; the daemon
         # never calls upsert/delete, and query()/get_by_ids() are pure reads.
         self._write_lock = threading.Lock()
         # Own embedding function instance rather than reaching into a collection's private
@@ -232,7 +233,6 @@ class ChromaMemoryRepository:
             for meta in existing_metas:
                 meta_copy = dict(meta or {})
                 meta_copy["last_accessed_at"] = now_ts
-                meta_copy["access_count"] = int(meta_copy.get("access_count", 0)) + 1
                 new_metas.append(meta_copy)
 
             col.update(ids=existing_ids, metadatas=new_metas)

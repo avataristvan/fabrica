@@ -37,7 +37,7 @@ except ImportError:
 FOCUS_ID = "current_focus"
 # Pull-based by default (2026-09-16): SessionStart only announces the active collection
 # so agents fetch context deliberately via mem_query instead of receiving an automatic
-# push of focus text, high-confidence entries, and session deltas on every launch. Set
+# push of focus text, boosted entries, and session deltas on every launch. Set
 # session_start_verbose: true in ~/.config/ai-mem/agents.yaml to restore the old push
 # behavior for a workflow that wants it.
 _SETTING_VERBOSE = "session_start_verbose"
@@ -51,11 +51,9 @@ _SESSION_START_FILE = DB_PATH / "session_start.txt"
 _PREV_SESSION_MAX_AGE_DAYS = 7
 _FOCUS_PREVIEW_CHARS = 150
 _GIT_COMMITS_MAX = 5
-_HIGH_CONFIDENCE_THRESHOLD = 0.9
-_HIGH_CONFIDENCE_MIN_ACCESS = 3
-_HIGH_CONFIDENCE_MIN_BOOSTS = 1
-_HIGH_CONFIDENCE_MAX = 3
-_HIGH_CONFIDENCE_GLOBAL_MAX = 2
+_AVAILABLE_MIN_BOOSTS = 1
+_AVAILABLE_MAX = 3
+_AVAILABLE_GLOBAL_MAX = 2
 _EXPIRED_MAX = 3
 _EXPIRED_PREVIEW_CHARS = 120
 
@@ -119,23 +117,18 @@ def _focus_text(get_memory, collection: str) -> str | None:
         return None
 
 
-def _high_confidence_entries(repo, collection: str, exclude_ids: set[str], max_count: int = _HIGH_CONFIDENCE_MAX) -> list:
-    """Return entries with confidence > threshold and enough access history, sorted by confidence desc."""
+def _boosted_entries(repo, collection: str, exclude_ids: set[str], max_count: int = _AVAILABLE_MAX) -> list:
+    """Return entries with an explicit /reflect boost, sorted by boost_count desc (ties by id)."""
     try:
         all_entries = repo.get_all(collection)
         candidates = []
         for entry in all_entries:
             if entry.id in exclude_ids:
                 continue
-            try:
-                conf = float(entry.metadata.get("confidence", 0.0))
-            except (ValueError, TypeError):
-                continue
-            access_count = int(entry.metadata.get("access_count", 0))
             boost_count = int(entry.metadata.get("boost_count", 0))
-            if conf > _HIGH_CONFIDENCE_THRESHOLD and access_count >= _HIGH_CONFIDENCE_MIN_ACCESS and boost_count >= _HIGH_CONFIDENCE_MIN_BOOSTS:
-                candidates.append((conf, entry))
-        candidates.sort(key=lambda x: x[0], reverse=True)
+            if boost_count >= _AVAILABLE_MIN_BOOSTS:
+                candidates.append((boost_count, entry))
+        candidates.sort(key=lambda x: (-x[0], x[1].id))
         return [entry for _, entry in candidates[:max_count]]
     except Exception:
         return []
@@ -309,23 +302,23 @@ def main():
                     f"- {_truncate(entry.text, 200)}" for entry in expert_entries
                 )
             parts.append(block)
-        _hc_exclude = {FOCUS_ID}
+        _avail_exclude = {FOCUS_ID}
         if ctx.has_claude_md:
-            _hc_entries = _high_confidence_entries(repo, ctx.collection, _hc_exclude)
-            if _hc_entries:
+            _avail_entries = _boosted_entries(repo, ctx.collection, _avail_exclude)
+            if _avail_entries:
                 parts.append(
                     "[available]\n"
-                    + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _hc_entries)
+                    + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _avail_entries)
                     + f"\n(mem_get(ids=[...], collection=\"{ctx.collection}\") for full text)"
                 )
         # Unconditional: global applies everywhere, regardless of repo/CLAUDE.md context.
         # Separate, smaller cap so a full repo-scoped pool never crowds out global entries
         # (or vice versa) -- same fixed-cap-not-dump discipline as every other injection point.
-        _hc_global_entries = _high_confidence_entries(repo, GLOBAL_COLLECTION, _hc_exclude, max_count=_HIGH_CONFIDENCE_GLOBAL_MAX)
-        if _hc_global_entries:
+        _avail_global_entries = _boosted_entries(repo, GLOBAL_COLLECTION, _avail_exclude, max_count=_AVAILABLE_GLOBAL_MAX)
+        if _avail_global_entries:
             parts.append(
                 "[available: global]\n"
-                + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _hc_global_entries)
+                + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _avail_global_entries)
                 + '\n(mem_get(ids=[...], collection="global") for full text)'
             )
         _now_ts = time.time()

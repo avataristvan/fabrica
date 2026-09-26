@@ -5,7 +5,6 @@ import re
 
 from ai_mem.domain.memory import QueryResult, SplitHint
 
-SPLIT_THRESHOLD_ACCESSES = 5
 SPLIT_MIN_TEXT_CHARS = 500  # plain length fallback (was 150 — too noisy)
 
 _MULTI_HEADER_RE = re.compile(r"^#{1,3}\s+\S", re.MULTILINE)
@@ -28,13 +27,9 @@ class DetectSplitHintsUseCase:
     def execute(self, results: list[QueryResult]) -> list[SplitHint]:
         hints = []
         for result in results:
-            access_count = int(result.metadata.get("access_count", 0))
-            if access_count < SPLIT_THRESHOLD_ACCESSES:
-                continue
             if _is_multi_section(result.text) or len(result.text) >= SPLIT_MIN_TEXT_CHARS:
                 hints.append(SplitHint(
                     id=result.id,
                     text_preview=result.text[:80],
-                    access_count=access_count,
                 ))
         return hints

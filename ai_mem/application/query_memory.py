@@ -1,4 +1,4 @@
-"""Query memory semantically; records access for the confidence lifecycle."""
+"""Query memory semantically; records last_accessed_at for deliberate use."""
 from __future__ import annotations
 
 from collections import defaultdict
@@ -38,13 +38,14 @@ class QueryMemoryUseCase:
         returned_ids = {result.id for result in results}
         self._session_hits[collection].update(returned_ids)
 
-        # access_count means deliberate use, not passive surfacing -- a result merely appearing
-        # in a semantic search does not, by itself, count as access. min_score_for_tracking is an
-        # explicit opt-in for callers with a real usage signal beyond "it matched": posttool_hook
-        # passes a threshold because a strong match to the file just edited is itself evidence of
-        # relevance, distinct from a query merely returning a candidate. Without a threshold, no
-        # tracking happens here at all -- deliberate retrieval is tracked by GetMemoryUseCase
-        # (mem_get by id) and BoostConfidenceUseCase (mem_boost, the /reflect citation signal).
+        # last_accessed_at means deliberate use, not passive surfacing -- a result merely
+        # appearing in a semantic search does not, by itself, count as access. min_score_for_tracking
+        # is an explicit opt-in for callers with a real usage signal beyond "it matched":
+        # posttool_hook passes a threshold because a strong match to the file just edited is itself
+        # evidence of relevance, distinct from a query merely returning a candidate. Without a
+        # threshold, no tracking happens here at all -- deliberate retrieval is tracked by
+        # GetMemoryUseCase (mem_get by id) and BoostConfidenceUseCase (mem_boost, the /reflect
+        # citation signal).
         if min_score_for_tracking is not None:
             tracked_ids = {result.id for result in results if result.score >= min_score_for_tracking}
             self._track_access.execute(collection, list(tracked_ids))

@@ -77,25 +77,38 @@ Skip if the user has nothing to add.
 
 ---
 
-## Step 3.1 — Confidence Boost
+## Step 3.1 — Citation & Cue
 
 Schau zurück auf die Session: welche aus dem Kontext-Hook eingespielten Memories waren **entscheidend** — haben eine Entscheidung verändert, einen Fehler verhindert, oder nicht-offensichtlichen Kontext geliefert?
 
-Für jede entscheidende Memory:
+Für jede entscheidende Memory (das ist das Zitier-Signal — `mem_boost` erhöht nur noch `boost_count` und setzt optional den Cue, es liest oder schreibt keine Confidence mehr):
 
 ```
 mem_boost(
     ids=["<memory_id>"],
     collection=<active>,
-    delta=0.1,
 )
 ```
 
-War eine Memory falsch oder irreführend? Dann decay statt boost:
+War eine Memory falsch oder irreführend? Dann nicht decayen — das Vertrauenssignal ist eine nachvollziehbare Kante, kein Punktabzug:
 
 ```
-mem_boost(ids=["<memory_id>"], collection=<active>, delta=-0.1)
+mem_link(source_id="<neuere_id>", target_id="<memory_id>", edge_type="contradicts", collection=<active>)
 ```
+
+oder, wenn eine neuere Erkenntnis sie ersetzt:
+
+```
+mem_link(source_id="<neuere_id>", target_id="<memory_id>", edge_type="supersedes", collection=<active>)
+```
+
+Hat eine in dieser Session neu gespeicherte Erkenntnis (z. B. aus Step 2 oder 3.5) eine bestehende Memory bestätigt — nicht nur benutzt, sondern nachweislich wieder zugetroffen? Dann verlinke sie mit `confirms`:
+
+```
+mem_link(source_id="<neue_id>", target_id="<memory_id>", edge_type="confirms", collection=<active>)
+```
+
+`confirms` braucht einen echten zweiten Eintrag als Beleg; wurde in dieser Session nichts Neues dazu geschrieben, reicht der Citation-Boost oben.
 
 Die Memory-IDs stehen im `[ai-mem]`-Kontext vom Session-Start. Überspring diesen Schritt still wenn keine Memories eingespielt wurden oder keine davon den Unterschied gemacht hat.
 
@@ -107,7 +120,6 @@ Der Erfahrungsindex im `[ai-mem]`-Kontext ("Situation → Eintrag") besteht nur 
 mem_boost(
     ids=["<memory_id>"],
     collection=<active>,
-    delta=0.1,                                  # 0 = nur den Cue setzen
     cue="bevor ein fremder Branch gemergt wird",   # ein Satz, max. 140 Zeichen
 )
 ```

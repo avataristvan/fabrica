@@ -1,7 +1,8 @@
 """Integration: the real server-side stack (Chroma -> MarkdownAdrRepository -> BM25).
 
 test_markdown_adr_repository.py covers the decorator against a fake; this checks that
-the confidence-lifecycle boundary also holds when the real use cases drive the real stack.
+the volatile-field (boost_count/cue) diff-before-write boundary also holds when the real
+use cases drive the real stack.
 """
 from __future__ import annotations
 
@@ -38,12 +39,12 @@ def test_boost_and_cue_do_not_touch_the_file(stack):
     file_path = adr_dir / "domain_a.md"
     content, mtime_ns = file_path.read_text(), file_path.stat().st_mtime_ns
 
-    BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"], 0.1, cue="when deciding A")
-    BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"], -0.05)
+    BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"], cue="when deciding A")
+    BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"])
 
     assert file_path.read_text() == content
     assert file_path.stat().st_mtime_ns == mtime_ns
-    assert repo.get_by_ids(COLLECTION, ["domain_a"])[0].metadata["boost_count"] == 1
+    assert repo.get_by_ids(COLLECTION, ["domain_a"])[0].metadata["boost_count"] == 2
 
 
 def test_supersede_then_clear_leaves_parseable_files(stack):

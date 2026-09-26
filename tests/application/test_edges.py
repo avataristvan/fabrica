@@ -71,6 +71,22 @@ def test_add_edge_different_types_not_deduped(tmp_repo, tmp_path):
     assert types == {"contradicts", "related"}
 
 
+def test_add_edge_confirms_stores_edge_without_flagging_target(tmp_repo, tmp_path):
+    _seed(tmp_repo, "col", {"earlier": "insight X", "later": "X held up again in session Y"})
+    AddEdgeUseCase(tmp_repo).execute("col", "later", "earlier", "confirms")
+
+    edges = GetEdgesUseCase(tmp_repo).execute("col", "later")
+    assert [(e.target_id, e.edge_type) for e in edges] == [("earlier", "confirms")]
+    target = tmp_repo.get_by_ids("col", ["earlier"])[0]
+    assert "superseded_by" not in target.metadata
+
+
+def test_add_edge_confirms_rejects_self_edge(tmp_repo, tmp_path):
+    _seed(tmp_repo, "col", {"a": "insight"})
+    with pytest.raises(ValueError, match="cannot confirm itself"):
+        AddEdgeUseCase(tmp_repo).execute("col", "a", "a", "confirms")
+
+
 def test_add_edge_raises_when_source_missing(tmp_repo, tmp_path):
     _seed(tmp_repo, "col", {"a": "target"})
     add_edge = AddEdgeUseCase(tmp_repo)

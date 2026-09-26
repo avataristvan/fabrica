@@ -51,14 +51,14 @@ The tool provides reliable storage and retrieval:
 
 - **ChromaDB** for semantic vector search
 - **BM25 hybrid layer** (optional) — fuses cosine + BM25 scores
-- **Confidence lifecycle** — every entry carries a `confidence` score (starts at 0.7); `/reflect` boosts entries that were decisive, decays ones that turned out stale (see `docs/reranking.md`)
+- **Evidence edges instead of a score** — trust in an entry is shown by traceable edges, not a number: `confirms` (a later record bears out an earlier one), `supersedes`, `contradicts`. `/reflect` records a citation with `mem_boost` (`boost_count` + optional `cue`), which carries no score. The earlier `confidence`/`access_count` lifecycle was dropped 2026-09-26 (`domain_drop_confidence_for_evidence_and_librarian_2026_09_26`) because the number converged on popularity, not relevance, and could not say *why* to trust an entry
 - **TTL + forgetting curve** — `mem_cleanup` with `stale_after_days` removes entries not accessed within a window
 - **Typed entries** (`feedback`, `project`, `reference`, `user`, `pattern`, `anti-pattern`, `dilemma`, `domain`) for filtered retrieval
-- **Typed causal edges** — directional relationships between entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes` — the last one marks an entry as overtaken without deleting it; retrieval flags it and appends the successor)
+- **Typed causal edges** — directional relationships between entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms` — `supersedes` marks an entry as overtaken without deleting it; retrieval flags it and appends the successor)
 
-An earlier version of this pillar included an adaptive MLP re-ranker that learned from access patterns; it was removed in 2026-06 (see CLAUDE.md's Critical Invariants) in favor of ChromaDB's native cosine ordering plus the confidence lifecycle above — simpler, no training step, no PyTorch dependency.
+An earlier version of this pillar included an adaptive MLP re-ranker that learned from access patterns; it was removed in 2026-06 (see CLAUDE.md's Critical Invariants) in favor of ChromaDB's native cosine ordering (the confidence lifecycle that briefly replaced it is itself gone since 2026-09-26) — simpler, no training step, no PyTorch dependency.
 
-**Split-hint detection** is also code-backed: entries with `access_count ≥ 5` and `text ≥ 500 chars` (or carrying structural markers — multiple headers, multiple `Tried:` blocks, a long numbered list) are flagged in every `mem_query` response as candidates for splitting.
+**Split-hint detection** is also code-backed: entries with `text ≥ 500 chars` (or carrying structural markers — multiple headers, multiple `Tried:` blocks, a long numbered list) are flagged in every `mem_query` response as candidates for splitting.
 
 #### Lean Context by Design — Pull, Not Push
 
@@ -180,7 +180,7 @@ The progression:
 | Mid-level | Memory of what was done |
 | Senior | Memory of what worked, what failed, and in which context — organized by the Dreaming Agent |
 
-The key distinction from simple retrieval systems: a senior does not just remember more — they remember *better organized* knowledge. The confidence lifecycle + Dreaming Agent provide that organization over time.
+The key distinction from simple retrieval systems: a senior does not just remember more — they remember *better organized* knowledge. Evidence edges (`confirms`/`contradicts`/`supersedes`) + the Dreaming Agent provide that organization over time.
 
 ---
 
@@ -234,10 +234,10 @@ Task
        mem_add
      (feedback / antipattern / project / current_focus)
           ↓
-     PostToolUse tracks access_count       [code, implicit]
+     PostToolUse records last_accessed_at  [code, implicit]
           ↓
-   /reflect Step 3.1/3.5: confidence check [convention]
-     → mem_boost (explicit outcome signal)
+   /reflect Step 3.1/3.5: evidence check   [convention]
+     → mem_boost (citation + cue), mem_link confirms/contradicts/supersedes
           ↓
    /reflect Step 6: mem_dream hier         [convention]
      → compresses, merges, deletes
@@ -261,11 +261,11 @@ A full competitive analysis (MemPalace, claude-mem, mcp-memory-service, OB1) is 
 | Dimension | OB1 + OpenClaw | ai-mem framework |
 |---|---|---|
 | Who drives memory? | The user (weekly review, manual capture) | The agent (Taskly after every task) |
-| Feedback loop | None — capture only | Confidence lifecycle (implicit) + Taskly (explicit) |
+| Feedback loop | None — capture only | Evidence edges + Taskly (explicit) |
 | Consolidation | None | Dreaming Agent (manual trigger today, auto-trigger planned) |
 | Knowledge hierarchy | Flat collections | global → workspace → repo (subagent: convention) |
 | Expert agents | Not modeled | Convention-based pattern, no code schema |
-| Junior → Senior effect | Not achievable structurally | Built into the loop (confidence lifecycle + dream) |
+| Junior → Senior effect | Not achievable structurally | Built into the loop (evidence edges + dream) |
 
 OB1 is a **capture tool**. The ai-mem framework is a **learning system**. The difference is not the storage backend — it is whether there is a feedback loop that closes.
 
@@ -276,8 +276,8 @@ OB1 is a **capture tool**. The ai-mem framework is a **learning system**. The di
 | Dimension | BMAD | ai-mem framework |
 |---|---|---|
 | Unit of memory | Story file (generated once, complete, linear handoff) | Knowledge graph (cumulative, cross-session) |
-| Update mechanism | Fixed role/template per pipeline stage | Judgment during `/reflect` (boost/decay/supersede) |
-| Maturity/trust signal | None — a doc is current or replaced (versioning) | Confidence lifecycle, driven by reasoned outcome, not access frequency |
+| Update mechanism | Fixed role/template per pipeline stage | Judgment during `/reflect` (cite/confirm/contradict/supersede) |
+| Maturity/trust signal | None — a doc is current or replaced (versioning) | Evidence edges (`confirms`, `contradicts`, `supersedes`) — a reader can check *why* to trust an entry; no score |
 | Contradiction/staleness | Not modeled | `supersedes` edge — old entry stays readable, flagged, not deleted |
 | Scope solved | Context loss *within* one pipeline run | Continuity of judgment *across* tasks and sessions (Junior → Senior effect) |
 | Team distribution | Git-native — files travel with any clone/pull, no extra infrastructure | Local-only per machine (`AI_MEM_PATH`, default `~/.local/share/ai-mem`); `workspace`/`subagent.*` collections are logical namespaces inside one local DB, not physically shared |
@@ -312,7 +312,7 @@ The comparison converges on a three-layer picture rather than a single winning f
 
 1. **Planning artifacts** (BMAD's PRD/Architecture/Story, or spec-driven development's spec-first flow) — git-native, team-visible, regenerated fresh per delivery cycle. Spec-driven development belongs in this same family as BMAD, not a separate axis: spec-first, code kept in sync with the spec, plain text, reviewable.
 2. **Decision records** (ADR-style Markdown for what ai-mem calls `domain`, and plausibly `pattern`/`anti-pattern`) — git-native, one file per decision, superseded rather than edited.
-3. **The epistemic mechanism** (`/reflect`/Taskly + confidence lifecycle) — what actually produces a **"Projektbegleitender Entwickler"**: an agent whose judgment about layers 1 and 2 matures over time (boosted when confirmed, decayed when stale, marked `supersedes` when overtaken), rather than a fresh agent re-deriving everything each cycle.
+3. **The epistemic mechanism** (`/reflect`/Taskly + records + evidence edges + a librarian agent on probation; replaced the confidence lifecycle 2026-09-26) — what actually produces a **"Projektbegleitender Entwickler"**: an agent whose judgment about layers 1 and 2 matures over time (linked `confirms` when borne out, `contradicts` when wrong, `supersedes` when overtaken), rather than a fresh agent re-deriving everything each cycle.
 
 None of the three substitutes for another. Layers 1 and 2 can be produced by BMAD, spec-driven development, or plain ADR practice — all convention, all git-native, all already proven outside ai-mem. Layer 3 is what none of them supply: a lifecycle mechanism that operates independently of any single artifact's text. That is ai-mem's one irreplaceable contribution — but it is also the layer that most depends on layers 1 and 2 being durable and team-visible, since a judgment about a document nobody else can read does not accumulate into shared expertise.
 
@@ -336,16 +336,18 @@ The framework is epistemological: it concerns how knowledge is acquired and stru
 |---|---|
 | ChromaDB storage, TTL, typed entries | Implemented |
 | BM25 hybrid retrieval | Implemented |
-| Adaptive MLP re-ranker (`[10→32→16→1]`) | Removed 2026-06 — replaced by the confidence lifecycle below |
-| Confidence lifecycle (`mem_boost`, `[available]` gate) | Implemented |
+| Adaptive MLP re-ranker (`[10→32→16→1]`) | Removed 2026-06 |
+| Confidence lifecycle (`confidence`/`access_count`) | Removed 2026-09-26 — replaced by evidence edges (`confirms`) + librarian |
+| `mem_boost` (citation + `cue`), `[available]` gate (`boost_count ≥ 1`) | Implemented |
 | Typed causal edges (`mem_link`, `mem_edges`) | Implemented |
-| PostToolUse passive access-count signal | Implemented |
+| Librarian retrieval agent (`examples/agents/librarian.md`) | Prototype on probation — measured 5/6 on the gap-test cases, no fixed call point yet (`eval_librarian_2026_09_26`) |
+| PostToolUse passive `last_accessed_at` timestamp | Implemented |
 | `SessionStart` push (focus text, `[available]`, deltas, git commits) | Opt-in (`session_start_verbose: true`) — routing-only by default since 2026-09-16 |
 | `UserPromptSubmit` / `PreToolUse` push hooks | Removed 2026-09 — see `docs/hooks.md` |
 | Split-hint detection | Implemented |
 | `mem_split` (manual) | Implemented |
 | `mem_dream` (manual trigger) | Implemented |
-| Outcome signal via `/reflect` Step 3.1 | Convention — `mem_boost` on entries confirmed decisive |
+| Outcome signal via `/reflect` Step 3.1 | Convention — `mem_boost` citation + `mem_link confirms` on entries borne out |
 | `mem_dream` trigger via `/reflect` ritual | Convention (by design — hook placement causes subagent chain problem) |
 | Upward propagation via `/reflect` Step 6 | Convention — `mem_dream hier` surfaces candidates, Orchestrator confirms |
 | `/reflect` Taskly ritual | Convention (Skill prompt) |

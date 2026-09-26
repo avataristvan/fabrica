@@ -29,11 +29,11 @@ ai_mem/
 
 ## Domain (`ai_mem/domain/memory.py`)
 
-- `MemoryEntry` — id, text, metadata + datetime fields (created_at, expires_at, last_accessed_at, access_count)
+- `MemoryEntry` — id, text, metadata + datetime fields (created_at, expires_at, last_accessed_at). `access_count` is no longer a dataclass field (dropped 2026-09-26 as a trust signal); legacy values persist untouched in `metadata`.
 - `QueryResult` — rank, id, score, text, metadata
-- `SplitHint` — id, text_preview (first 80 chars), access_count — surfaced by `detect_split_hints.py`
+- `SplitHint` — id, text_preview (first 80 chars) — surfaced by `detect_split_hints.py`; no longer carries `access_count` (dropped 2026-09-26)
 - `CollectionInfo` — name, count
-- `EdgeType` — `Literal["contradicts", "fixes", "causes", "related", "supersedes"]`
+- `EdgeType` — `Literal["contradicts", "fixes", "causes", "related", "supersedes", "confirms"]`
 - `MemoryEdge` — target_id, edge_type
 - `MemoryRepository` Protocol — `upsert`, `query`, `get_by_ids`, `list_collections`, `delete`, `delete_expired`, `record_access`, `delete_stale`, `get_all`, `add_edge`, `get_edges`
 
@@ -43,7 +43,7 @@ There is no ranking-related domain type (`RankingFeatures`, `LearnedRanker`, etc
 
 | File | Use case | Responsibility |
 |------|----------|----------------|
-| `add_memory.py` | `AddMemoryUseCase` | upsert with timestamps; preserves existing history (created_at, access_count, confidence) on re-add |
+| `add_memory.py` | `AddMemoryUseCase` | upsert with timestamps; preserves existing history (created_at) on re-add; `access_count`/`confidence` are legacy metadata, no longer written or read (dropped 2026-09-26) |
 | `query_memory.py` | `QueryMemoryUseCase` | semantic query; tracks access only when the caller passes `min_score_for_tracking` |
 | `get_memory.py` | `GetMemoryUseCase` | fetch by exact IDs; optional `track_access` |
 | `delete_memory.py` | `DeleteMemoryUseCase` | delete by IDs, or drop an entire collection (no `ids` → repo returns `-1`) |
@@ -51,8 +51,8 @@ There is no ranking-related domain type (`RankingFeatures`, `LearnedRanker`, etc
 | `list_entries.py` | `ListEntriesUseCase` | id + title pairs for a collection |
 | `list_topics.py` | `ListTopicsUseCase` | group a collection's entries by `type` — the rung between `mem_list`'s flat dump and `mem_get`'s full text |
 | `cleanup_memory.py` | `CleanupMemoryUseCase` | TTL expiry + optional stale-entry delete |
-| `track_access.py` | `TrackAccessUseCase` | bump `last_accessed_at` + `access_count` |
-| `boost_confidence.py` | `BoostConfidenceUseCase` | adjust `confidence`; a positive delta also bumps `access_count` (the `/reflect` citation signal); optional `cue` sets/clears the entry's experience-index cue |
+| `track_access.py` | `TrackAccessUseCase` | bump `last_accessed_at` (no longer touches `access_count`, dropped 2026-09-26) |
+| `boost_confidence.py` | `BoostConfidenceUseCase` | the `/reflect` citation signal: increments `boost_count`, bumps `last_accessed_at`; optional `cue` sets/clears the entry's experience-index cue. No `delta` parameter and no `confidence` read or write (dropped 2026-09-26 — see CLAUDE.md) |
 | `experience_index.py` | `ExperienceIndexUseCase` | render "situation -> entry" lines from live entries that carry a `cue` (superseded/expired excluded, capped); computed on read, never stored |
 | `add_edge.py` | `AddEdgeUseCase` | validate both endpoints exist, dedup on (target_id, edge_type), persist via `repo.add_edge()` |
 | `get_edges.py` | `GetEdgesUseCase` | thin wrapper over `repo.get_edges()` |
@@ -68,7 +68,7 @@ There is no ranking-related domain type (`RankingFeatures`, `LearnedRanker`, etc
 | File | Class | Notes |
 |------|-------|-------|
 | `chroma_repository.py` | `ChromaMemoryRepository` | timestamps as Unix float metadata; edges stored as a JSON string in the `edges` metadata field; owns its own embedding function with a per-text LRU cache |
-| `markdown_adr_repository.py` | `MarkdownAdrRepository` | wraps `ChromaMemoryRepository`, sitting between it and the optional BM25 wrapper; projects `domain`/`pattern`/`anti-pattern` entries onto ADR-style Markdown files under `docs/decisions/` (or `$AI_MEM_ADR_DIR`), diffing against the existing file content before writing so confidence-only mutations never touch it; `delete(ids=None)` never removes files |
+| `markdown_adr_repository.py` | `MarkdownAdrRepository` | wraps `ChromaMemoryRepository`, sitting between it and the optional BM25 wrapper; projects `domain`/`pattern`/`anti-pattern` entries onto ADR-style Markdown files under `docs/decisions/` (or `$AI_MEM_ADR_DIR`), diffing against the existing file content before writing so volatile-only mutations (e.g. `boost_count`, `last_accessed_at`) never touch it; `delete(ids=None)` never removes files |
 | `bm25_repository.py` | `BM25MemoryRepository` | wraps any `MemoryRepository`; fetches extra candidates and fuses BM25 + cosine scores; delegates `add_edge`/`get_edges` to the inner repo |
 
 No ranker infrastructure remains (`torch_ranker.py`, `null_ranker.py`, `ranker_storage.py` are gone with the 2026-06 removal).

@@ -112,7 +112,7 @@ def test_roundtrip_export_delete_import_restores_entry(wired):
     assert restored.metadata["created_at"] == original.metadata["created_at"]
 
 
-def test_second_import_does_not_overwrite_boosted_confidence(wired):
+def test_second_import_does_not_overwrite_boosted_boost_count(wired):
     add_memory = AddMemoryUseCase(wired.repo)
     add_memory.execute(
         wired.collection,
@@ -123,14 +123,14 @@ def test_second_import_does_not_overwrite_boosted_confidence(wired):
     _cmd_export(_export_args(wired.collection, wired.db_path))
 
     boost = BoostConfidenceUseCase(wired.repo)
-    boost.execute(wired.collection, ["domain_example"], delta=0.2)
-    boosted_confidence = wired.repo.get_by_ids(wired.collection, ["domain_example"])[0].metadata["confidence"]
+    boost.execute(wired.collection, ["domain_example"], cue="when deciding X")
+    boosted_count = wired.repo.get_by_ids(wired.collection, ["domain_example"])[0].metadata["boost_count"]
 
     rc = _cmd_import(_import_args(wired.collection, wired.db_path))
 
     assert rc == 0
     after_import = wired.repo.get_by_ids(wired.collection, ["domain_example"])[0]
-    assert after_import.metadata["confidence"] == boosted_confidence
+    assert after_import.metadata["boost_count"] == boosted_count
 
 
 def test_import_skips_malformed_file_reports_it_and_continues(wired):

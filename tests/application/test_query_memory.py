@@ -48,36 +48,37 @@ def test_query_type_filter_restricts_results(tmp_repo, track_access):
 
 
 def test_query_without_min_score_for_tracking_does_not_track_access(tmp_repo, track_access):
-    """access_count means deliberate use, not passive surfacing -- a plain
-    query, with no explicit tracking threshold, must never bump access_count just because a result was returned."""
+    """last_accessed_at means deliberate use, not passive surfacing -- a plain
+    query, with no explicit tracking threshold, must never bump it just because a result was returned."""
     AddMemoryUseCase(tmp_repo).execute(
         collection="test_col",
         documents=["the cat sat on the mat"],
         ids=["a"],
     )
+    created_at = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata["created_at"]
     query_uc = _make_query_uc(tmp_repo, track_access)
     for _ in range(3):
         query_uc.execute(collection="test_col", query="cat", n_results=1)
 
     fetched = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])
-    assert fetched[0].metadata.get("access_count", 0) == 0
+    assert fetched[0].metadata["last_accessed_at"] == created_at
 
 
-def test_query_with_min_score_for_tracking_increments_access_count(tmp_repo, track_access):
+def test_query_with_min_score_for_tracking_updates_last_accessed_at(tmp_repo, track_access):
     """An explicit min_score_for_tracking opt-in (posttool_hook's real usage signal) still
-    tracks access on each qualifying call, repeated calls accumulate."""
+    tracks access on each qualifying call."""
     AddMemoryUseCase(tmp_repo).execute(
         collection="test_col",
         documents=["the cat sat on the mat"],
         ids=["a"],
     )
+    created_at = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata["created_at"]
     query_uc = _make_query_uc(tmp_repo, track_access)
     for _ in range(3):
         query_uc.execute(collection="test_col", query="cat", n_results=1, min_score_for_tracking=0.0)
 
     fetched = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])
-    assert fetched[0].metadata["access_count"] == 3
-    assert fetched[0].metadata["last_accessed_at"] >= fetched[0].metadata["created_at"]
+    assert fetched[0].metadata["last_accessed_at"] > created_at
 
 
 def test_min_score_for_tracking_suppresses_weak_matches(tmp_repo, track_access):
@@ -100,7 +101,6 @@ def test_min_score_for_tracking_suppresses_weak_matches(tmp_repo, track_access):
 
     fetched = get_uc.execute("test_col", ["a"])[0]
     # Access was NOT tracked: last_accessed_at still equals created_at
-    assert fetched.metadata.get("access_count", 0) == 0
     assert fetched.metadata.get("last_accessed_at", created_at) == created_at
 
 
@@ -111,6 +111,7 @@ def test_min_score_for_tracking_allows_strong_matches(tmp_repo, track_access):
         documents=["the cat sat on the mat"],
         ids=["a"],
     )
+    created_at = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata["created_at"]
     # Threshold of 0.0 allows everything through
     _make_query_uc(tmp_repo, track_access).execute(
         collection="test_col",
@@ -120,4 +121,4 @@ def test_min_score_for_tracking_allows_strong_matches(tmp_repo, track_access):
     )
 
     fetched = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0]
-    assert fetched.metadata.get("access_count", 0) == 1
+    assert fetched.metadata["last_accessed_at"] > created_at

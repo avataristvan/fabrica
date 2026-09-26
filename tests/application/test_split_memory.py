@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from ai_mem.application.add_memory import AddMemoryUseCase
-from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS, SPLIT_THRESHOLD_ACCESSES
+from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS
 from ai_mem.application.split_memory import SplitMemoryUseCase, _parse_json
 from ai_mem.domain.memory import MemoryEntry
 
@@ -45,7 +45,6 @@ def test_parse_json_raises_on_missing_id_key():
 # ---------------------------------------------------------------------------
 
 _LONG_TEXT = "a" * SPLIT_MIN_TEXT_CHARS
-_HIGH_ACCESS = SPLIT_THRESHOLD_ACCESSES
 
 _SPLIT_RESPONSE = json.dumps([
     {"id": "entry_1", "text": "first sub-topic"},
@@ -57,13 +56,11 @@ def _make_uc(tmp_repo) -> SplitMemoryUseCase:
     return SplitMemoryUseCase(tmp_repo, AddMemoryUseCase(tmp_repo))
 
 
-def _add_entry(tmp_repo, entry_id: str, text: str, access_count: int = 0) -> None:
-    # Upsert directly so access_count is persisted as-is (AddMemoryUseCase
-    # does not propagate caller-supplied access_count — it reads prior_meta).
+def _add_entry(tmp_repo, entry_id: str, text: str) -> None:
     tmp_repo.upsert("col", [MemoryEntry(
         id=entry_id,
         text=text,
-        metadata={"access_count": access_count, "created_at": time.time()},
+        metadata={"created_at": time.time()},
     )])
 
 
@@ -88,10 +85,10 @@ def test_split_entry_by_id_deletes_original_and_adds_sub_entries(mock_run, tmp_r
 
 
 @patch("subprocess.run")
-def test_split_all_hints_skips_low_access_entries(mock_run, tmp_repo):
+def test_split_all_hints_selects_long_entries_only(mock_run, tmp_repo):
     mock_run.return_value = MagicMock(stdout=_SPLIT_RESPONSE, returncode=0)
-    _add_entry(tmp_repo, "hinted", _LONG_TEXT, access_count=_HIGH_ACCESS)
-    _add_entry(tmp_repo, "not_hinted", _LONG_TEXT, access_count=_HIGH_ACCESS - 1)
+    _add_entry(tmp_repo, "hinted", _LONG_TEXT)
+    _add_entry(tmp_repo, "not_hinted", "a" * (SPLIT_MIN_TEXT_CHARS - 1))
 
     results = _make_uc(tmp_repo).execute("col")
 
@@ -103,7 +100,7 @@ def test_split_all_hints_skips_low_access_entries(mock_run, tmp_repo):
 def test_split_all_hints_skips_short_text(mock_run, tmp_repo):
     mock_run.return_value = MagicMock(stdout=_SPLIT_RESPONSE, returncode=0)
     short_text = "a" * (SPLIT_MIN_TEXT_CHARS - 1)
-    _add_entry(tmp_repo, "short_entry", short_text, access_count=_HIGH_ACCESS)
+    _add_entry(tmp_repo, "short_entry", short_text)
 
     results = _make_uc(tmp_repo).execute("col")
 

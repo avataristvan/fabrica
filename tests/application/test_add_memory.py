@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.get_memory import GetMemoryUseCase
 from ai_mem.application.track_access import TrackAccessUseCase
+from ai_mem.domain.memory import MemoryEntry
 
 
 def test_created_at_is_injected(tmp_repo):
@@ -19,7 +20,7 @@ def test_created_at_is_injected(tmp_repo):
     meta = fetched[0].metadata
     assert before <= meta["created_at"] <= after
     assert meta["last_accessed_at"] == meta["created_at"]
-    assert meta["access_count"] == 0
+    assert "access_count" not in meta
     assert "expires_at" not in meta
 
 
@@ -32,17 +33,15 @@ def test_ttl_sets_expires_at(tmp_repo):
     assert abs(delta - 86400) < 1.0
 
 
-def test_readd_preserves_access_history(tmp_repo):
-    """Re-adding an existing id keeps created_at, last_accessed_at, access_count."""
+def test_readd_preserves_last_accessed_at(tmp_repo):
+    """Re-adding an existing id keeps created_at and last_accessed_at."""
     add = AddMemoryUseCase(tmp_repo)
     track = TrackAccessUseCase(tmp_repo)
 
     add.execute(collection="test_col", documents=["v1"], ids=["a"])
     track.execute("test_col", ["a"])
-    track.execute("test_col", ["a"])
 
     before = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata
-    assert before["access_count"] == 2
 
     add.execute(collection="test_col", documents=["v2 updated text"], ids=["a"])
 
@@ -50,36 +49,32 @@ def test_readd_preserves_access_history(tmp_repo):
     assert after.text == "v2 updated text"
     assert after.metadata["created_at"] == before["created_at"]
     assert after.metadata["last_accessed_at"] == before["last_accessed_at"]
-    assert after.metadata["access_count"] == 2
 
 
-def test_confidence_defaults_to_07_on_new_entry(tmp_repo):
+def test_new_entry_has_no_confidence_or_access_count(tmp_repo):
+    """confidence/access_count were dropped as trust signals -- mem_add no longer defaults
+    or computes either for a brand-new entry."""
     AddMemoryUseCase(tmp_repo).execute(collection="test_col", documents=["x"], ids=["a"])
     meta = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata
-    assert meta["confidence"] == 0.7
+    assert "confidence" not in meta
+    assert "access_count" not in meta
 
 
-def test_upsert_preserves_existing_confidence(tmp_repo):
-    add = AddMemoryUseCase(tmp_repo)
-    get = GetMemoryUseCase(tmp_repo)
-
-    add.execute(collection="test_col", documents=["v1"], ids=["a"], metadatas=[{"confidence": 0.9}])
-    add.execute(collection="test_col", documents=["v2"], ids=["a"])
-
-    meta = get.execute("test_col", ["a"])[0].metadata
-    assert meta["confidence"] == 0.9
-
-
-def test_explicit_confidence_overrides_default_for_new_entry(tmp_repo):
-    AddMemoryUseCase(tmp_repo).execute(
-        collection="test_col", documents=["x"], ids=["a"],
-        metadatas=[{"confidence": 1.0}],
-    )
+def test_readd_preserves_legacy_confidence_and_access_count(tmp_repo):
+    """Stale data is never migrated or deleted, only no longer produced: a pre-existing
+    confidence/access_count from before the drop must survive re-add unchanged."""
+    tmp_repo.upsert("test_col", [MemoryEntry(
+        id="a", text="v1", metadata={"confidence": 0.9, "access_count": 7, "created_at": 1.0},
+    )])
+    AddMemoryUseCase(tmp_repo).execute(collection="test_col", documents=["v2"], ids=["a"])
     meta = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata
-    assert meta["confidence"] == 1.0
+    assert meta["confidence"] == 0.9
+    assert meta["access_count"] == 7
 
 
-def test_confidence_explicit_value_stored(tmp_repo):
+def test_explicit_confidence_in_metadata_is_stored_as_is(tmp_repo):
+    """mem_add no longer computes confidence, but does not strip an explicitly-passed key
+    either -- it is stored like any other ordinary user-supplied metadata field."""
     AddMemoryUseCase(tmp_repo).execute(
         collection="test_col", documents=["x"], ids=["a"],
         metadatas=[{"confidence": 0.6}],
@@ -88,21 +83,12 @@ def test_confidence_explicit_value_stored(tmp_repo):
     assert meta["confidence"] == 0.6
 
 
-def test_confidence_delta_applied_and_clamped(tmp_repo):
-    add = AddMemoryUseCase(tmp_repo)
-    get = GetMemoryUseCase(tmp_repo)
-
-    add.execute(collection="test_col", documents=["x"], ids=["a"], metadatas=[{"confidence": 0.5}])
-
-    add.execute(collection="test_col", documents=["x"], ids=["a"], metadatas=[{"confidence_delta": 0.3}])
-    meta = get.execute("test_col", ["a"])[0].metadata
-    assert abs(meta["confidence"] - 0.8) < 1e-9
-    assert "confidence_delta" not in meta
-
-    add.execute(collection="test_col", documents=["x"], ids=["a"], metadatas=[{"confidence_delta": 0.5}])
-    meta = get.execute("test_col", ["a"])[0].metadata
-    assert meta["confidence"] == 1.0
-
-    add.execute(collection="test_col", documents=["x"], ids=["a"], metadatas=[{"confidence_delta": -1.5}])
-    meta = get.execute("test_col", ["a"])[0].metadata
-    assert meta["confidence"] == 0.0
+def test_confidence_delta_metadata_is_no_longer_interpreted(tmp_repo):
+    """confidence_delta is dead: mem_add stores it as an inert key rather than computing
+    a confidence value from it."""
+    AddMemoryUseCase(tmp_repo).execute(
+        collection="test_col", documents=["x"], ids=["a"], metadatas=[{"confidence_delta": 0.3}],
+    )
+    meta = GetMemoryUseCase(tmp_repo).execute("test_col", ["a"])[0].metadata
+    assert "confidence" not in meta
+    assert meta["confidence_delta"] == 0.3

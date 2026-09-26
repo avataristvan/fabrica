@@ -60,8 +60,8 @@ def _run_main(
     session_delta: int | None = None,
     git_commits: list[str] | None = None,
     expert_query_results: list | None = None,
-    high_confidence_entries: list | None = None,
-    high_confidence_entries_by_collection: dict[str, list] | None = None,
+    boosted_entries: list | None = None,
+    boosted_entries_by_collection: dict[str, list] | None = None,
     expired_entries: list | None = None,
     expired_entries_by_collection: dict[str, list] | None = None,
     has_claude_md: bool = False,
@@ -85,11 +85,11 @@ def _run_main(
     ctx.collection call from the unconditional GLOBAL_COLLECTION call. Takes
     precedence over the flat `expired_entries` when given.
 
-    high_confidence_entries_by_collection: same idea as expired_entries_by_collection,
-    but for _high_confidence_entries -- lets tests isolate the ctx.collection
+    boosted_entries_by_collection: same idea as expired_entries_by_collection,
+    but for _boosted_entries -- lets tests isolate the ctx.collection
     [available] call from the separate, unconditional GLOBAL_COLLECTION
     [available: global] call. Takes precedence over the flat
-    `high_confidence_entries` when given.
+    `boosted_entries` when given.
 
     verbose: patches _load_settings to control session_start_verbose (default True,
     matching the pre-2026-09-16 push behavior these tests were written against). Pass
@@ -99,12 +99,12 @@ def _run_main(
 
     chroma_cls: replaces the ChromaMemoryRepository class mock, to assert on or break construction.
     """
-    if high_confidence_entries_by_collection is not None:
-        def fake_high_confidence_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
-            return high_confidence_entries_by_collection.get(collection, [])
+    if boosted_entries_by_collection is not None:
+        def fake_boosted_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
+            return boosted_entries_by_collection.get(collection, [])
     else:
-        def fake_high_confidence_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
-            return high_confidence_entries or []
+        def fake_boosted_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
+            return boosted_entries or []
 
     if expired_entries_by_collection is not None:
         def fake_expired_entries(repo, collection: str, now_ts: float) -> list:
@@ -145,7 +145,7 @@ def _run_main(
         patch.object(hook, "GLOBAL_COLLECTION", "global"),
         patch.object(hook, "WORKSPACE_COLLECTION", "workspace"),
         patch.object(hook, "ListCollectionsUseCase", mock_list_uc),
-        patch.object(hook, "_high_confidence_entries", side_effect=fake_high_confidence_entries),
+        patch.object(hook, "_boosted_entries", side_effect=fake_boosted_entries),
         patch.object(hook, "_expired_entries", side_effect=fake_expired_entries),
         patch.object(hook, "_load_settings", return_value={"session_start_verbose": verbose, **(extra_settings or {})}),
     ):
@@ -423,17 +423,17 @@ def test_workspace_focus_suppressed_when_no_claude_md_anywhere(tmp_path: Path) -
 
 
 # ---------------------------------------------------------------------------
-# 13. High-confidence proactive injection ([available] block)
+# 13. Boosted-entry proactive injection ([available] block)
 # ---------------------------------------------------------------------------
 
-def test_high_confidence_entries_appear_in_always_present_block(tmp_path: Path) -> None:
+def test_boosted_entries_appear_in_always_present_block(tmp_path: Path) -> None:
     entry = _make_mem_entry("pattern_ddd", "Always push domain logic down, never let infra leak upward.")
     out = _run_main(
         tmp_path,
         focus_map={"global": "global mem"},
         repo_collection="repo.ai-mem",
         has_claude_md=True,
-        high_confidence_entries=[entry],
+        boosted_entries=[entry],
     )
 
     parsed = json.loads(out)
@@ -442,12 +442,12 @@ def test_high_confidence_entries_appear_in_always_present_block(tmp_path: Path) 
     assert "Always push domain logic down" in ctx
 
 
-def test_no_always_present_block_when_high_confidence_empty(tmp_path: Path) -> None:
+def test_no_always_present_block_when_boosted_entries_empty(tmp_path: Path) -> None:
     out = _run_main(
         tmp_path,
         focus_map={"global": "global mem"},
         repo_collection="repo.ai-mem",
-        high_confidence_entries=[],
+        boosted_entries=[],
     )
 
     parsed = json.loads(out)
@@ -461,7 +461,7 @@ def test_always_present_block_skipped_for_workspace_collection(tmp_path: Path) -
         tmp_path,
         focus_map={"global": "global mem"},
         repo_collection="workspace",
-        high_confidence_entries_by_collection={"workspace": [entry], "global": []},
+        boosted_entries_by_collection={"workspace": [entry], "global": []},
     )
 
     parsed = json.loads(out)
@@ -473,14 +473,14 @@ def test_always_present_block_skipped_for_workspace_collection(tmp_path: Path) -
 def test_always_present_block_shown_for_workspace_collection_with_claude_md(tmp_path: Path) -> None:
     """CLAUDE.md at the workspace root → collection is still 'workspace' but
     has_claude_md is True. The gate must key off has_claude_md, not the collection
-    name, or this real scope's high-confidence entries get silently dropped."""
+    name, or this real scope's boosted entries get silently dropped."""
     entry = _make_mem_entry("pattern_root", "Root-level pattern that should surface.")
     out = _run_main(
         tmp_path,
         focus_map={"global": "global mem"},
         repo_collection="workspace",
         has_claude_md=True,
-        high_confidence_entries=[entry],
+        boosted_entries=[entry],
     )
 
     parsed = json.loads(out)
@@ -489,61 +489,43 @@ def test_always_present_block_shown_for_workspace_collection_with_claude_md(tmp_
     assert "Root-level pattern that should surface." in ctx
 
 
-def test_high_confidence_gate_excludes_low_confidence_entry() -> None:
-    """confidence=0.7 + access_count=3 must NOT pass the gate (threshold is > 0.9)."""
+def test_boosted_gate_excludes_zero_boost_count_even_with_high_confidence() -> None:
+    """boost_count=0 must NOT pass, regardless of stale confidence/access_count values --
+    confidence and access_count are no longer trust signals (2026-09-26)."""
     mock_repo = MagicMock()
-    entry = _make_mem_entry("candidate", "Should not appear.", confidence=0.7, access_count=3)
+    entry = _make_mem_entry("pattern_z", "Old entry never boosted.", confidence=1.0, access_count=99, boost_count=0)
     mock_repo.get_all.return_value = [entry]
 
-    result = hook._high_confidence_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
+    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
 
     assert result == []
 
 
-def test_high_confidence_gate_passes_for_qualifying_entry() -> None:
-    """confidence=0.95 + access_count=3 + boost_count=1 must pass the gate."""
+def test_boosted_gate_passes_with_boost_count_one_even_with_zero_confidence() -> None:
+    """boost_count=1 must pass on its own -- stale confidence=0/access_count=0 must not
+    block it, since neither is part of the gate anymore."""
     mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_x", "Qualifying entry.", confidence=0.95, access_count=3, boost_count=1)
+    entry = _make_mem_entry("pattern_w", "Boosted entry.", confidence=0.0, access_count=0, boost_count=1)
     mock_repo.get_all.return_value = [entry]
 
-    result = hook._high_confidence_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert len(result) == 1
-    assert result[0].id == "pattern_x"
-
-
-def test_high_confidence_gate_excludes_insufficient_access_count() -> None:
-    """confidence=0.95 + access_count=2 must NOT pass (minimum is 3)."""
-    mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_y", "High confidence but few accesses.", confidence=0.95, access_count=2)
-    mock_repo.get_all.return_value = [entry]
-
-    result = hook._high_confidence_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert result == []
-
-
-def test_high_confidence_gate_excludes_zero_boost_count() -> None:
-    """confidence=0.95 + access_count=3 + boost_count=0 must NOT pass (must be explicitly boosted)."""
-    mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_z", "Old entry never boosted.", confidence=0.95, access_count=3, boost_count=0)
-    mock_repo.get_all.return_value = [entry]
-
-    result = hook._high_confidence_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert result == []
-
-
-def test_high_confidence_gate_passes_with_boost_count_one() -> None:
-    """confidence=0.95 + access_count=3 + boost_count=1 must pass."""
-    mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_w", "Boosted entry.", confidence=0.95, access_count=3, boost_count=1)
-    mock_repo.get_all.return_value = [entry]
-
-    result = hook._high_confidence_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
+    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
 
     assert len(result) == 1
     assert result[0].id == "pattern_w"
+
+
+def test_boosted_gate_sorts_by_boost_count_desc_with_id_tiebreak() -> None:
+    """Ties on boost_count break deterministically by id, so output order never
+    depends on ChromaDB's incidental get_all() ordering."""
+    mock_repo = MagicMock()
+    low = _make_mem_entry("pattern_b", "Boosted once.", boost_count=1)
+    high = _make_mem_entry("pattern_a", "Boosted three times.", boost_count=3)
+    tie = _make_mem_entry("pattern_c", "Also boosted once.", boost_count=1)
+    mock_repo.get_all.return_value = [low, high, tie]
+
+    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
+
+    assert [entry.id for entry in result] == ["pattern_a", "pattern_b", "pattern_c"]
 
 
 # ---------------------------------------------------------------------------
@@ -668,7 +650,7 @@ def test_global_always_present_fires_even_without_claude_md(tmp_path: Path) -> N
         focus_map={"global": "global mem"},
         repo_collection="workspace",
         has_claude_md=False,
-        high_confidence_entries_by_collection={"workspace": [], "global": [entry]},
+        boosted_entries_by_collection={"workspace": [], "global": [entry]},
     )
 
     parsed = json.loads(out)
@@ -688,7 +670,7 @@ def test_global_and_repo_always_present_blocks_both_appear(tmp_path: Path) -> No
         focus_map={"global": "global mem"},
         repo_collection="repo.ai-mem",
         has_claude_md=True,
-        high_confidence_entries_by_collection={"repo.ai-mem": [repo_entry], "global": [global_entry]},
+        boosted_entries_by_collection={"repo.ai-mem": [repo_entry], "global": [global_entry]},
     )
 
     parsed = json.loads(out)
@@ -699,9 +681,9 @@ def test_global_and_repo_always_present_blocks_both_appear(tmp_path: Path) -> No
     assert "Global rule." in ctx
 
 
-def test_high_confidence_gate_respects_custom_max_count() -> None:
-    """max_count parameterizes the cap independently of _HIGH_CONFIDENCE_MAX -- this is
-    what lets the global block use a smaller, separate cap (_HIGH_CONFIDENCE_GLOBAL_MAX)
+def test_boosted_gate_respects_custom_max_count() -> None:
+    """max_count parameterizes the cap independently of _AVAILABLE_MAX -- this is
+    what lets the global block use a smaller, separate cap (_AVAILABLE_GLOBAL_MAX)
     than the repo-scoped block, without sharing a budget."""
     mock_repo = MagicMock()
     entries = [
@@ -710,11 +692,11 @@ def test_high_confidence_gate_respects_custom_max_count() -> None:
     ]
     mock_repo.get_all.return_value = entries
 
-    result = hook._high_confidence_entries(mock_repo, "global", exclude_ids=set(), max_count=2)
+    result = hook._boosted_entries(mock_repo, "global", exclude_ids=set(), max_count=2)
 
     assert len(result) == 2
-    assert hook._HIGH_CONFIDENCE_GLOBAL_MAX == 2
-    assert hook._HIGH_CONFIDENCE_GLOBAL_MAX != hook._HIGH_CONFIDENCE_MAX
+    assert hook._AVAILABLE_GLOBAL_MAX == 2
+    assert hook._AVAILABLE_GLOBAL_MAX != hook._AVAILABLE_MAX
 
 
 def test_always_present_text_truncated_to_title_length(tmp_path: Path) -> None:
@@ -727,7 +709,7 @@ def test_always_present_text_truncated_to_title_length(tmp_path: Path) -> None:
         focus_map={"global": "global mem"},
         repo_collection="repo.ai-mem",
         has_claude_md=True,
-        high_confidence_entries=[entry],
+        boosted_entries=[entry],
     )
 
     parsed = json.loads(out)
@@ -755,7 +737,7 @@ def test_default_is_non_verbose_routing_only(tmp_path: Path) -> None:
         focus_map={"repo.ai-mem": "repo focus text", "global": "global focus text"},
         repo_collection="repo.ai-mem",
         has_claude_md=True,
-        high_confidence_entries=[entry],
+        boosted_entries=[entry],
         verbose=False,
     )
 
