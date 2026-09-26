@@ -9,6 +9,7 @@ agent's actual job.
 | File | Description |
 |---|---|
 | `example-agent-with-memory.md` | Minimal template: pull prior experience before starting, store transferable learnings before finishing |
+| `librarian.md` | Prototype ("der Bibliothekar"): cheap read-only retrieval agent, judgment-based catalogue scan instead of similarity ranking, never writes to memory. Not wired into any fixed call point -- see repo.ai-mem `todo_bibliothekar_haiku_retrieval_agent_2026_09_25` and the measurement in `scripts/eval_pull/README.md` ("Librarian arm"). |
 
 ## Why a template instead of automatic wiring
 
