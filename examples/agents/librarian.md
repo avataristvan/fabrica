@@ -3,9 +3,10 @@ name: librarian
 description: |
   Prototype ("der Bibliothekar"). A cheap, read-only knowledge-retrieval agent: hand it
   one natural-language question, it answers by JUDGMENT over the decision-record
-  catalogue, not by similarity score. Never writes to memory. Not wired into any fixed
-  call point yet -- copy/adapt into an orchestrator prompt or a registered subagent type
-  when you decide where it should be called from. Background: repo.ai-mem entries
+  catalogue, not by similarity score. Never writes to memory. Call it with the project
+  collection and 1-3 concrete questions before an architecture/direction decision, when
+  "why is it like this / was this tried before?" comes up, and at /chunk-plan's fixed
+  call point. Background: repo.ai-mem entries
   todo_bibliothekar_haiku_retrieval_agent_2026_09_25 and
   domain_drop_confidence_for_evidence_and_librarian_2026_09_26.
 tools: Read, mcp__ai-mem__mem_list, mcp__ai-mem__mem_get, mcp__ai-mem__mem_edges, mcp__ai-mem__mem_query
