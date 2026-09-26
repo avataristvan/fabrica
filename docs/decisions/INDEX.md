@@ -6,10 +6,11 @@
 | arch_workspace_root_collection_naming | AI_MEM_WORKSPACE_ROOT feature (2026-07-03, commit 5e855b1): detect_repo_context( | active |
 | domain_bmad_vs_ai_mem_epistemology_2026_09_25 | Decision: Der Vergleich BMAD vs. ai-mem-Framework konvergiert auf ein Drei-Schic | active |
 | domain_direction_judgment_over_scores_2026_09_20 | Decision: Richtung für ai-mem (2026-09-20): Urteil statt Score. Der epistemologi | active |
+| domain_drop_confidence_for_evidence_and_librarian_2026_09_26 | Decision: ai-mem streicht confidence und access_count als Vertrauenssignal. An i | active |
 | domain_superseded_flag_not_hide_2026_09_20 | Decision: Ein durch 'supersedes' überholter Eintrag wird beim Abruf markiert (su | active |
 | hook_system | ai-mem Hook System (2 hooks active, all silent on failure): | active |
 | pattern_blindtest_methodik | # Blindtest-Methodik für ai-mem Evaluation | active |
-| pattern_confidence_lifecycle | Rule: Verwende confidence (float 0.0–1.0) als primäres Lifecycle-Signal für Memo | active |
+| pattern_confidence_lifecycle | Rule: Verwende confidence (float 0.0–1.0) als primäres Lifecycle-Signal für Memo | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | pattern_english_output_strings | Rule: Keep all user-facing strings in ai-mem code in English. | active |
 | pattern_gap_test_evaluation | # Gap-Test: Objektive Evaluation ob ai-mem dem Agent hilft | active |
 | pattern_generic_core_selective_agent_activation | Rule: ai-mem's own source must stay agent-agnostic. Per-agent behavior is opt-in | active |

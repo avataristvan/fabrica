@@ -1,6 +1,8 @@
 id: pattern_confidence_lifecycle
 type: pattern
 created: 1789255454.224921
+superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
+valid_until: 1790412164.552887
 edges: [{"target_id": "pattern_quality_at_write_time", "edge_type": "related"}, {"target_id": "pattern_lightweight_as_feature", "edge_type": "related"}]
 ---
 
