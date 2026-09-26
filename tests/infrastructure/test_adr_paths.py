@@ -9,6 +9,7 @@ from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     adr_dir_for,
     adr_file_path,
+    is_safe_entry_id,
     record_collection_root,
     resolve_repo_root_for_collection,
 )
@@ -182,3 +183,14 @@ def test_adr_file_path_builds_expected_filename(tmp_path):
 
 def test_adr_file_path_none_when_root_unresolvable(tmp_path):
     assert adr_file_path(tmp_path, "workspace", "domain_example") is None
+
+
+def test_is_safe_entry_id_rejects_traversal_and_reserved_names():
+    assert is_safe_entry_id("domain_foo_2026_09_26")
+    for bad in ("", ".", "..", "../x", "a/b", "a\\b", "INDEX", "README"):
+        assert not is_safe_entry_id(bad), bad
+
+
+def test_adr_file_path_returns_none_for_unsafe_id(tmp_path):
+    record_collection_root(tmp_path / "db", "repo.x", tmp_path / "repo")
+    assert adr_file_path(tmp_path / "db", "repo.x", "../escape") is None

@@ -135,3 +135,13 @@ def test_parsed_adr_is_dataclass_with_expected_fields():
     )
     assert parsed.id == "x"
     assert parsed.edges == []
+
+
+def test_cleared_valid_until_is_omitted_and_roundtrips():
+    # "" is the documented un-supersede value; it must not produce an unparseable file.
+    md = serialize("domain_x", "domain", "body", {"superseded_by": "", "valid_until": ""})
+    assert "valid_until" not in md
+    assert "superseded_by" not in md
+    parsed = parse(md)
+    assert parsed.valid_until is None
+    assert parsed.superseded_by is None

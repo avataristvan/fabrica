@@ -60,8 +60,10 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     if superseded_by:
         lines.append(f"superseded_by: {superseded_by}")
 
+    # "" is the documented "clear" value (un-supersede) -- emitting it would write
+    # `valid_until: ` with an empty value, which parse() rejects as a non-float.
     valid_until = metadata.get("valid_until")
-    if valid_until is not None:
+    if valid_until not in (None, ""):
         lines.append(f"valid_until: {valid_until}")
 
     canonical_edges = _canonical_edges(metadata.get("edges"))

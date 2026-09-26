@@ -16,7 +16,7 @@ from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
-from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_dir_for
+from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_dir_for, is_safe_entry_id
 from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
 from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION
 
@@ -47,6 +47,9 @@ def _export_collection(repo: ChromaMemoryRepository, db_path: Path, collection: 
     if entries:
         adr_dir.mkdir(parents=True, exist_ok=True)
     for entry in entries:
+        if not is_safe_entry_id(entry.id):
+            print(f"skipping {entry.id!r}: cannot be used as an ADR filename", file=sys.stderr)
+            continue
         content = adr_markdown.serialize(entry.id, entry.metadata.get("type"), entry.text, entry.metadata)
         (adr_dir / f"{entry.id}.md").write_text(content)
 

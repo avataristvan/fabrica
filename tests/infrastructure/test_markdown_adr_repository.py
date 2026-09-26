@@ -202,3 +202,31 @@ def test_upsert_no_resolvable_root_is_a_noop(tmp_path):
     repo.upsert("workspace", [entry])  # "workspace" never resolves to a root
 
     assert repo.get_by_ids("workspace", ["domain_x"])[0].text == "Decision: ..."
+
+
+def test_retyping_away_from_adr_type_removes_file(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain"})])
+    assert _adr_file(repo_root, "domain_x").exists()
+
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "fact"})])
+
+    assert not _adr_file(repo_root, "domain_x").exists()
+
+
+@pytest.mark.parametrize("bad_id", ["../escape", "sub/dir", "INDEX"])
+def test_unsafe_adr_id_is_rejected_before_inner_write(adr_repo, repo_root, bad_id):
+    entry = MemoryEntry(id=bad_id, text="Decision: ...", metadata={"type": "domain"})
+
+    with pytest.raises(ValueError):
+        adr_repo.upsert(COLLECTION, [entry])
+
+    assert adr_repo.get_by_ids(COLLECTION, [bad_id]) == []
+    assert not (repo_root / "docs" / "escape.md").exists()
+
+
+def test_unsafe_id_is_fine_for_non_adr_types(adr_repo):
+    entry = MemoryEntry(id="sub/dir", text="note", metadata={"type": "fact"})
+
+    adr_repo.upsert(COLLECTION, [entry])
+
+    assert adr_repo.get_by_ids(COLLECTION, ["sub/dir"])[0].text == "note"

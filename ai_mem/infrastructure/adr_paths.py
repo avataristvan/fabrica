@@ -72,7 +72,27 @@ def adr_dir_for(db_path: Path, collection: str) -> Path | None:
     return root / os.environ.get("AI_MEM_ADR_DIR", "docs/decisions")
 
 
+_RESERVED_STEMS = frozenset({"INDEX", "README"})
+
+
+def is_safe_entry_id(entry_id: str) -> bool:
+    """True if `entry_id` can be used as a filename stem inside the ADR directory.
+
+    Rejects path separators / `..` (which would write outside docs/decisions/) and the
+    stems of the directory's own generated/handwritten files (INDEX.md, README.md).
+    """
+    return (
+        bool(entry_id)
+        and entry_id not in (".", "..")
+        and "/" not in entry_id
+        and "\\" not in entry_id
+        and entry_id not in _RESERVED_STEMS
+    )
+
+
 def adr_file_path(db_path: Path, collection: str, entry_id: str) -> Path | None:
+    if not is_safe_entry_id(entry_id):
+        return None
     adr_dir = adr_dir_for(db_path, collection)
     if adr_dir is None:
         return None

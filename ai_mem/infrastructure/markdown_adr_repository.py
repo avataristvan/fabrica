@@ -12,7 +12,7 @@ from pathlib import Path
 
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, MemoryRepository, QueryResult
 from ai_mem.infrastructure import adr_markdown
-from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_file_path
+from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_file_path, is_safe_entry_id
 
 
 class MarkdownAdrRepository:
@@ -38,10 +38,24 @@ class MarkdownAdrRepository:
         file_path.write_text(new_content)
 
     def upsert(self, collection: str, entries: list[MemoryEntry]) -> None:
+        # Validate before the inner write, so a rejected id never lands in Chroma without its file.
+        for entry in entries:
+            if entry.metadata.get("type") in ADR_TYPES and not is_safe_entry_id(entry.id):
+                raise ValueError(f"id {entry.id!r} cannot be used as an ADR filename")
+
         self._inner.upsert(collection, entries)
         for entry in entries:
             if entry.metadata.get("type") in ADR_TYPES:
                 self._sync_file(collection, entry)
+            else:
+                self._remove_stale_file(collection, entry.id)
+
+    def _remove_stale_file(self, collection: str, entry_id: str) -> None:
+        # An entry re-typed away from domain/pattern/anti-pattern must not leave its old
+        # decision record behind in the repo.
+        file_path = adr_file_path(self._db_path, collection, entry_id)
+        if file_path is not None:
+            file_path.unlink(missing_ok=True)
 
     def query(
         self,
