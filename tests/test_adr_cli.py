@@ -216,3 +216,16 @@ def test_reindex_missing_adr_dir_returns_nonzero(tmp_path):
     rc = _cmd_reindex(args)
 
     assert rc == 1
+
+
+def test_import_ignores_readme_and_succeeds(wired):
+    AddMemoryUseCase(wired.repo).execute(
+        wired.collection, ["Decision: use X."], ["domain_good"], metadatas=[{"type": "domain"}]
+    )
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    adr_dir = wired.repo_root / "docs" / "decisions"
+    (adr_dir / "README.md").write_text("# Decision records\n\nHandwritten, no frontmatter.\n")
+
+    rc = _cmd_import(_import_args(wired.collection, wired.db_path))
+
+    assert rc == 0

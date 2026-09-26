@@ -16,7 +16,7 @@ from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
-from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_dir_for, is_safe_entry_id
+from ai_mem.infrastructure.adr_paths import ADR_TYPES, NON_ADR_FILENAMES, adr_dir_for, is_safe_entry_id
 from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
 from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION
 
@@ -87,7 +87,7 @@ def _cmd_import(args: argparse.Namespace) -> int:
     skipped: list[str] = []
     imported = 0
     for file_path in sorted(adr_dir.glob("*.md")):
-        if file_path.name == "INDEX.md":
+        if file_path.name in NON_ADR_FILENAMES:
             continue
         try:
             parsed = adr_markdown.parse(file_path.read_text())

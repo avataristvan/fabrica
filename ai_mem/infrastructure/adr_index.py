@@ -11,6 +11,7 @@ from pathlib import Path
 
 from ai_mem.application.list_entries import title_of
 from ai_mem.infrastructure import adr_markdown
+from ai_mem.infrastructure.adr_paths import NON_ADR_FILENAMES
 
 _INDEX_FILENAME = "INDEX.md"
 
@@ -24,7 +25,7 @@ def regenerate_index(adr_dir: Path) -> None:
     """
     rows: list[tuple[str, str, str]] = []
     for file_path in sorted(adr_dir.glob("*.md")):
-        if file_path.name == _INDEX_FILENAME:
+        if file_path.name in NON_ADR_FILENAMES:
             continue
         try:
             parsed = adr_markdown.parse(file_path.read_text())

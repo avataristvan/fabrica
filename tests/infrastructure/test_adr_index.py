@@ -75,3 +75,14 @@ def test_regenerate_index_is_byte_identical_across_repeated_runs(tmp_path):
     second = (adr_dir / "INDEX.md").read_bytes()
 
     assert first == second
+
+
+def test_regenerate_index_ignores_readme_silently(tmp_path, capsys):
+    adr_dir = tmp_path / "decisions"
+    _write_adr(adr_dir, "domain_a", "domain", "Decision: a.")
+    (adr_dir / "README.md").write_text("# Decision records\n\nHandwritten, no frontmatter.\n")
+
+    regenerate_index(adr_dir)
+
+    assert "README" not in capsys.readouterr().err
+    assert "README" not in (adr_dir / "INDEX.md").read_text()

@@ -73,6 +73,8 @@ def adr_dir_for(db_path: Path, collection: str) -> Path | None:
 
 
 _RESERVED_STEMS = frozenset({"INDEX", "README"})
+# Files that live in the ADR directory but aren't decision records (INDEX.md generated, README.md handwritten).
+NON_ADR_FILENAMES = frozenset(f"{stem}.md" for stem in _RESERVED_STEMS)
 
 
 def is_safe_entry_id(entry_id: str) -> bool:
