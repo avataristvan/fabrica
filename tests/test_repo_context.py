@@ -142,3 +142,57 @@ class TestDetectGitFallback:
         ctx = detect_repo_context(empty)
         assert ctx.collection == WORKSPACE_COLLECTION
         assert ctx.has_claude_md is False
+
+
+# ---------------------------------------------------------------------------
+# Worktree normalization
+# ---------------------------------------------------------------------------
+
+def _git(*args: str, cwd: Path) -> None:
+    import subprocess
+    subprocess.run(["git", *args], cwd=str(cwd), check=True, capture_output=True)
+
+
+def _make_repo(path: Path) -> Path:
+    path.mkdir(parents=True)
+    (path / "CLAUDE.md").write_text("# test\n")
+    _git("init", "-q", cwd=path)
+    _git("-c", "user.email=t@t", "-c", "user.name=t", "add", "CLAUDE.md", cwd=path)
+    _git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "init", cwd=path)
+    return path
+
+
+class TestWorktreeNormalization:
+    def test_linked_worktree_maps_to_main_collection_without_workspace_root(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("AI_MEM_WORKSPACE_ROOT", raising=False)
+        main = _make_repo(tmp_path / "proj")
+        _git("worktree", "add", "-q", str(tmp_path / "agent-abc123"), cwd=main)
+        worktree_ctx = detect_repo_context(tmp_path / "agent-abc123")
+        assert worktree_ctx.collection == detect_repo_context(main).collection == "repo.proj"
+
+    def test_claude_worktrees_dir_maps_to_main_with_workspace_root(self, monkeypatch, tmp_path):
+        workspace = tmp_path / "ws"
+        main = _make_repo(workspace / "proj")
+        monkeypatch.setenv("AI_MEM_WORKSPACE_ROOT", str(workspace))
+        _git("worktree", "add", "-q", str(main / ".claude" / "worktrees" / "agent-x"), cwd=main)
+        ctx = detect_repo_context(main / ".claude" / "worktrees" / "agent-x")
+        assert ctx.collection == "repo.proj"
+        assert ctx.source == "workspace_root"
+
+    def test_plain_copy_under_claude_worktrees_maps_to_main(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("AI_MEM_WORKSPACE_ROOT", raising=False)
+        main = tmp_path / "proj"
+        copy = main / ".claude" / "worktrees" / "agent-y"
+        copy.mkdir(parents=True)
+        (main / "CLAUDE.md").write_text("# main\n")
+        (copy / "CLAUDE.md").write_text("# copy\n")
+        ctx = detect_repo_context(copy)
+        assert ctx.claude_md_dir == main
+        assert ctx.collection == "repo.proj"
+
+    def test_normal_repo_unchanged(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("AI_MEM_WORKSPACE_ROOT", raising=False)
+        main = _make_repo(tmp_path / "proj")
+        ctx = detect_repo_context(main)
+        assert ctx.collection == "repo.proj"
+        assert ctx.source == "git"

@@ -16,6 +16,7 @@ class RepoContext:
     has_claude_md: bool
     claude_md_dir: Path | None
     git_root: Path | None
+    source: str = "none"  # how the collection was derived: workspace_root | git | dir_name | none
 
 
 def _run(cmd: list[str], cwd: Path) -> str | None:
@@ -45,9 +46,39 @@ def _find_claude_md(start: Path) -> Path | None:
     return None
 
 
+def _to_main_checkout(cwd: Path) -> Path:
+    """Map a path inside a linked git worktree to the same path in the main checkout.
+
+    A worktree carries its own copy of CLAUDE.md, so without this every agent worktree
+    (e.g. Claude Code's `<repo>/.claude/worktrees/agent-<hash>`) got its own collection.
+    Non-worktree paths are returned unchanged.
+    """
+    out = _run(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir", "--git-dir", "--show-toplevel"],
+        cwd=cwd,
+    )
+    if out:
+        lines = out.splitlines()
+        if len(lines) == 3:
+            common_dir, git_dir, toplevel = (Path(line) for line in lines)
+            if common_dir != git_dir and common_dir.name == ".git":
+                try:
+                    return common_dir.parent / cwd.resolve().relative_to(toplevel.resolve())
+                except ValueError:
+                    pass
+    # Fallback when git can't describe the worktree (e.g. a plain copy under .claude/worktrees)
+    parts = cwd.parts
+    for i in range(1, len(parts) - 2):
+        if parts[i] == ".claude" and parts[i + 1] == "worktrees":
+            main = Path(*parts[:i])
+            if main.is_dir():
+                return main.joinpath(*parts[i + 3:])
+    return cwd
+
+
 def detect_repo_context(cwd: Path | None = None) -> RepoContext:
     try:
-        cwd = cwd or Path.cwd()
+        cwd = _to_main_checkout(cwd or Path.cwd())
         claude_md_dir = _find_claude_md(cwd)
         if claude_md_dir is None:
             return RepoContext(None, WORKSPACE_COLLECTION, False, None, None)
@@ -59,10 +90,10 @@ def detect_repo_context(cwd: Path | None = None) -> RepoContext:
                 rel_parts = [_sanitize(p) for p in rel.parts if p not in (".", "")]
                 if rel_parts:
                     scope_name = ".".join(rel_parts)
-                    return RepoContext(scope_name, f"repo.{scope_name}", True, claude_md_dir, None)
+                    return RepoContext(scope_name, f"repo.{scope_name}", True, claude_md_dir, None, "workspace_root")
                 else:
                     # CLAUDE.md is at the workspace root itself → workspace
-                    return RepoContext(None, WORKSPACE_COLLECTION, True, claude_md_dir, None)
+                    return RepoContext(None, WORKSPACE_COLLECTION, True, claude_md_dir, None, "workspace_root")
             except ValueError:
                 pass  # claude_md_dir outside workspace_root → fall through to git
 
@@ -74,7 +105,7 @@ def detect_repo_context(cwd: Path | None = None) -> RepoContext:
             # git repos without a remote already get below.
             scope_name = _sanitize(claude_md_dir.name)
             collection = f"repo.{scope_name}" if scope_name else WORKSPACE_COLLECTION
-            return RepoContext(scope_name or None, collection, True, claude_md_dir, None)
+            return RepoContext(scope_name or None, collection, True, claude_md_dir, None, "dir_name")
 
         git_root = Path(git_root_str)
 
@@ -95,6 +126,6 @@ def detect_repo_context(cwd: Path | None = None) -> RepoContext:
         scope_name = ".".join(part for part in parts if part)
         collection = f"repo.{scope_name}" if scope_name else WORKSPACE_COLLECTION
 
-        return RepoContext(scope_name, collection, True, claude_md_dir, git_root)
+        return RepoContext(scope_name, collection, True, claude_md_dir, git_root, "git")
     except Exception:
         return RepoContext(None, WORKSPACE_COLLECTION, False, None, None)

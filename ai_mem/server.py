@@ -154,6 +154,20 @@ async def list_tools() -> list[types.Tool]:
             },
         ),
         types.Tool(
+            name="mem_context",
+            description=(
+                "Call this with your working directory to learn which collection to pass to mem_query/mem_add "
+                "(subagents receive no SessionStart output). Git worktrees resolve to their main checkout's collection."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "cwd": {"type": "string", "description": "Absolute path of your working directory"},
+                },
+                "required": ["cwd"],
+            },
+        ),
+        types.Tool(
             name="mem_topics",
             description=(
                 "Browse a collection's entries grouped by type (pattern, anti-pattern, project, fact, domain, "
@@ -536,6 +550,19 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
             return [types.TextContent(type="text", text=json.dumps(entries, indent=2, ensure_ascii=False))]
         cols = _list.execute()
         return [types.TextContent(type="text", text=json.dumps([{"name": col_info.name, "count": col_info.count} for col_info in cols], indent=2))]
+
+    if name == "mem_context":
+        cwd = Path(arguments.get("cwd") or "")
+        if not cwd.is_absolute() or not cwd.is_dir():
+            return [types.TextContent(type="text", text=f"Error: cwd must be an absolute path to an existing directory, got {arguments.get('cwd')!r}")]
+        ctx = detect_repo_context(cwd)
+        result = {
+            "collection": ctx.collection,
+            "match": ctx.source,
+            "claude_md_dir": str(ctx.claude_md_dir) if ctx.claude_md_dir else None,
+            "git_root": str(ctx.git_root) if ctx.git_root else None,
+        }
+        return [types.TextContent(type="text", text=json.dumps(result, indent=2))]
 
     if name == "mem_topics":
         topics = _list_topics.execute(collection)
