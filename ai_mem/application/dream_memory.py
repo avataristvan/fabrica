@@ -366,7 +366,7 @@ def _split_candidates(synthesis: str, all_entries: list[MemoryEntry]) -> str:
         lines.append(f"- `{eid}`{preview_str}")
     return (
         "\n\n---\n\n## Split Candidates\n\n"
-        "These entries cover multiple independent concepts — consider splitting with `mem_split`:\n\n"
+        "These entries cover multiple independent concepts — consider splitting with `mem_split` (it separates an observation from a decision into learning + decision when the entry mixes both):\n\n"
         + "\n".join(lines)
     )
 

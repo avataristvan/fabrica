@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ai_mem.application.list_entries import title_of
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, MemoryRepository, QueryResult
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
@@ -45,10 +46,10 @@ class MarkdownAdrRepository:
 
     def _sync_file(self, collection: str, entry: MemoryEntry) -> bool:
         """Write the entry's ADR file if its content changed and remove every other file for this
-        id (retype, re-area, legacy flat leftovers). Returns whether INDEX.md needs a refresh: the
-        entry's `superseded_by`, type or area differs from what a previous file recorded (a
-        mem_boost-only upsert changes none of these). Cleanup of a same-type/area duplicate alone
-        does not count."""
+        id (retype, re-area, legacy flat leftovers). Returns whether INDEX.md needs a refresh: no file
+        existed before (created), or the entry's `superseded_by`, type, area or title differs from
+        what a previous file recorded (a mem_boost-only upsert changes none of these). Cleanup of a
+        same-type/area duplicate alone does not count."""
         entry_type = entry.metadata.get("type")
         file_path = adr_file_path(self._db_path, collection, entry.id, entry_type, self._area_of(entry))
         if file_path is None:
@@ -57,15 +58,15 @@ class MarkdownAdrRepository:
 
         others = [path for path in find_adr_files(adr_dir, entry.id) if path != file_path]
         previous = [file_path, *others] if file_path.exists() else others
-        new_state = (entry_type, self._area_of(entry), entry.metadata.get("superseded_by") or None)
-        index_stale = not previous and new_state[2] is not None
+        new_state = (entry_type, self._area_of(entry), entry.metadata.get("superseded_by") or None, title_of(entry.text))
+        index_stale = not previous
         for path in previous:
             try:
                 old = adr_markdown.parse(path.read_text())
             except ValueError:
                 index_stale = True  # malformed prior file: treat as a status change
                 continue
-            index_stale |= (old.type, old.area, old.superseded_by) != new_state
+            index_stale |= (old.type, old.area, old.superseded_by, title_of(old.text)) != new_state
 
         new_content = adr_markdown.serialize(entry.id, entry_type, entry.text, entry.metadata)
         # Volatile-field boundary: a mem_boost-only upsert (boost_count/cue/last_accessed_at
@@ -99,10 +100,9 @@ class MarkdownAdrRepository:
                 status_changed |= self._sync_file(collection, entry)
             else:
                 status_changed |= self._remove_stale_files(collection, entry.id)
-        # Deliberately narrow: INDEX.md regeneration stays off the per-mem_add write path
-        # (Chunk 3b -- a read-modify-write race on one shared file) except for events that change
-        # a row: a supersede status change (whichever caller produced it -- mem_link, or
-        # mem_dream --auto_supersede via AddEdgeUseCase's target upsert), or a file moving/vanishing.
+        # Regenerate only when the set of record files or an INDEX row changed (create, remove,
+        # move, supersede, title) -- never on a boost-only upsert. regenerate_index is a full
+        # rescan with an atomic write, so concurrent writers cannot tear the file.
         if status_changed:
             self._reindex(collection)
 
@@ -144,6 +144,8 @@ class MarkdownAdrRepository:
                 # Metadata-derived path first, recursive search for anything stale (legacy/misplaced).
                 target = adr_file_path(self._db_path, collection, entry.id, entry.metadata["type"], self._area_of(entry))
                 self._remove_files(adr_dir, sorted({*find_adr_files(adr_dir, entry.id), *([target] if target else [])}))
+            if adr_entries:
+                self._reindex(collection)
         return affected
 
     def delete_expired(self, collection: str) -> int:
@@ -162,7 +164,8 @@ class MarkdownAdrRepository:
         self._inner.add_edge(collection, source_id, edge)
         entries = self._inner.get_by_ids(collection, [source_id])
         if entries and entries[0].metadata.get("type") in ADR_TYPES:
-            self._sync_file(collection, entries[0])
+            if self._sync_file(collection, entries[0]):
+                self._reindex(collection)
 
     def get_edges(self, collection: str, entry_id: str) -> list[MemoryEdge]:
         return self._inner.get_edges(collection, entry_id)

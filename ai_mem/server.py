@@ -58,8 +58,8 @@ _list_entries = ListEntriesUseCase(_repo)
 _list_topics = ListTopicsUseCase(_repo)
 _detect_split_hints = DetectSplitHintsUseCase()
 _dream = DreamMemoryUseCase(_repo)
-_split = SplitMemoryUseCase(_repo, _add)
 _add_edge = AddEdgeUseCase(_repo)
+_split = SplitMemoryUseCase(_repo, _add, _add_edge)
 _get_edges = GetEdgesUseCase(_repo)
 # track_access here means "deliberate use": explicit mem_get by id, or a positive mem_boost
 # (the /reflect citation signal).
@@ -280,10 +280,17 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_split",
             description=(
-                "Split a coarse memory entry into 2-3 focused sub-entries using Claude. "
+                "Split a coarse memory entry using Claude, which picks the mode per entry. "
                 "If 'entry_id' is omitted, auto-splits all hinted entries in the collection "
                 f"(text ≥ {SPLIT_MIN_TEXT_CHARS} chars, or carrying multiple structural sections). "
-                "The original entry is deleted and replaced by the sub-entries. "
+                "Mode topics (independent sub-topics): 2-3 focused sub-entries replace the original, "
+                "which is deleted; new_ids lists the sub-entries. "
+                "Mode learning+decision (the entry mixes an observation with a decision): the ORIGINAL id "
+                "stays and becomes the rewritten decision (metadata, boost_count, cue, created_at and edges "
+                "kept; type domain/pattern/anti-pattern), a new learning entry '<id>_learning' "
+                "('Observed:/Cause:/Evidence:', type learning, same area) is created, and a "
+                "'derived_from' edge decision -> learning is added; new_ids lists the learning(s). "
+                "The original is never deleted in this mode. "
                 f"Leave 'collection' empty to use the default ('{DEFAULT_COLLECTION}')."
             ),
             inputSchema={

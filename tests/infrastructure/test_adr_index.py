@@ -1,6 +1,8 @@
 """Tests for ai_mem.infrastructure.adr_index.regenerate_index: pure Markdown table generation."""
 from __future__ import annotations
 
+import pytest
+
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
 
@@ -119,3 +121,31 @@ def test_regenerate_index_skips_only_top_level_index_and_readme(tmp_path):
     content = (adr_dir / "INDEX.md").read_text()
     assert "| README | general | domain | Decision: nested. |" in content
     assert "handwritten" not in content
+
+
+def test_regenerate_index_leaves_no_temp_files(tmp_path):
+    adr_dir = tmp_path / "records"
+    adr_dir.mkdir()
+    regenerate_index(adr_dir)
+    regenerate_index(adr_dir)
+
+    assert [p.name for p in adr_dir.iterdir()] == ["INDEX.md"]
+
+
+def test_regenerate_index_failed_write_keeps_old_index_and_cleans_up(tmp_path, monkeypatch):
+    import os
+
+    adr_dir = tmp_path / "records"
+    adr_dir.mkdir()
+    regenerate_index(adr_dir)
+    old = (adr_dir / "INDEX.md").read_bytes()
+
+    def boom(*_args):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(os, "replace", boom)
+    with pytest.raises(OSError):
+        regenerate_index(adr_dir)
+
+    assert (adr_dir / "INDEX.md").read_bytes() == old
+    assert [p.name for p in adr_dir.iterdir()] == ["INDEX.md"]

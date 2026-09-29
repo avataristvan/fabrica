@@ -195,13 +195,11 @@ def test_add_edge_supersedes_updates_source_file_and_target_upsert_follows(adr_r
 
 
 def test_supersede_upsert_regenerates_index(adr_repo, repo_root):
-    # Plain creation is deliberately not enough to produce INDEX.md (Chunk 3b keeps
-    # regeneration off the per-mem_add path); only the supersede status change triggers it.
     source = MemoryEntry(id="domain_new", text="Decision: new", metadata={"type": "domain"})
     target = MemoryEntry(id="domain_old", text="Decision: old", metadata={"type": "domain"})
     adr_repo.upsert(COLLECTION, [source, target])
     index_path = repo_root / "docs" / "records" / "INDEX.md"
-    assert not index_path.exists()
+    assert "superseded_by" not in index_path.read_text()
 
     adr_repo.add_edge(COLLECTION, "domain_new", MemoryEdge(target_id="domain_old", edge_type="supersedes"))
     updated_target = MemoryEntry(id="domain_old", text="Decision: old", metadata={"type": "domain", "superseded_by": "domain_new"})
@@ -214,7 +212,7 @@ def test_boost_only_upsert_does_not_regenerate_index(adr_repo, repo_root):
     entry = MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain", "confidence": 0.7})
     adr_repo.upsert(COLLECTION, [entry])
     index_path = repo_root / "docs" / "records" / "INDEX.md"
-    regenerate_index(index_path.parent)  # bootstrap: upsert alone never creates it (see test above)
+    regenerate_index(index_path.parent)  # already exists from the create; pin its mtime
     index_mtime_ns = index_path.stat().st_mtime_ns
 
     boosted = MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain", "confidence": 0.95})
@@ -371,3 +369,56 @@ def test_add_edge_resyncs_file_at_type_and_area_path(adr_repo, repo_root):
     adr_repo.add_edge(COLLECTION, "src", MemoryEdge(target_id="t", edge_type="derived_from"))
 
     assert '"edge_type": "derived_from"' in _adr_file(repo_root, "src", "ble", "learnings").read_text()
+
+
+def _index(repo_root) -> str:
+    return (repo_root / "docs" / "records" / "INDEX.md").read_text()
+
+
+def test_create_adds_index_row(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+
+    assert "| x | general | domain |" in _index(repo_root)
+
+
+def test_delete_removes_index_row(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+    _upsert(adr_repo, "y", type="domain")
+
+    adr_repo.delete(COLLECTION, ["x"])
+
+    index = _index(repo_root)
+    assert "| x |" not in index
+    assert "| y |" in index
+
+
+def test_title_change_updates_index_row(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="x", text="Decision: old title", metadata={"type": "domain"})])
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="x", text="Decision: new title", metadata={"type": "domain"})])
+
+    index = _index(repo_root)
+    assert "new title" in index
+    assert "old title" not in index
+
+
+def test_body_only_change_does_not_touch_index(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="x", text="Decision: t\n\nWhy: a", metadata={"type": "domain"})])
+    index_path = repo_root / "docs" / "records" / "INDEX.md"
+    before = index_path.read_bytes()
+    mtime = index_path.stat().st_mtime_ns
+
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="x", text="Decision: t\n\nWhy: b", metadata={"type": "domain"})])
+
+    assert index_path.read_bytes() == before
+    assert index_path.stat().st_mtime_ns == mtime
+
+
+def test_boost_only_upsert_leaves_index_bytes_and_mtime(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+    index_path = repo_root / "docs" / "records" / "INDEX.md"
+    before, mtime = index_path.read_bytes(), index_path.stat().st_mtime_ns
+
+    _upsert(adr_repo, "x", type="domain", boost_count=3)
+
+    assert index_path.read_bytes() == before
+    assert index_path.stat().st_mtime_ns == mtime

@@ -8,10 +8,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.detect_split_hints import SPLIT_MIN_TEXT_CHARS
 from ai_mem.application.split_memory import SplitMemoryUseCase, _parse_json
-from ai_mem.domain.memory import MemoryEntry
+from ai_mem.domain.memory import MemoryEdge, MemoryEntry
 
 
 # ---------------------------------------------------------------------------
@@ -53,7 +54,7 @@ _SPLIT_RESPONSE = json.dumps([
 
 
 def _make_uc(tmp_repo) -> SplitMemoryUseCase:
-    return SplitMemoryUseCase(tmp_repo, AddMemoryUseCase(tmp_repo))
+    return SplitMemoryUseCase(tmp_repo, AddMemoryUseCase(tmp_repo), AddEdgeUseCase(tmp_repo))
 
 
 def _add_entry(tmp_repo, entry_id: str, text: str) -> None:
@@ -136,3 +137,101 @@ def test_split_returns_skipped_on_claude_cli_error(mock_run, tmp_repo):
 def test_split_empty_collection_returns_empty(tmp_repo):
     results = _make_uc(tmp_repo).execute("empty_col")
     assert results == []
+
+
+# ---------------------------------------------------------------------------
+# learning + decision mode
+# ---------------------------------------------------------------------------
+
+_LD_RESPONSE = json.dumps([
+    {"kind": "learning", "id": "fix_x_learning", "text": "Observed: a. Cause: b. Evidence: c."},
+    {"kind": "decision", "id": "fix_x", "type": "pattern", "text": "Decision: d. Why: b. Scope: s."},
+])
+
+
+def _add_mixed(tmp_repo, meta: dict | None = None) -> None:
+    tmp_repo.upsert("col", [MemoryEntry(
+        id="fix_x",
+        text="old mixed text",
+        metadata={"created_at": 111.0, "type": "domain", "area": "workflow", "boost_count": 3, "cue": "why", **(meta or {})},
+    )])
+
+
+@patch("subprocess.run")
+def test_learning_decision_keeps_original_as_decision(mock_run, tmp_repo):
+    mock_run.return_value = MagicMock(stdout=_LD_RESPONSE, returncode=0)
+    _add_mixed(tmp_repo)
+    tmp_repo.add_edge("col", "fix_x", MemoryEdge(target_id="other", edge_type="related"))
+
+    result = _make_uc(tmp_repo).execute("col", entry_id="fix_x")[0]
+
+    assert result.skipped is False
+    assert result.new_ids == ["fix_x_learning"]
+    decision = tmp_repo.get_by_ids("col", ["fix_x"])[0]
+    assert decision.text.startswith("Decision:")
+    assert decision.metadata["type"] == "domain"  # existing decision type wins over Claude's
+    assert decision.metadata["created_at"] == 111.0
+    assert decision.metadata["boost_count"] == 3
+    assert decision.metadata["cue"] == "why"
+    edges = {(e.target_id, e.edge_type) for e in tmp_repo.get_edges("col", "fix_x")}
+    assert edges == {("other", "related"), ("fix_x_learning", "derived_from")}
+    learning = tmp_repo.get_by_ids("col", ["fix_x_learning"])[0]
+    assert learning.metadata["type"] == "learning"
+    assert learning.metadata["area"] == "workflow"
+    assert learning.text.startswith("Observed:")
+
+
+@patch("subprocess.run")
+def test_learning_decision_uses_claude_type_when_original_not_a_decision(mock_run, tmp_repo):
+    mock_run.return_value = MagicMock(stdout=_LD_RESPONSE, returncode=0)
+    _add_mixed(tmp_repo, {"type": "fix"})
+
+    _make_uc(tmp_repo).execute("col", entry_id="fix_x")
+
+    assert tmp_repo.get_by_ids("col", ["fix_x"])[0].metadata["type"] == "pattern"
+
+
+@patch("subprocess.run")
+def test_learning_decision_skips_without_exactly_one_decision(mock_run, tmp_repo):
+    mock_run.return_value = MagicMock(stdout=json.dumps([
+        {"kind": "learning", "id": "fix_x_learning", "text": "Observed: a."},
+        {"kind": "topic", "id": "fix_x_1", "text": "t"},
+    ]), returncode=0)
+    _add_mixed(tmp_repo)
+
+    result = _make_uc(tmp_repo).execute("col", entry_id="fix_x")[0]
+
+    assert result.skipped is True
+    assert tmp_repo.get_by_ids("col", ["fix_x"])[0].text == "old mixed text"
+    assert tmp_repo.get_by_ids("col", ["fix_x_learning"]) == []
+
+
+@patch("subprocess.run")
+def test_learning_decision_refuses_to_overwrite_existing_learning(mock_run, tmp_repo):
+    mock_run.return_value = MagicMock(stdout=_LD_RESPONSE, returncode=0)
+    _add_mixed(tmp_repo)
+    _add_entry(tmp_repo, "fix_x_learning", "precious")
+
+    result = _make_uc(tmp_repo).execute("col", entry_id="fix_x")[0]
+
+    assert result.skipped is True
+    assert tmp_repo.get_by_ids("col", ["fix_x_learning"])[0].text == "precious"
+    assert tmp_repo.get_by_ids("col", ["fix_x"])[0].text == "old mixed text"
+
+
+@patch("subprocess.run")
+def test_learning_decision_rolls_back_on_failure_and_never_deletes_original(mock_run, tmp_repo):
+    mock_run.return_value = MagicMock(stdout=_LD_RESPONSE, returncode=0)
+    _add_mixed(tmp_repo)
+    edge_uc = MagicMock()
+    edge_uc.execute.side_effect = ValueError("boom")
+    uc = SplitMemoryUseCase(tmp_repo, AddMemoryUseCase(tmp_repo), edge_uc)
+
+    result = uc.execute("col", entry_id="fix_x")[0]
+
+    assert result.skipped is True
+    assert "rolled back" in result.skip_reason
+    restored = tmp_repo.get_by_ids("col", ["fix_x"])[0]
+    assert restored.text == "old mixed text"
+    assert restored.metadata["boost_count"] == 3
+    assert tmp_repo.get_by_ids("col", ["fix_x_learning"]) == []
