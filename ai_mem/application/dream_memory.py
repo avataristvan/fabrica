@@ -25,8 +25,11 @@ _LINK_RE = re.compile(
 _SUPERSEDE_RE = re.compile(r"^\s*[-*•]\s+SUPERSEDE\s+(\S+)\s*->\s*(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
 
 # LINK covers the relational edge types. Derived from EdgeType so a new type cannot drift out of
-# sync; 'supersedes' has its own action (SUPERSEDE) because it also flags its target.
-_LINK_EDGE_TYPES = tuple(edge_type for edge_type in get_args(EdgeType) if edge_type != "supersedes")
+# sync; 'supersedes' has its own action (SUPERSEDE) because it also flags its target, and
+# 'derived_from' is manual only (a decision's provenance is a human judgment, not a dream proposal).
+_LINK_EDGE_TYPES = tuple(
+    edge_type for edge_type in get_args(EdgeType) if edge_type not in ("supersedes", "derived_from")
+)
 
 MODELS = {
     "haiku": "haiku",

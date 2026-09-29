@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal, Protocol
 
-EdgeType = Literal["contradicts", "fixes", "causes", "related", "supersedes", "confirms"]
+EdgeType = Literal["contradicts", "fixes", "causes", "related", "supersedes", "confirms", "derived_from"]
 
 
 @dataclass

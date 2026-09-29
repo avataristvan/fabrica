@@ -79,7 +79,7 @@ ai-mem registers two Claude Code hooks automatically during install:
 
 ## Trust Signals
 
-`confidence` and `access_count` were dropped 2026-09-26 as trust signals in favor of evidence edges and a librarian-style retrieval agent — see `docs/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md`. They are no longer written or read; legacy values remain untouched in stored metadata. What's current:
+`confidence` and `access_count` were dropped 2026-09-26 as trust signals in favor of evidence edges and a librarian-style retrieval agent — see `docs/records/general/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md`. They are no longer written or read; legacy values remain untouched in stored metadata. What's current:
 
 | Event | Effect |
 |-------|--------|

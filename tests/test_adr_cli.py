@@ -48,7 +48,7 @@ def test_export_writes_file_with_correct_content(wired):
     rc = _cmd_export(_export_args(wired.collection, wired.db_path))
 
     assert rc == 0
-    adr_file = wired.repo_root / "docs" / "decisions" / "domain_example.md"
+    adr_file = wired.repo_root / "docs" / "records" / "general" / "decisions" / "domain_example.md"
     assert adr_file.exists()
     content = adr_file.read_text()
     assert "id: domain_example" in content
@@ -62,7 +62,7 @@ def test_export_skips_non_adr_types(wired):
 
     _cmd_export(_export_args(wired.collection, wired.db_path))
 
-    adr_dir = wired.repo_root / "docs" / "decisions"
+    adr_dir = wired.repo_root / "docs" / "records"
     assert not adr_dir.exists() or not any(adr_dir.iterdir())
 
 
@@ -143,7 +143,7 @@ def test_import_skips_malformed_file_reports_it_and_continues(wired):
     )
     _cmd_export(_export_args(wired.collection, wired.db_path))
 
-    adr_dir = wired.repo_root / "docs" / "decisions"
+    adr_dir = wired.repo_root / "docs" / "records"
     broken_file = adr_dir / "domain_broken.md"
     broken_file.write_text("not valid frontmatter at all")
 
@@ -185,7 +185,7 @@ def test_export_regenerates_index(wired):
 
     _cmd_export(_export_args(wired.collection, wired.db_path))
 
-    index_file = wired.repo_root / "docs" / "decisions" / "INDEX.md"
+    index_file = wired.repo_root / "docs" / "records" / "INDEX.md"
     assert index_file.exists()
     assert "domain_example" in index_file.read_text()
 
@@ -199,7 +199,7 @@ def test_reindex_regenerates_index_from_existing_files(wired):
         metadatas=[{"type": "domain"}],
     )
     _cmd_export(_export_args(wired.collection, wired.db_path))
-    index_file = wired.repo_root / "docs" / "decisions" / "INDEX.md"
+    index_file = wired.repo_root / "docs" / "records" / "INDEX.md"
     index_file.unlink()
 
     rc = _cmd_reindex(_reindex_args(wired.collection, wired.db_path))
@@ -223,9 +223,81 @@ def test_import_ignores_readme_and_succeeds(wired):
         wired.collection, ["Decision: use X."], ["domain_good"], metadatas=[{"type": "domain"}]
     )
     _cmd_export(_export_args(wired.collection, wired.db_path))
-    adr_dir = wired.repo_root / "docs" / "decisions"
+    adr_dir = wired.repo_root / "docs" / "records"
     (adr_dir / "README.md").write_text("# Decision records\n\nHandwritten, no frontmatter.\n")
 
     rc = _cmd_import(_import_args(wired.collection, wired.db_path))
 
     assert rc == 0
+
+
+def _add(wired, entry_id, entry_type="domain", **meta):
+    AddMemoryUseCase(wired.repo).execute(
+        wired.collection, ["Decision: use X."], [entry_id], metadatas=[{"type": entry_type, **meta}]
+    )
+
+
+def test_export_uses_area_and_kind_subfolders(wired):
+    _add(wired, "domain_a", area="billing")
+    _add(wired, "learning_b", "learning")
+
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+
+    records = wired.repo_root / "docs" / "records"
+    assert (records / "billing" / "decisions" / "domain_a.md").exists()
+    assert (records / "general" / "learnings" / "learning_b.md").exists()
+
+
+def test_export_removes_stale_duplicate_after_area_change(wired):
+    _add(wired, "domain_a")
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    old = wired.repo_root / "docs" / "records" / "general" / "decisions" / "domain_a.md"
+    assert old.exists()
+
+    entry = wired.repo.get_by_ids(wired.collection, ["domain_a"])[0]
+    entry.metadata["area"] = "billing"
+    wired.repo.upsert(wired.collection, [entry])
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+
+    assert not old.exists()
+    assert (wired.repo_root / "docs" / "records" / "billing" / "decisions" / "domain_a.md").exists()
+
+
+def test_import_restores_area_recursively_and_defaults_general(wired):
+    _add(wired, "domain_a", area="billing")
+    _add(wired, "domain_b")
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    wired.repo.delete(wired.collection, ["domain_a", "domain_b"])
+
+    rc = _cmd_import(_import_args(wired.collection, wired.db_path))
+
+    assert rc == 0
+    assert wired.repo.get_by_ids(wired.collection, ["domain_a"])[0].metadata["area"] == "billing"
+    assert wired.repo.get_by_ids(wired.collection, ["domain_b"])[0].metadata["area"] == "general"
+
+
+def test_import_warns_on_misplaced_file_but_imports(wired, capsys):
+    _add(wired, "domain_a", area="billing")
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    records = wired.repo_root / "docs" / "records"
+    moved = records / "elsewhere" / "domain_a.md"
+    moved.parent.mkdir()
+    (records / "billing" / "decisions" / "domain_a.md").rename(moved)
+    wired.repo.delete(wired.collection, ["domain_a"])
+
+    rc = _cmd_import(_import_args(wired.collection, wired.db_path))
+
+    assert rc == 0
+    assert "does not match its expected location" in capsys.readouterr().err
+    assert wired.repo.get_by_ids(wired.collection, ["domain_a"]) != []
+
+
+def test_import_skips_only_top_level_index_and_readme(wired):
+    _add(wired, "domain_a")
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    nested = wired.repo_root / "docs" / "records" / "general" / "decisions" / "README.md"
+    nested.write_text("no frontmatter")
+
+    rc = _cmd_import(_import_args(wired.collection, wired.db_path))
+
+    assert rc != 0

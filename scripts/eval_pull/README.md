@@ -60,7 +60,7 @@ own `When:` lines, not from the question wording); treat the result as a directi
 
 Different question from the earlier arms: not "does an agent ask memory unprompted" but "what does a
 cheap agent find once explicitly told to ask." The librarian (`examples/agents/librarian.md`) is a
-Haiku prototype: full `mem_list`+`docs/decisions/INDEX.md` catalogue scan, candidates picked by judgment
+Haiku prototype: full `mem_list`+`docs/records/INDEX.md` catalogue scan, candidates picked by judgment
 on titles/meaning (not score), `mem_get` + `mem_edges` on candidates, `mem_query` only as a fallback,
 explicit "not documented" with no padding. It never calls a memory-writing tool.
 

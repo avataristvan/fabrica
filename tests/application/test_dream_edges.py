@@ -47,7 +47,11 @@ def _meta(repo, collection: str, entry_id: str) -> dict:
 
 class TestLinkEdgeTypes:
     def test_derived_from_edge_type_without_supersedes(self):
-        assert set(_LINK_EDGE_TYPES) == set(get_args(EdgeType)) - {"supersedes"}
+        assert set(_LINK_EDGE_TYPES) == set(get_args(EdgeType)) - {"supersedes", "derived_from"}
+
+    def test_derived_from_is_manual_only(self):
+        assert "derived_from" not in _LINK_EDGE_TYPES
+        assert "derived_from" not in _ACTION_FORMAT
 
     def test_supersedes_is_not_a_link_type(self):
         assert "supersedes" not in _LINK_EDGE_TYPES

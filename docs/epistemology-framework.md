@@ -130,9 +130,9 @@ Actions that cannot be applied (unknown ids, ids in different collections, inval
 
 - It does not split large entries — splitting is a separate tool (`mem_split`) triggered independently
 
-**Trigger placement:** `mem_dream` is invoked as part of the `/reflect` ritual (convention), not via a hook. Hook-based auto-triggering would fire for every subagent session, not just the orchestrator — the same class of problem that got the `UserPromptSubmit`/`PreToolUse` push hooks retired (see `docs/hooks.md`). Keeping the trigger in `/reflect` ensures it runs exactly once per task cycle, always at the orchestrator level, always deliberately.
+**Trigger placement:** `mem_dream` is invoked as part of the `/reflect` ritual (convention), not via a hook. Hook-based auto-triggering would fire for every subagent session, not just the orchestrator — the same class of problem that got the `UserPromptSubmit`/`PreToolUse` push hooks retired (see `docs/hooks.md`). Keeping the trigger in `/reflect` ensures it runs exactly once per task cycle, always at the orchestrator level, always deliberately. Since 2026-09-26 it runs after **every** `/reflect`, scoped to the active collection (no entry-count threshold — a project collection legitimately stays large), so whatever a session wrote or flagged is sorted in at the latest then; LINK and SUPERSEDE are auto-applied, DELETE/MERGE need confirmation.
 
-**Upward propagation** is handled during the same Step 6 of `/reflect`. When `mem_dream` runs in `hier` mode it sees all collections simultaneously. ADD proposals that target a higher-level collection than their source (e.g. a `repo.*` pattern proposed for `workspace`) are surfaced as propagation candidates. The Orchestrator confirms; `mem_add` copies the entry into the target collection. The source entry is kept — propagation copies upward, it does not move. This keeps the decision in the agent's judgment rather than in code, consistent with the rest of the convention layer.
+**Upward propagation** is handled during the same Step 6 of `/reflect`. ADD proposals that target a higher-level collection than their source (e.g. a `repo.*` pattern proposed for `workspace`) are surfaced as propagation candidates. The Orchestrator confirms; `mem_add` copies the entry into the target collection. The source entry is kept — propagation copies upward, it does not move. This keeps the decision in the agent's judgment rather than in code, consistent with the rest of the convention layer.
 
 **Splitting** uses `SplitMemoryUseCase`: deletes the original entry and replaces it with 2–3 focused sub-entries via a Claude call. Split-hints from `mem_query` indicate when an entry is a candidate.
 
@@ -239,7 +239,7 @@ Task
    /reflect Step 3.1/3.5: evidence check   [convention]
      → mem_boost (citation + cue), mem_link confirms/contradicts/supersedes
           ↓
-   /reflect Step 6: mem_dream hier         [convention]
+   /reflect Step 6: mem_dream (every run)  [convention]
      → compresses, merges, deletes
      → ADD proposals with higher target    → propagation candidates
           ↓
@@ -348,7 +348,7 @@ The framework is epistemological: it concerns how knowledge is acquired and stru
 | `mem_split` (manual) | Implemented |
 | `mem_dream` (manual trigger) | Implemented |
 | Outcome signal via `/reflect` Step 3.1 | Convention — `mem_boost` citation + `mem_link confirms` on entries borne out |
-| `mem_dream` trigger via `/reflect` ritual | Convention (by design — hook placement causes subagent chain problem) |
+| `mem_dream` trigger via `/reflect` ritual | Convention — after every `/reflect`, scoped to the active collection (by design — hook placement causes subagent chain problem) |
 | Upward propagation via `/reflect` Step 6 | Convention — `mem_dream hier` surfaces candidates, Orchestrator confirms |
 | `/reflect` Taskly ritual | Convention (Skill prompt) |
 | `[retro]` block parsing | Convention (LLM reasoning) |

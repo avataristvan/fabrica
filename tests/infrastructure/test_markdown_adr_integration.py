@@ -30,7 +30,7 @@ def stack(tmp_path):
         repo = BM25MemoryRepository(repo)
     except ImportError:
         pass
-    return repo, repo_root / "docs" / "decisions"
+    return repo, repo_root / "docs" / "records" / "general" / "decisions"
 
 
 def test_boost_and_cue_do_not_touch_the_file(stack):

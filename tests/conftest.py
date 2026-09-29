@@ -13,7 +13,7 @@ import pytest
 # Point it at a throwaway dir before any test module imports them, so a test that forgets
 # to mock _add/_query can't write into the real ~/.local/share/ai-mem. ADR persistence is
 # off for the same reason: the collection -> repo-root mapping resolves via cwd, so an
-# unmocked domain/pattern write would otherwise land in this repo's real docs/decisions/.
+# unmocked domain/pattern write would otherwise land in this repo's real docs/records/.
 # Tests of the ADR layer construct MarkdownAdrRepository directly and are unaffected.
 _TEST_DB_PATH = tempfile.mkdtemp(prefix="ai-mem-test-")
 atexit.register(shutil.rmtree, _TEST_DB_PATH, ignore_errors=True)

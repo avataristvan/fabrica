@@ -1,5 +1,5 @@
 """Tests for MarkdownAdrRepository: the Chroma-decorator that projects domain/pattern/
-anti-pattern entries onto ADR Markdown files under docs/decisions/.
+anti-pattern entries onto ADR Markdown files under docs/records/<area>/<kind>/.
 
 Uses a minimal in-memory fake for the inner MemoryRepository (not ChromaMemoryRepository)
 so these tests exercise the decorator's own logic -- the diff-before-write volatile-field
@@ -13,6 +13,7 @@ import pytest
 
 from ai_mem.domain.memory import MemoryEdge, MemoryEntry
 from ai_mem.infrastructure import adr_paths
+from ai_mem.infrastructure.adr_index import regenerate_index
 from ai_mem.infrastructure.markdown_adr_repository import MarkdownAdrRepository
 
 COLLECTION = "repo.testproj"
@@ -98,8 +99,8 @@ def adr_repo(db_path, repo_root):
     return MarkdownAdrRepository(FakeMemoryRepository(), db_path)
 
 
-def _adr_file(repo_root, entry_id: str):
-    return repo_root / "docs" / "decisions" / f"{entry_id}.md"
+def _adr_file(repo_root, entry_id: str, area: str = "general", kind: str = "decisions"):
+    return repo_root / "docs" / "records" / area / kind / f"{entry_id}.md"
 
 
 def test_upsert_domain_type_writes_file(adr_repo, repo_root):
@@ -193,6 +194,35 @@ def test_add_edge_supersedes_updates_source_file_and_target_upsert_follows(adr_r
     assert "superseded_by: domain_new" in target_content
 
 
+def test_supersede_upsert_regenerates_index(adr_repo, repo_root):
+    # Plain creation is deliberately not enough to produce INDEX.md (Chunk 3b keeps
+    # regeneration off the per-mem_add path); only the supersede status change triggers it.
+    source = MemoryEntry(id="domain_new", text="Decision: new", metadata={"type": "domain"})
+    target = MemoryEntry(id="domain_old", text="Decision: old", metadata={"type": "domain"})
+    adr_repo.upsert(COLLECTION, [source, target])
+    index_path = repo_root / "docs" / "records" / "INDEX.md"
+    assert not index_path.exists()
+
+    adr_repo.add_edge(COLLECTION, "domain_new", MemoryEdge(target_id="domain_old", edge_type="supersedes"))
+    updated_target = MemoryEntry(id="domain_old", text="Decision: old", metadata={"type": "domain", "superseded_by": "domain_new"})
+    adr_repo.upsert(COLLECTION, [updated_target])
+
+    assert "superseded_by: domain_new" in index_path.read_text()
+
+
+def test_boost_only_upsert_does_not_regenerate_index(adr_repo, repo_root):
+    entry = MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain", "confidence": 0.7})
+    adr_repo.upsert(COLLECTION, [entry])
+    index_path = repo_root / "docs" / "records" / "INDEX.md"
+    regenerate_index(index_path.parent)  # bootstrap: upsert alone never creates it (see test above)
+    index_mtime_ns = index_path.stat().st_mtime_ns
+
+    boosted = MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain", "confidence": 0.95})
+    adr_repo.upsert(COLLECTION, [boosted])
+
+    assert index_path.stat().st_mtime_ns == index_mtime_ns
+
+
 def test_upsert_no_resolvable_root_is_a_noop(tmp_path):
     # No record_collection_root() call, no detectable repo context: adr_file_path()
     # returns None, so _sync_file() must no-op rather than crash.
@@ -230,3 +260,114 @@ def test_unsafe_id_is_fine_for_non_adr_types(adr_repo):
     adr_repo.upsert(COLLECTION, [entry])
 
     assert adr_repo.get_by_ids(COLLECTION, ["sub/dir"])[0].text == "note"
+
+
+def _upsert(adr_repo, entry_id: str, **metadata):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id=entry_id, text="Decision: ...", metadata=metadata)])
+
+
+def test_retype_domain_to_pattern_keeps_single_file_and_refreshes_index(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+    regenerate_index(repo_root / "docs" / "records")
+
+    _upsert(adr_repo, "x", type="pattern")
+
+    assert _adr_file(repo_root, "x").exists()
+    assert "type: pattern" in _adr_file(repo_root, "x").read_text()
+    assert "| x | general | pattern |" in (repo_root / "docs" / "records" / "INDEX.md").read_text()
+
+
+def test_retype_domain_to_learning_moves_file_and_refreshes_index(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+    assert _adr_file(repo_root, "x").exists()
+
+    _upsert(adr_repo, "x", type="learning")
+
+    assert not _adr_file(repo_root, "x").exists()
+    assert _adr_file(repo_root, "x", kind="learnings").exists()
+    assert "| x | general | learning |" in (repo_root / "docs" / "records" / "INDEX.md").read_text()
+
+
+def test_retype_to_non_adr_deletes_file_and_prunes_empty_dirs(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="learning", area="ble")
+    assert _adr_file(repo_root, "x", "ble", "learnings").exists()
+
+    _upsert(adr_repo, "x", type="fact", area="ble")
+
+    assert not _adr_file(repo_root, "x", "ble", "learnings").exists()
+    assert not (repo_root / "docs" / "records" / "ble").exists()
+
+
+def test_re_area_moves_file_and_refreshes_index(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain", area="ble")
+    old_path = _adr_file(repo_root, "x", "ble")
+    assert old_path.exists()
+
+    _upsert(adr_repo, "x", type="domain", area="ui")
+
+    assert not old_path.exists()
+    assert _adr_file(repo_root, "x", "ui").exists()
+    index = (repo_root / "docs" / "records" / "INDEX.md").read_text()
+    assert "| x | ui | domain |" in index
+    assert "| ble |" not in index
+
+
+def test_delete_ids_removes_file_in_custom_area_and_misplaced_copies(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="pattern", area="ble")
+    stray = repo_root / "docs" / "records" / "old" / "decisions" / "x.md"
+    stray.parent.mkdir(parents=True)
+    stray.write_text("stray")
+
+    adr_repo.delete(COLLECTION, ["x"])
+
+    assert not _adr_file(repo_root, "x", "ble").exists()
+    assert not stray.exists()
+
+
+def test_legacy_flat_file_removed_on_boost_only_upsert_without_reindex(adr_repo, repo_root):
+    _upsert(adr_repo, "x", type="domain")
+    records = repo_root / "docs" / "records"
+    legacy = records / "x.md"
+    legacy.write_text(_adr_file(repo_root, "x").read_text())
+    regenerate_index(records)
+    index_mtime_ns = (records / "INDEX.md").stat().st_mtime_ns
+
+    _upsert(adr_repo, "x", type="domain", boost_count=1)
+
+    assert not legacy.exists()
+    assert _adr_file(repo_root, "x").exists()
+    assert (records / "INDEX.md").stat().st_mtime_ns == index_mtime_ns
+
+
+def test_legacy_flat_file_only_is_replaced_by_target(adr_repo, repo_root):
+    records = repo_root / "docs" / "records"
+    records.mkdir(parents=True)
+    (records / "x.md").write_text("---\nid: x\ntype: domain\ncreated: 1.0\n---\n\nDecision: ...\n")
+
+    _upsert(adr_repo, "x", type="domain", boost_count=1)
+
+    assert not (records / "x.md").exists()
+    assert _adr_file(repo_root, "x").exists()
+
+
+@pytest.mark.parametrize("bad_area", ["../up", "A", "a/b", "-x"])
+def test_invalid_area_on_adr_type_raises_before_inner_write(adr_repo, repo_root, bad_area):
+    with pytest.raises(ValueError):
+        _upsert(adr_repo, "x", type="domain", area=bad_area)
+
+    assert adr_repo.get_by_ids(COLLECTION, ["x"]) == []
+    assert not (repo_root / "docs" / "records").exists()
+
+
+def test_invalid_area_is_ignored_for_non_adr_types(adr_repo):
+    _upsert(adr_repo, "x", type="fact", area="Not Valid!")
+
+    assert adr_repo.get_by_ids(COLLECTION, ["x"])[0].metadata["area"] == "Not Valid!"
+
+
+def test_add_edge_resyncs_file_at_type_and_area_path(adr_repo, repo_root):
+    _upsert(adr_repo, "src", type="learning", area="ble")
+
+    adr_repo.add_edge(COLLECTION, "src", MemoryEdge(target_id="t", edge_type="derived_from"))
+
+    assert '"edge_type": "derived_from"' in _adr_file(repo_root, "src", "ble", "learnings").read_text()

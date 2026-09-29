@@ -1,6 +1,7 @@
 """Tests for install.py — _upsert_hook_command dedup logic."""
 from __future__ import annotations
 
+import json
 from unittest.mock import patch
 
 import install
@@ -71,6 +72,36 @@ def test_remove_by_identity_not_value_equality():
     assert any(e is first_dup for e in entries)
     assert not any(e is second_dup for e in entries)
     assert len(entries) == 2
+
+
+# ---------------------------------------------------------------------------
+# _existing_workspace_root
+# ---------------------------------------------------------------------------
+
+def test_existing_workspace_root_recovered_from_installed_hook_command(tmp_path):
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(json.dumps({
+        "hooks": {
+            "SessionStart": [_group([_hook(
+                "AI_MEM_WORKSPACE_ROOT=/home/istvan/workspace python3 -m ai_mem.hook 2>/dev/null || true"
+            )])]
+        }
+    }))
+
+    assert install._existing_workspace_root(settings_path, "ai_mem.hook") == "/home/istvan/workspace"
+
+
+def test_existing_workspace_root_empty_when_prefix_absent(tmp_path):
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(json.dumps({
+        "hooks": {"SessionStart": [_group([_hook("python3 -m ai_mem.hook 2>/dev/null || true")])]}
+    }))
+
+    assert install._existing_workspace_root(settings_path, "ai_mem.hook") == ""
+
+
+def test_existing_workspace_root_empty_when_settings_file_missing(tmp_path):
+    assert install._existing_workspace_root(tmp_path / "does_not_exist.json", "ai_mem.hook") == ""
 
 
 # ---------------------------------------------------------------------------

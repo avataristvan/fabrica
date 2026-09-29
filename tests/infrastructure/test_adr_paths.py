@@ -9,6 +9,8 @@ from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     adr_dir_for,
     adr_file_path,
+    find_adr_files,
+    is_safe_area,
     is_safe_entry_id,
     record_collection_root,
     resolve_repo_root_for_collection,
@@ -17,7 +19,7 @@ from ai_mem.repo_context import RepoContext
 
 
 def test_adr_types_contains_expected_types():
-    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern"})
+    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern", "learning"})
 
 
 def test_global_and_workspace_always_none(tmp_path):
@@ -155,7 +157,7 @@ def test_adr_dir_for_appends_default_dir(tmp_path):
 
     adr_dir = adr_dir_for(tmp_path, "repo.my-repo")
 
-    assert adr_dir == root / "docs" / "decisions"
+    assert adr_dir == root / "docs" / "records"
 
 
 def test_adr_dir_for_respects_env_override(tmp_path, monkeypatch):
@@ -172,17 +174,23 @@ def test_adr_dir_for_none_when_root_unresolvable(tmp_path):
     assert adr_dir_for(tmp_path, "global") is None
 
 
-def test_adr_file_path_builds_expected_filename(tmp_path):
+def test_adr_file_path_shape_per_type_and_area(tmp_path):
     root = tmp_path / "my-repo"
     record_collection_root(tmp_path, "repo.my-repo", root)
+    base = root / "docs" / "records"
 
-    file_path = adr_file_path(tmp_path, "repo.my-repo", "domain_example_2026_09_25")
-
-    assert file_path == root / "docs" / "decisions" / "domain_example_2026_09_25.md"
+    for entry_type, kind in (
+        ("domain", "decisions"),
+        ("pattern", "decisions"),
+        ("anti-pattern", "decisions"),
+        ("learning", "learnings"),
+    ):
+        path = adr_file_path(tmp_path, "repo.my-repo", "x_1", entry_type, "hooks")
+        assert path == base / "hooks" / kind / "x_1.md", entry_type
 
 
 def test_adr_file_path_none_when_root_unresolvable(tmp_path):
-    assert adr_file_path(tmp_path, "workspace", "domain_example") is None
+    assert adr_file_path(tmp_path, "workspace", "domain_example", "domain", "general") is None
 
 
 def test_is_safe_entry_id_rejects_traversal_and_reserved_names():
@@ -193,4 +201,37 @@ def test_is_safe_entry_id_rejects_traversal_and_reserved_names():
 
 def test_adr_file_path_returns_none_for_unsafe_id(tmp_path):
     record_collection_root(tmp_path / "db", "repo.x", tmp_path / "repo")
-    assert adr_file_path(tmp_path / "db", "repo.x", "../escape") is None
+    assert adr_file_path(tmp_path / "db", "repo.x", "../escape", "domain", "general") is None
+
+
+def test_adr_file_path_none_for_non_adr_type(tmp_path):
+    record_collection_root(tmp_path, "repo.x", tmp_path / "repo")
+    assert adr_file_path(tmp_path, "repo.x", "note_1", "feedback", "general") is None
+
+
+def test_adr_file_path_none_for_unsafe_area(tmp_path):
+    record_collection_root(tmp_path, "repo.x", tmp_path / "repo")
+    for bad in ("", "../x", "a/b", "A", "-a", ".hidden", "a b"):
+        assert adr_file_path(tmp_path, "repo.x", "domain_1", "domain", bad) is None, bad
+
+
+def test_is_safe_area_accepts_slug_forms():
+    for good in ("general", "ai-mem", "a_b", "0x", "hooks2"):
+        assert is_safe_area(good), good
+
+
+def test_find_adr_files_finds_matches_across_subfolders(tmp_path):
+    for rel in ("general/decisions/a.md", "hooks/learnings/a.md", "hooks/decisions/b.md"):
+        f = tmp_path / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text("x")
+    (tmp_path / "a.md").write_text("flat legacy")
+
+    found = find_adr_files(tmp_path, "a")
+
+    assert found == sorted([tmp_path / "a.md", tmp_path / "general/decisions/a.md", tmp_path / "hooks/learnings/a.md"])
+
+
+def test_find_adr_files_empty_for_unsafe_id_or_missing_dir(tmp_path):
+    assert find_adr_files(tmp_path, "../a") == []
+    assert find_adr_files(tmp_path / "nope", "a") == []

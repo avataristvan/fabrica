@@ -97,7 +97,8 @@ async def list_tools() -> list[types.Tool]:
                     "collection": {"type": "string", "description": f"Collection name (default: '{DEFAULT_COLLECTION}')"},
                     "metadatas": {"type": "array", "items": {"type": "object"}, "description": "Optional metadata per entry"},
                     "ttl_days": {"type": "number", "description": "Optional TTL in days — entry is deleted by mem_cleanup after expiry"},
-                    "type": {"type": "string", "description": "Optional entry type tag (e.g. 'feedback', 'reference', 'project', 'user', 'anti-pattern', 'dilemma', 'domain') for later filtering. For type='anti-pattern', use this mandatory structure: 'Tried: <approach>\\nFailed because: <reason>\\nInstead: <alternative>'. When the anti-pattern involves human stakeholders (people treated as variables, trust broken, social dynamics), add: 'Affected: <who was affected and how>'. For type='dilemma' (genuine value conflicts with no single correct answer, e.g. across cultures), use: 'Tension: <value A> vs. <value B>\\nContext A: <when value A applies and why>\\nContext B: <when value B applies and why>\\nAffected A: <who, how — from frame A>\\nAffected B: <who, how — from frame B>\\nQuestions: <what to ask to determine which context applies>'. Dilemmas encode the tension itself and the right questions, not a resolved answer. For type='domain' (business/domain knowledge — why a rule exists, a domain constraint, a business decision behind the code — not a coding technique), use: 'Decision: <what was decided or is true>\\nWhy: <business/domain reason>\\nScope: <where/when this applies>'. Store domain entries as soon as the knowledge surfaces during coding, not only at end-of-session reflection — the insight is easy to lose otherwise."},
+                    "type": {"type": "string", "description": "Optional entry type tag (e.g. 'feedback', 'reference', 'project', 'user', 'anti-pattern', 'dilemma', 'domain') for later filtering. For type='anti-pattern', use this mandatory structure: 'Tried: <approach>\\nFailed because: <reason>\\nInstead: <alternative>'. When the anti-pattern involves human stakeholders (people treated as variables, trust broken, social dynamics), add: 'Affected: <who was affected and how>'. For type='dilemma' (genuine value conflicts with no single correct answer, e.g. across cultures), use: 'Tension: <value A> vs. <value B>\\nContext A: <when value A applies and why>\\nContext B: <when value B applies and why>\\nAffected A: <who, how — from frame A>\\nAffected B: <who, how — from frame B>\\nQuestions: <what to ask to determine which context applies>'. Dilemmas encode the tension itself and the right questions, not a resolved answer. For type='domain' (business/domain knowledge — why a rule exists, a domain constraint, a business decision behind the code — not a coding technique), use: 'Decision: <what was decided or is true>\\nWhy: <business/domain reason>\\nScope: <where/when this applies>'. Store domain entries as soon as the knowledge surfaces during coding, not only at end-of-session reflection — the insight is easy to lose otherwise. For type='learning' (an observed fact about how the system behaves, kept separate from the decisions built on it), use: 'Observed: <fact or measurement>\\nCause: <root cause, or unknown>\\nEvidence: <test, commit sha or entry ids>'. Link a decision to the learning it rests on with mem_link edge_type 'derived_from'."},
+                    "area": {"type": "string", "description": "Optional topic area for Markdown-persisted entries (types domain, pattern, anti-pattern, learning); default 'general'. Must match ^[a-z0-9][a-z0-9_-]*$. Merged into each entry's metadata; ignored for other types."},
                 },
                 "required": ["documents", "ids"],
             },
@@ -303,13 +304,15 @@ async def list_tools() -> list[types.Tool]:
                 "When the source entry is retrieved by mem_query, its linked target is automatically "
                 "appended to the results (1-hop, budget: 2 linked entries per query; edges are "
                 "stored on the source only). "
-                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes' | 'confirms'. "
+                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes' | 'confirms' | 'derived_from'. "
                 "'supersedes' (source = the newer entry, target = the entry it replaces) flags the "
                 "target as superseded: mem_query keeps returning it but marks it with "
                 "'superseded_by' and appends the successor. To undo, mem_add the target with "
                 "metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]. "
                 "'confirms' (source = the later entry, target = the earlier one it bears out) records "
-                "where and how an insight held up again -- traceable evidence instead of a score."
+                "where and how an insight held up again -- traceable evidence instead of a score. "
+                "'derived_from' (source = decision, target = the learning it is based on) records "
+                "a decision's provenance."
             ),
             inputSchema={
                 "type": "object",
@@ -318,7 +321,7 @@ async def list_tools() -> list[types.Tool]:
                     "target_id": {"type": "string", "description": "ID of the target entry"},
                     "edge_type": {
                         "type": "string",
-                        "enum": ["contradicts", "fixes", "causes", "related", "supersedes", "confirms"],
+                        "enum": ["contradicts", "fixes", "causes", "related", "supersedes", "confirms", "derived_from"],
                         "description": "Relationship type from source to target",
                     },
                     "collection": {"type": "string", "description": f"Collection containing both entries (default: '{DEFAULT_COLLECTION}')"},
@@ -437,12 +440,16 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
     if name == "mem_add":
         metadatas = arguments.get("metadatas")
         type_tag = arguments.get("type")
-        if type_tag is not None:
+        area = arguments.get("area")
+        if type_tag is not None or area is not None:
             count = len(arguments["documents"])
             if metadatas is None:
                 metadatas = [{} for _ in range(count)]
             for meta_entry in metadatas:
-                meta_entry.setdefault("type", type_tag)
+                if type_tag is not None:
+                    meta_entry.setdefault("type", type_tag)
+                if area is not None:
+                    meta_entry.setdefault("area", area)
         count = _add.execute(
             collection=collection,
             documents=arguments["documents"],

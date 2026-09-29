@@ -1,4 +1,4 @@
-"""Serialize/parse ADR-style Markdown files for domain/pattern/anti-pattern entries.
+"""Serialize/parse ADR-style Markdown files for domain/pattern/anti-pattern/learning entries.
 
 Pure text transform: no filesystem I/O here (see `markdown_adr_repository.py`,
 a later chunk, for the repository decorator that writes these to disk).
@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from ai_mem.infrastructure.adr_paths import ADR_TYPES
+from ai_mem.infrastructure.adr_paths import DEFAULT_AREA
 
 _FRONTMATTER_SEPARATOR = "\n---\n\n"
 
@@ -22,6 +22,7 @@ class ParsedAdr:
     superseded_by: str | None
     valid_until: float | None
     edges: list[dict] = field(default_factory=list)
+    area: str = DEFAULT_AREA
 
 
 def _canonical_edges(raw_edges) -> list[dict] | None:
@@ -43,14 +44,16 @@ def _canonical_edges(raw_edges) -> list[dict] | None:
 def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     """Render an ADR-style Markdown document: fixed-order frontmatter + separator + raw text.
 
-    Field order is hard-coded (id, type, created, superseded_by, valid_until, edges) and never
+    Field order is hard-coded (id, type, area, created, superseded_by, valid_until, edges) and never
     derived from metadata's own key order, so that two logically-identical entries always
     serialize byte-identically regardless of dict insertion order — a downstream diff-before-
     write step (a later chunk) depends on this to avoid rewriting files on volatile-only changes.
     Volatile fields (confidence/access_count/boost_count/last_accessed_at/cue) are never emitted,
     even if present in `metadata`.
     """
-    lines = [f"id: {entry_id}", f"type: {entry_type}"]
+    # `area` is always written (default `general`) so serialize(parse(x)) is byte-identical
+    # even for entries whose Chroma metadata has no area.
+    lines = [f"id: {entry_id}", f"type: {entry_type}", f"area: {metadata.get('area') or DEFAULT_AREA}"]
 
     created_at = metadata.get("created_at")
     if created_at is not None:
@@ -128,4 +131,5 @@ def parse(markdown_text: str) -> ParsedAdr:
         superseded_by=fields.get("superseded_by") or None,
         valid_until=valid_until,
         edges=edges,
+        area=fields.get("area") or DEFAULT_AREA,
     )

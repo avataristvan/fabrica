@@ -257,3 +257,39 @@ def test_detect_contradictions_at_threshold_boundary():
 
     assert len(hits) == 1
     assert hits[0]["id"] == "ap3"
+
+
+def _run_mem_add(arguments: dict) -> MagicMock:
+    mock_add = MagicMock()
+    mock_add.execute.return_value = len(arguments["documents"])
+
+    async def _run():
+        return await server_module.call_tool("mem_add", arguments)
+
+    with patch.object(server_module, "_add", mock_add):
+        asyncio.run(_run())
+    return mock_add
+
+
+def test_mem_add_area_is_merged_into_metadata():
+    mock_add = _run_mem_add({
+        "documents": ["Observed: a\nCause: unknown\nEvidence: t"],
+        "ids": ["l1"],
+        "collection": "col",
+        "type": "learning",
+        "area": "hooks",
+    })
+    assert mock_add.execute.call_args.kwargs["metadatas"] == [{"type": "learning", "area": "hooks"}]
+
+
+def test_mem_add_without_area_leaves_metadata_untouched():
+    mock_add = _run_mem_add({"documents": ["d"], "ids": ["x"], "collection": "col", "type": "domain"})
+    assert mock_add.execute.call_args.kwargs["metadatas"] == [{"type": "domain"}]
+
+
+def test_mem_add_schema_documents_learning_and_area():
+    tools = asyncio.run(server_module.list_tools())
+    props = next(tool for tool in tools if tool.name == "mem_add").inputSchema["properties"]
+    assert "Observed:" in props["type"]["description"]
+    assert "^[a-z0-9][a-z0-9_-]*$" in props["area"]["description"]
+    assert "general" in props["area"]["description"]

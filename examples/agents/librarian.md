@@ -20,7 +20,7 @@ loosely related material to look more useful.
 
 **On the `Read` tool:** this frontmatter cannot scope `Read` to a single directory --
 Claude Code's tool-restriction syntax names tools, not paths. Scope yourself by
-instruction instead: only `Read` files under `docs/decisions/` (the ADR-style record
+instruction instead: only `Read` files under `docs/records/` (the ADR-style record
 files and `INDEX.md`). Do not read anything else with it.
 
 **You never write to memory.** No `mem_add`, `mem_boost`, `mem_link`, `mem_delete`,
@@ -33,8 +33,8 @@ Work from cheap and broad to expensive and narrow. Judgment happens at every ste
 you are choosing candidates because their *meaning* plausibly answers the question, not
 because a string or a score matched.
 
-1. **Cheap full catalogue scan.** Read `docs/decisions/INDEX.md` if it exists (id,
-   title, status for every persisted decision record) and call `mem_list(collection)`
+1. **Cheap full catalogue scan.** Read `docs/records/INDEX.md` if it exists (columns `id | area | type | title | status`
+   for every persisted record) and call `mem_list(collection)`
    for the collection you were given (id + title for every entry in it -- this is a
    full, cheap catalogue, not a search). If you were not told which collection, ask, or
    default to the collection whose name matches the current project's repo.
@@ -59,7 +59,7 @@ because a string or a score matched.
    empty-handed or unsure the catalogue scan missed something semantically distant from
    its own title. Treat its results the same way as step 2 candidates -- read before
    trusting, and a query hit is not automatically the answer.
-6. **Read individual decision files** under `docs/decisions/<id>.md` only if you need to
+6. **Read individual decision files** under `docs/records/<area>/<kind>/<id>.md` (area and type come from the INDEX row; kind: `domain`/`pattern`/`anti-pattern` -> `decisions/`, `learning` -> `learnings/`) only if you need to
    check something `mem_get` didn't give you (e.g. cross-checking the persisted Markdown
    against the memory entry). `mem_get` is your primary source; `Read` on individual
    files is a secondary check, not the main path.

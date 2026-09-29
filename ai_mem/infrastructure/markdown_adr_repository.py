@@ -1,4 +1,4 @@
-"""Decorator that projects domain/pattern/anti-pattern entries onto ADR Markdown files.
+"""Decorator that projects domain/pattern/anti-pattern/learning entries onto ADR Markdown files.
 
 Sits between `ChromaMemoryRepository` and the optional BM25 wrapper (server.py's
 wiring, a later chunk) so its `upsert()`/`delete()`/`add_edge()` see the actual
@@ -12,7 +12,16 @@ from pathlib import Path
 
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, MemoryRepository, QueryResult
 from ai_mem.infrastructure import adr_markdown
-from ai_mem.infrastructure.adr_paths import ADR_TYPES, adr_file_path, is_safe_entry_id
+from ai_mem.infrastructure.adr_index import regenerate_index
+from ai_mem.infrastructure.adr_paths import (
+    ADR_TYPES,
+    DEFAULT_AREA,
+    adr_dir_for,
+    adr_file_path,
+    find_adr_files,
+    is_safe_area,
+    is_safe_entry_id,
+)
 
 
 class MarkdownAdrRepository:
@@ -20,43 +29,91 @@ class MarkdownAdrRepository:
         self._inner = inner
         self._db_path = db_path
 
-    def _sync_file(self, collection: str, entry: MemoryEntry) -> None:
-        file_path = adr_file_path(self._db_path, collection, entry.id)
+    def _adr_dir(self, collection: str) -> Path | None:
+        return adr_dir_for(self._db_path, collection)
+
+    @staticmethod
+    def _area_of(entry: MemoryEntry) -> str:
+        return entry.metadata.get("area") or DEFAULT_AREA
+
+    def _remove_files(self, adr_dir: Path, files: list[Path]) -> None:
+        for file_path in files:
+            file_path.unlink(missing_ok=True)
+            for parent in (file_path.parent, file_path.parent.parent):
+                if parent != adr_dir and parent.is_dir() and not any(parent.iterdir()):
+                    parent.rmdir()
+
+    def _sync_file(self, collection: str, entry: MemoryEntry) -> bool:
+        """Write the entry's ADR file if its content changed and remove every other file for this
+        id (retype, re-area, legacy flat leftovers). Returns whether INDEX.md needs a refresh: the
+        entry's `superseded_by`, type or area differs from what a previous file recorded (a
+        mem_boost-only upsert changes none of these). Cleanup of a same-type/area duplicate alone
+        does not count."""
+        entry_type = entry.metadata.get("type")
+        file_path = adr_file_path(self._db_path, collection, entry.id, entry_type, self._area_of(entry))
         if file_path is None:
-            return
+            return False
+        adr_dir = self._adr_dir(collection)
 
-        new_content = adr_markdown.serialize(entry.id, entry.metadata.get("type"), entry.text, entry.metadata)
+        others = [path for path in find_adr_files(adr_dir, entry.id) if path != file_path]
+        previous = [file_path, *others] if file_path.exists() else others
+        new_state = (entry_type, self._area_of(entry), entry.metadata.get("superseded_by") or None)
+        index_stale = not previous and new_state[2] is not None
+        for path in previous:
+            try:
+                old = adr_markdown.parse(path.read_text())
+            except ValueError:
+                index_stale = True  # malformed prior file: treat as a status change
+                continue
+            index_stale |= (old.type, old.area, old.superseded_by) != new_state
 
+        new_content = adr_markdown.serialize(entry.id, entry_type, entry.text, entry.metadata)
         # Volatile-field boundary: a mem_boost-only upsert (boost_count/cue/last_accessed_at
-        # changed, structural fields unchanged -- confidence/access_count no longer change at
-        # all, but a legacy value would be equally exempt) must not touch the file, or every
-        # boost would generate a spurious git diff. serialize()'s fixed field order (Chunk 1)
-        # is what makes this a reliable content comparison rather than key-order churn.
-        if file_path.exists() and file_path.read_text() == new_content:
-            return
+        # changed, structural fields unchanged) must not touch the file, or every boost would
+        # generate a spurious git diff. serialize()'s fixed field order is what makes this a
+        # reliable content comparison rather than key-order churn.
+        if not file_path.exists() or file_path.read_text() != new_content:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(new_content)
+        self._remove_files(adr_dir, others)
+        return index_stale
 
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        file_path.write_text(new_content)
+    def _reindex(self, collection: str) -> None:
+        adr_dir = self._adr_dir(collection)
+        if adr_dir is not None and adr_dir.is_dir():
+            regenerate_index(adr_dir)
 
     def upsert(self, collection: str, entries: list[MemoryEntry]) -> None:
-        # Validate before the inner write, so a rejected id never lands in Chroma without its file.
-        for entry in entries:
-            if entry.metadata.get("type") in ADR_TYPES and not is_safe_entry_id(entry.id):
-                raise ValueError(f"id {entry.id!r} cannot be used as an ADR filename")
-
-        self._inner.upsert(collection, entries)
+        # Validate before the inner write, so a rejected id/area never lands in Chroma without its file.
         for entry in entries:
             if entry.metadata.get("type") in ADR_TYPES:
-                self._sync_file(collection, entry)
-            else:
-                self._remove_stale_file(collection, entry.id)
+                if not is_safe_entry_id(entry.id):
+                    raise ValueError(f"id {entry.id!r} cannot be used as an ADR filename")
+                if not is_safe_area(self._area_of(entry)):
+                    raise ValueError(f"area {self._area_of(entry)!r} cannot be used as an ADR folder name")
 
-    def _remove_stale_file(self, collection: str, entry_id: str) -> None:
-        # An entry re-typed away from domain/pattern/anti-pattern must not leave its old
-        # decision record behind in the repo.
-        file_path = adr_file_path(self._db_path, collection, entry_id)
-        if file_path is not None:
-            file_path.unlink(missing_ok=True)
+        self._inner.upsert(collection, entries)
+        status_changed = False
+        for entry in entries:
+            if entry.metadata.get("type") in ADR_TYPES:
+                status_changed |= self._sync_file(collection, entry)
+            else:
+                status_changed |= self._remove_stale_files(collection, entry.id)
+        # Deliberately narrow: INDEX.md regeneration stays off the per-mem_add write path
+        # (Chunk 3b -- a read-modify-write race on one shared file) except for events that change
+        # a row: a supersede status change (whichever caller produced it -- mem_link, or
+        # mem_dream --auto_supersede via AddEdgeUseCase's target upsert), or a file moving/vanishing.
+        if status_changed:
+            self._reindex(collection)
+
+    def _remove_stale_files(self, collection: str, entry_id: str) -> bool:
+        # An entry re-typed away from an ADR type must not leave its old record behind in the repo.
+        adr_dir = self._adr_dir(collection)
+        if adr_dir is None:
+            return False
+        stale = find_adr_files(adr_dir, entry_id)
+        self._remove_files(adr_dir, stale)
+        return bool(stale)
 
     def query(
         self,
@@ -81,10 +138,12 @@ class MarkdownAdrRepository:
 
         adr_entries = [entry for entry in self._inner.get_by_ids(collection, ids) if entry.metadata.get("type") in ADR_TYPES]
         affected = self._inner.delete(collection, ids)
-        for entry in adr_entries:
-            file_path = adr_file_path(self._db_path, collection, entry.id)
-            if file_path is not None:
-                file_path.unlink(missing_ok=True)
+        adr_dir = self._adr_dir(collection)
+        if adr_dir is not None:
+            for entry in adr_entries:
+                # Metadata-derived path first, recursive search for anything stale (legacy/misplaced).
+                target = adr_file_path(self._db_path, collection, entry.id, entry.metadata["type"], self._area_of(entry))
+                self._remove_files(adr_dir, sorted({*find_adr_files(adr_dir, entry.id), *([target] if target else [])}))
         return affected
 
     def delete_expired(self, collection: str) -> int:

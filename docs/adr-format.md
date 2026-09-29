@@ -2,28 +2,55 @@
 
 Part of the ADR migration (see `docs/adr-migration-chunk-plan.md`). This document
 specifies the on-disk frontmatter schema and directory convention for `domain`/
-`pattern`/`anti-pattern` entries persisted as Markdown files alongside ChromaDB.
-The serializer/parser themselves live in `ai_mem/infrastructure/adr_markdown.py`
-(a later chunk); this document is the schema they implement against.
+`pattern`/`anti-pattern`/`learning` entries persisted as Markdown files alongside
+ChromaDB. The serializer/parser live in `ai_mem/infrastructure/adr_markdown.py`;
+this document is the schema they implement against.
+
+Records are not limited to software architecture: an area can just as well be
+`marketing`, `pricing` or `ops`. Any repo-scoped knowledge worth keeping as a
+reviewable, git-native record fits.
 
 ## Directory convention
 
-- Location: `<repo_root>/docs/decisions/` by default.
-- Override the subdirectory via the `AI_MEM_ADR_DIR` environment variable
+- Root: `<repo_root>/docs/records/` by default.
+- Override the root via the `AI_MEM_ADR_DIR` environment variable
   (a path relative to the repo root, e.g. `AI_MEM_ADR_DIR=notes/adr`).
-- Flat directory, no per-type subfolder — `type` lives in the frontmatter instead,
-  so a later type change on an entry never requires moving its file.
-- Filename: `<ai-mem-entry-id>.md`. ai-mem entry IDs are already unique per
-  collection and semantically named (e.g. `domain_bmad_vs_ai_mem_epistemology_2026_09_25`),
-  so no additional sequence number is needed.
+- Layout: `<root>/<area>/<kind>/<id>.md`, area first, then kind.
+  - `<area>` is the entry's `area` metadata (see below).
+  - `<kind>` is derived from `type` by one fixed map: `learning` -> `learnings/`;
+    `domain`, `pattern`, `anti-pattern` -> `decisions/`.
+- Learnings (what was observed) and decisions (what was chosen because of it)
+  are separate entries with separate folders; a decision links back to the
+  learning it rests on via a `derived_from` edge. See ai-mem entry
+  `domain_learning_decision_split_subfolders_2026_09_29` in `repo.ai-mem`.
+- This overturns the earlier single-flat-directory rule. That
+  rule assumed a type change should never move a file; the types are now stable,
+  and the split is what makes the folder browsable. The cost is accepted: a type
+  or area change moves the file, and the repository removes the old location
+  (including legacy flat files) on the next upsert.
+- Filename: `<ai-mem-entry-id>.md`. Entry IDs are unique per collection and
+  semantically named (e.g. `domain_bmad_vs_ai_mem_epistemology_2026_09_25`), so
+  no sequence number is needed.
+- `INDEX.md` and `README.md` stay central at `<root>/`, not per area.
 - `global` and `workspace` collections have no 1:1 repo root and are never
   backed by files — they remain ChromaDB-only. This is a deliberate scope
   boundary of the migration, not a gap.
 
+## Area
+
+- Free-form Chroma metadata key `area`, set via the optional `area` parameter of
+  `mem_add`.
+- Default when missing: `general`. Legacy files without the field parse as `general`.
+- Must match `^[a-z0-9][a-z0-9_-]*$`. For ADR-typed entries an invalid area makes
+  `upsert` raise `ValueError` before ChromaDB is written (like an unsafe id).
+  Non-ADR entries are never checked.
+- `serialize` always writes the `area` line (`general` when the metadata has
+  none), so a parse/serialize round trip is byte-identical.
+
 ## Frontmatter schema
 
 Only structural, ADR-relevant fields are persisted. They are written in a fixed,
-literal order — never by iterating a Python `metadata` dict's own key order,
+literal order (`id, type, area, created, superseded_by, valid_until, edges`) — never by iterating a Python `metadata` dict's own key order,
 since that order can vary across code paths that merge dicts. This determinism
 is what lets a decorator skip rewriting a file when only volatile fields changed
 (see below).
@@ -31,15 +58,23 @@ is what lets a decorator skip rewriting a file when only volatile fields changed
 | Field | Required | Notes |
 |---|---|---|
 | `id` | yes | ai-mem entry ID, matches the filename stem. |
-| `type` | yes | One of `domain`, `pattern`, `anti-pattern`. |
+| `type` | yes | One of `domain`, `pattern`, `anti-pattern`, `learning`. |
+| `area` | yes | Topic area, matches `^[a-z0-9][a-z0-9_-]*$`; `general` when the entry has none. Written directly after `type`. |
 | `created` | yes | ISO-ish timestamp the entry was first created. |
 | `superseded_by` | no | Entry ID of the entry that supersedes this one, if any. |
 | `valid_until` | no | Timestamp after which this entry is considered stale, if set. |
-| `edges` | no | Single-line embedded JSON array of `{"target_id": ..., "edge_type": ...}` objects — not multi-line YAML. |
+| `edges` | no | Single-line embedded JSON array of `{"target_id": ..., "edge_type": ...}` objects — not multi-line YAML. A decision that rests on a learning carries `derived_from` (source = decision, target = learning), stored outgoing on the decision. |
 
 After the frontmatter, the entry's raw text body follows unchanged (its existing
 `Decision:/Why:/Scope:`, `Rule:/When:/Why:`, or `Tried:/Failed because:/Instead:`
-shape is not reformatted into a different ADR prose style).
+shape is not reformatted into a different ADR prose style). A `learning` body has
+the shape `Observed: <fact or measurement>`, `Cause: <root cause, or 'unknown'>`,
+`Evidence: <test, commit sha or entry ids>`, one per line.
+
+## INDEX.md
+
+`<root>/INDEX.md` is regenerated by `mem-adr-sync reindex`/`export` from a
+recursive scan of all record files. Columns: `id | area | type | title | status`.
 
 ## Fields that are never persisted to the file
 

@@ -16,7 +16,15 @@ from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
-from ai_mem.infrastructure.adr_paths import ADR_TYPES, NON_ADR_FILENAMES, adr_dir_for, is_safe_entry_id
+from ai_mem.infrastructure.adr_paths import (
+    ADR_TYPES,
+    DEFAULT_AREA,
+    NON_ADR_FILENAMES,
+    adr_dir_for,
+    adr_file_path,
+    find_adr_files,
+    is_safe_entry_id,
+)
 from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
 from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION
 
@@ -50,8 +58,18 @@ def _export_collection(repo: ChromaMemoryRepository, db_path: Path, collection: 
         if not is_safe_entry_id(entry.id):
             print(f"skipping {entry.id!r}: cannot be used as an ADR filename", file=sys.stderr)
             continue
-        content = adr_markdown.serialize(entry.id, entry.metadata.get("type"), entry.text, entry.metadata)
-        (adr_dir / f"{entry.id}.md").write_text(content)
+        target = adr_file_path(
+            db_path, collection, entry.id, entry.metadata["type"], entry.metadata.get("area") or DEFAULT_AREA
+        )
+        if target is None:
+            print(f"skipping {entry.id!r}: unsafe area {entry.metadata.get('area')!r}", file=sys.stderr)
+            continue
+        content = adr_markdown.serialize(entry.id, entry.metadata["type"], entry.text, entry.metadata)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(content)
+        for stale in find_adr_files(adr_dir, entry.id):
+            if stale != target:
+                stale.unlink()
 
     if adr_dir.is_dir():
         regenerate_index(adr_dir)
@@ -86,8 +104,8 @@ def _cmd_import(args: argparse.Namespace) -> int:
 
     skipped: list[str] = []
     imported = 0
-    for file_path in sorted(adr_dir.glob("*.md")):
-        if file_path.name in NON_ADR_FILENAMES:
+    for file_path in sorted(adr_dir.rglob("*.md")):
+        if file_path.parent == adr_dir and file_path.name in NON_ADR_FILENAMES:
             continue
         try:
             parsed = adr_markdown.parse(file_path.read_text())
@@ -96,7 +114,11 @@ def _cmd_import(args: argparse.Namespace) -> int:
             skipped.append(file_path.name)
             continue
 
-        metadata: dict = {"type": parsed.type}
+        expected = adr_file_path(db_path, args.collection, parsed.id, parsed.type, parsed.area)
+        if expected != file_path:
+            print(f"warning: {file_path} does not match its expected location {expected}", file=sys.stderr)
+
+        metadata: dict = {"type": parsed.type, "area": parsed.area}
         if parsed.superseded_by:
             metadata["superseded_by"] = parsed.superseded_by
         if parsed.valid_until is not None:
@@ -157,7 +179,7 @@ def main() -> None:
     import_parser.add_argument("--db-path", metavar="PATH", help="Override the ai-mem ChromaDB path")
     import_parser.set_defaults(func=_cmd_import)
 
-    reindex_parser = subparsers.add_parser("reindex", help="Regenerate docs/decisions/INDEX.md from existing ADR Markdown files")
+    reindex_parser = subparsers.add_parser("reindex", help="Regenerate docs/records/INDEX.md from existing ADR Markdown files")
     reindex_parser.add_argument("--collection", metavar="NAME", required=True, help="Collection whose ADR directory to reindex")
     reindex_parser.add_argument("--db-path", metavar="PATH", help="Override the ai-mem ChromaDB path")
     reindex_parser.set_defaults(func=_cmd_reindex)

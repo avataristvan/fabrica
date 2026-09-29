@@ -191,3 +191,19 @@ def test_query_does_not_crash_on_corrupt_edges(tmp_repo, tmp_path):
     query_uc = _make_query_uc(tmp_repo, tmp_path)
     results = query_uc.execute("col", "some text", n_results=5)
     assert any(r.id == "broken" for r in results)
+
+
+def test_add_edge_derived_from_stores_edge_on_decision(tmp_repo, tmp_path):
+    _seed(tmp_repo, "col", {"learning": "Observed: X", "decision": "Decision: Y"})
+    AddEdgeUseCase(tmp_repo).execute("col", "decision", "learning", "derived_from")
+
+    edges = GetEdgesUseCase(tmp_repo).execute("col", "decision")
+    assert [(e.target_id, e.edge_type) for e in edges] == [("learning", "derived_from")]
+    assert GetEdgesUseCase(tmp_repo).execute("col", "learning") == []
+    assert "superseded_by" not in tmp_repo.get_by_ids("col", ["learning"])[0].metadata
+
+
+def test_add_edge_derived_from_rejects_self_link(tmp_repo, tmp_path):
+    _seed(tmp_repo, "col", {"a": "entry"})
+    with pytest.raises(ValueError, match="derived from itself"):
+        AddEdgeUseCase(tmp_repo).execute("col", "a", "a", "derived_from")

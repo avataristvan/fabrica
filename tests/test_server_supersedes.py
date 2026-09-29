@@ -85,3 +85,24 @@ def test_mem_dream_new_flags_default_to_false_and_are_in_the_schema():
     tools = asyncio.run(server_module.list_tools())
     properties = next(tool for tool in tools if tool.name == "mem_dream").inputSchema["properties"]
     assert {"auto_link", "auto_supersede"} <= set(properties)
+
+
+def test_mem_link_passes_derived_from_to_use_case():
+    add_edge = MagicMock()
+
+    result = _call(
+        "mem_link",
+        {"source_id": "decision", "target_id": "learning", "edge_type": "derived_from", "collection": "col"},
+        _add_edge=add_edge,
+    )
+
+    add_edge.execute.assert_called_once_with(
+        collection="col", source_id="decision", target_id="learning", edge_type="derived_from"
+    )
+    assert "--[derived_from]-->" in result[0].text
+
+
+def test_mem_link_schema_lists_derived_from():
+    tools = asyncio.run(server_module.list_tools())
+    link = next(tool for tool in tools if tool.name == "mem_link")
+    assert "derived_from" in link.inputSchema["properties"]["edge_type"]["enum"]

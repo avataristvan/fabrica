@@ -30,12 +30,17 @@ class AddEdgeUseCase:
 
         A 'confirms' edge (source is the later entry bearing out the earlier target) is evidence,
         not a score: it only stores the edge. Raises ValueError when the source is the target.
+
+        A 'derived_from' edge (source is the decision, target the learning it is based on) only
+        stores the edge; the same self-link rule applies.
         """
         # Checked before the fetch: get_by_ids([x, x]) makes ChromaDB raise DuplicateIDError.
         if edge_type == "supersedes" and source_id == target_id:
             raise ValueError(f"An entry cannot supersede itself: '{source_id}'")
         if edge_type == "confirms" and source_id == target_id:
             raise ValueError(f"An entry cannot confirm itself: '{source_id}'")
+        if edge_type == "derived_from" and source_id == target_id:
+            raise ValueError(f"An entry cannot be derived from itself: '{source_id}'")
 
         entries = {entry.id: entry for entry in self._repo.get_by_ids(collection, [source_id, target_id])}
         missing = [id_ for id_ in (source_id, target_id) if id_ not in entries]

@@ -73,6 +73,24 @@ mem_add(
 
 The `Rule:` structure makes the entry scannable during dream consolidation and prevents it from being incorrectly merged with the anti-pattern it replaces.
 
+If what was learned is an observed fact or measurement (not yet a rule or choice) and the active collection is a `repo.*` collection, store it as a learning. It is persisted as Markdown under `docs/records/<area>/learnings/`; other collections have no repo root, so do not use `learning` there.
+
+```
+mem_add(
+    documents=["Observed: <fact or measurement>\nCause: <root cause, or 'unknown'>\nEvidence: <test, commit sha or entry ids>"],
+    collection=<active>,
+    type="learning",
+    area="<area, e.g. general, marketing>",   # optional, default "general"; ^[a-z0-9][a-z0-9_-]*$
+    ids=["learning_<slug>"],
+)
+```
+
+If a decision (`domain`/`pattern`/`anti-pattern`) is derived from a learning, link it from the decision to the learning:
+
+```
+mem_link(source_id="<decision_id>", target_id="<learning_id>", edge_type="derived_from", collection=<active>)
+```
+
 Skip if the user has nothing to add.
 
 ---
@@ -238,23 +256,26 @@ mem_add(
 
 ---
 
-## Step 6 — Consolidation and propagation
+## Step 6 — Einordnen (dream after every reflect) and propagation
 
-After storing, silently run `mem_list` on the active collection and count entries.
-
-**Consolidation:** If entry count **> 30**, or if `mem_query` returned split-hint warnings in this session:
-
-> **"Die Collection hat X Einträge — soll ich das Gedächtnis konsolidieren? (`mem_dream`)"**
-
-If yes, run dream in `hier` mode to see across all collections at once:
+Dream runs **after every /reflect**, scoped to the active collection — no size threshold, no trigger to detect. Whatever this session wrote, cited, linked or flagged (split hints, `contradicts`, `supersedes`) gets sorted in now, at the latest; small frequent runs instead of rare huge ones (an unscoped `hier` run once exceeded the CLI limit at 205k tokens).
 
 ```
-mem_dream(mode="hier", auto_delete=false)
+mem_dream(
+    collection=<active>,
+    mode="hier",             # Haiku fast pass -> Sonnet synthesis; the heavy lifting is delegated
+    auto_link=true,          # edges are additive
+    auto_supersede=true,     # flags the old entry, keeps it readable
+    auto_delete=false,
+    focus_hint="Prioritize entries written, cited or linked in this session: <ids from Steps 3-5>. "
+               "Check each against the rest: LINK (incl. confirms), SUPERSEDE, SPLIT if it carried a split hint.",
+)
 ```
 
-Review the proposal with the user:
-- DELETE / UPDATE / MERGE proposals → apply to the source collection with `mem_add` / `mem_delete`
-- **LINK / SUPERSEDE proposals** → apply with `mem_link` (`related` / `contradicts` / `fixes` / `causes`, or `supersedes` with the newer entry as source), or let `mem_dream` do it via `auto_link=true` / `auto_supersede=true`. Prefer SUPERSEDE over DELETE when the old entry's reasoning is still worth reading; check the "Skipped" and "Merge Conflicts" sections of the report
+Then review only what was **not** auto-applied:
+- **DELETE / MERGE** → list them compactly and ask once; apply the confirmed ones with `mem_delete` / `mem_add`. Prefer SUPERSEDE over DELETE when the old entry's reasoning is still worth reading
+- **UPDATE / SPLIT** → apply after the same single confirmation; if there are several, delegate the mechanical `mem_add`/`mem_split` calls to a Haiku subagent (`Agent(model="haiku")`) with the exact actions
+- Check the report's "Skipped" and "Merge Conflicts" sections
 - **ADD proposals where `target_collection` is higher than the source** (e.g. `workspace` or `global`) → these are **propagation candidates**: a pattern that proved universal across projects
 
 For each propagation candidate, ask:
@@ -273,13 +294,13 @@ mem_add(
 
 The entry stays in the source collection too — propagation copies upward, it does not move.
 
-If count ≤ 30 and no split hints: skip silently.
+If the report proposes nothing beyond the auto-applied actions: skip the review silently.
 
 ---
 
 ## Close
 
-One sentence: what was stored + whether dream ran + whether anything was propagated. Example: "2 Learnings, 1 Blocker, 2 Todos, current_focus aktualisiert." or "… + 1 Learning nach `global` hochgestuft." Nothing else.
+One sentence: what was stored + what dream applied or left open + whether anything was propagated. Example: "2 Learnings, 1 Blocker, 2 Todos, current_focus aktualisiert." or "… + 1 Learning nach `global` hochgestuft." Nothing else.
 
 ---
 

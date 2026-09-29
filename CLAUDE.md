@@ -26,19 +26,21 @@ mem-dream --expert          # consolidate all subagent.* collections with expert
 
 ## Decision Records
 
-`domain`/`pattern`/`anti-pattern`-Wissen ist git-nativ unter `docs/decisions/` (eine
-Markdown-Datei pro Entscheidung, Dateiname = ai-mem-Entry-ID) — direkt durchsuchbar mit
+`domain`/`pattern`/`anti-pattern`/`learning`-Wissen ist git-nativ unter `docs/records/<area>/<kind>/`
+(`decisions/` für domain/pattern/anti-pattern, `learnings/` für learning; `area` Default `general`;
+eine Markdown-Datei pro Eintrag, Dateiname = ai-mem-Entry-ID; eine Entscheidung, die auf einem
+Learning beruht, trägt eine `derived_from`-Kante dorthin) — direkt durchsuchbar mit
 grep/ls/Read, ohne ai-mem-Tools. ChromaDB ist ein lokal regenerierbarer Semantik-Index
 darüber (`mem-adr-sync import` baut ihn aus den Dateien neu auf), nicht die Wahrheitsquelle.
 
 **Offen, durch diese Migration NICHT gelöst:** das generelle mem_query-Retrieval-Trigger-
 Problem (`eval_pull_gap_test_2026_09_20`, Collection `repo.ai-mem`) — ein Agent, der eine
 Frage hat, ruft mem_query in den meisten Fällen nicht von sich aus auf. Dieser Abschnitt
-macht `docs/decisions/` nur über den Kanal auffindbar, der im Gap-Test nachweislich
+macht `docs/records/` nur über den Kanal auffindbar, der im Gap-Test nachweislich
 funktionierte (CLAUDE.md-Verweis + Repo-Grep), löst aber nicht das Trigger-Problem für
 ai-mems eigene Query-Tools.
 
-`docs/decisions/INDEX.md` listet alle Entscheidungen kompakt (id + Titel + Status) —
+`docs/records/INDEX.md` listet alle Einträge kompakt (id | area | type | Titel | Status) —
 bei vielen Dateien zuerst diese eine Datei lesen statt einzeln zu greppen;
 `mem-adr-sync reindex`/`export` hält sie aktuell.
 
@@ -54,7 +56,7 @@ Things that will bite you in the first hour. Current-state facts only.
 - Cosine similarity from ChromaDB distance: `cos_sim = 1 - dist/2` (collections use `l2`/squared-L2 space, not cosine space — verified via `col.configuration_json`). The older `1 - dist` formula was wrong.
 - `_hook_deps.py` exposes `_build_query_uc(db_path, with_bm25)` — the single assembly point for hooks. `posttool_hook` passes `with_bm25=False`.
 - The ML ranker (`TorchMicroRanker`, `RankerRegistry`) was removed in 2026-06. No `[ml]` extra or `torch` dependency remains.
-- Never edit `~/.claude/commands/*.md` directly to change a skill/command — those are the *installed* copies, not source. Edit the actual source (e.g. `skills/examples/reflect.md`), then re-run `install.py` (or the relevant sync step) to update the deployed copy; a direct edit silently drifts from source and gets overwritten on the next install.
+- Never edit `~/.claude/commands/*.md` directly to change a skill/command — those are the *installed* copies, not source. Edit the actual source (e.g. `skills/examples/reflect.md`), then re-run `install.py` (or the relevant sync step) to update the deployed copy; a direct edit silently drifts from source and gets overwritten on the next install. Exception: files with no repo source (`chunk-plan.md`, `dev-team.md`) are global-only by design and edited in place; `~/.claude/agents/librarian.md` is a symlink to `examples/agents/librarian.md` (edit the repo file, restart to reload).
 - `confidence` and `access_count` are no longer written or read (dropped 2026-09-26 for evidence edges — `confirms`/`contradicts`/`supersedes`). Old values stay in stored metadata untouched; never migrate them away. `mem_boost` only records a `/reflect` citation (`boost_count` + optional `cue`); a passed `delta` is ignored.
 - `[available]` gate: `boost_count ≥ 1` only, scanned against both the repo collection and a separately (smaller) capped `GLOBAL_COLLECTION`. Entries without an explicit `/reflect` boost never qualify, regardless of age. The block lists id + title only.
 - `last_accessed_at` means deliberate use (an explicit `min_score_for_tracking` query, a `mem_get` by id, or a `mem_boost`) — not passive query surfacing; a plain `mem_query` with no threshold tracks nothing.
@@ -64,4 +66,4 @@ Things that will bite you in the first hour. Current-state facts only.
 - `mem_dream`'s `claude` CLI subprocess call (`dream_memory.py::_call()`) uses bare model aliases (`"sonnet"`, `"haiku"`), not versioned tags — a versioned tag is a bitrot risk since the CLI can stop resolving it whenever Anthropic retires it. On failure it raises with the CLI's actual `stderr`/`stdout` included, not just a bare exit code.
 - Daemon (`daemon.py`) is thread-per-connection with a locked `record_access()` write path; `ChromaMemoryRepository` caches embeddings per-text with per-key locking.
 - `injection_log.py` has had no live writer since 2026-09-13, when `userprompt_hook.py` — `record_pushed`'s only production caller — was unwired from Claude Code's hook registration (the module and call site still exist, per the hook-retirement bullet above; `install.py` just stopped registering it). `mem-dream`'s pull-through report (`dream_memory.py`, cross-referencing the log against `last_accessed_at`) still runs, but only ever covers the pushes logged before the log went frozen.
-- `MarkdownAdrRepository` additionally persists `domain`/`pattern`/`anti-pattern` entries as Markdown under `docs/decisions/` (or `$AI_MEM_ADR_DIR`); `boost_count`/`last_accessed_at`/`cue` (and legacy `confidence`/`access_count`) are never written to the file — `mem_boost` never produces a file diff. Both `server.py` and `dream_cli.py`'s `_build_repo()` wire it in identically (not optional): `mem-dream --auto_delete/--auto_link/--auto_supersede` mutate the same repository stack and would otherwise orphan or silently desync a `.md` file. `AI_MEM_ADR_DISABLED=1` skips the Markdown layer entirely as a rollback escape hatch. Re-typing an entry away from an ADR type deletes its file; an ADR-type id that isn't a safe filename (`/`, `..`, `INDEX`, `README`) makes `upsert` raise before Chroma is written. `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir and `AI_MEM_ADR_DISABLED=1` for the whole suite — ADR tests build `MarkdownAdrRepository` directly.
+- `MarkdownAdrRepository` additionally persists `domain`/`pattern`/`anti-pattern`/`learning` entries as Markdown under `docs/records/<area>/<kind>/<id>.md` (or `$AI_MEM_ADR_DIR`; `learning` → `learnings/`, the others → `decisions/`; `area` metadata, default `general`, must match `^[a-z0-9][a-z0-9_-]*$` else `upsert` raises for ADR-typed entries; `derived_from` edge = decision → learning); `boost_count`/`last_accessed_at`/`cue` (and legacy `confidence`/`access_count`) are never written to the file — `mem_boost` never produces a file diff. Both `server.py` and `dream_cli.py`'s `_build_repo()` wire it in identically (not optional): `mem-dream --auto_delete/--auto_link/--auto_supersede` mutate the same repository stack and would otherwise orphan or silently desync a `.md` file. `AI_MEM_ADR_DISABLED=1` skips the Markdown layer entirely as a rollback escape hatch. Re-typing or re-areaing an entry removes the old file (also legacy flat ones); re-typing away from an ADR type deletes it; an ADR-type id that isn't a safe filename (`/`, `..`, `INDEX`, `README`) makes `upsert` raise before Chroma is written. `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir and `AI_MEM_ADR_DISABLED=1` for the whole suite — ADR tests build `MarkdownAdrRepository` directly.

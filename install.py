@@ -2,6 +2,7 @@
 """ai-mem installer — registers the MCP server with Claude Code, Gemini CLI, and/or Cursor."""
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +52,32 @@ def _remove_hook_command(entries: list[dict], module: str) -> None:
         entry["hooks"] = [h for h in hooks_list if marker not in h.get("command", "")]
         if not entry["hooks"]:
             entries[:] = [e for e in entries if e is not entry]
+
+
+def _existing_workspace_root(settings_path: Path, module: str) -> str:
+    """Recover an already-installed AI_MEM_WORKSPACE_ROOT prefix from `module`'s current hook command.
+
+    register_claude() re-prompts for the workspace root on every run. If a later run's prompt is
+    left blank (e.g. reinstalling for an unrelated fix), the hook command must not silently
+    regress to git-based detection just because that answer was empty this time -- update_mcp()
+    already protects the MCP server's own env block the same way when workspace_root is falsy.
+    """
+    if not settings_path.exists():
+        return ""
+    try:
+        data = json.loads(settings_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return ""
+    marker = f"-m {module} "
+    for group in data.get("hooks", {}).get("SessionStart", []):
+        for hook in group.get("hooks", []):
+            command = hook.get("command", "")
+            if marker not in command:
+                continue
+            match = re.match(r"AI_MEM_WORKSPACE_ROOT=(\S+) ", command)
+            if match:
+                return match.group(1)
+    return ""
 
 
 def _upsert_hook_command(entries: list[dict], module: str, command: str, timeout: int, matcher: str | None = None) -> None:
@@ -270,6 +297,8 @@ def register_claude(workspace_root: str = ""):
     # subprocess). So workspace_root must be threaded into the hook commands themselves, or hooks
     # keep using git-based detection while mem_add/mem_query use workspace-root-based naming —
     # the same failure mode already documented for AI_MEM_PATH in ai-mem's own memory.
+    if not workspace_root:
+        workspace_root = _existing_workspace_root(settings_path, "ai_mem.hook")
     env_prefix = f"AI_MEM_WORKSPACE_ROOT={workspace_root} " if workspace_root else ""
     hook_cmd = f"{env_prefix}{python_exe()} -m ai_mem.hook 2>/dev/null || true"
     posttool_cmd = f"{env_prefix}{python_exe()} -m ai_mem.posttool_hook 2>/dev/null || true"

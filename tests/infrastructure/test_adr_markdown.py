@@ -101,7 +101,7 @@ def test_serialize_omits_absent_optional_fields():
     md = serialize("domain_foo", "domain", "body", metadata={})
 
     frontmatter = md.split("\n---\n\n", 1)[0]
-    assert frontmatter == "id: domain_foo\ntype: domain"
+    assert frontmatter == "id: domain_foo\ntype: domain\narea: general"
 
 
 def test_parse_missing_separator_raises():
@@ -145,3 +145,38 @@ def test_cleared_valid_until_is_omitted_and_roundtrips():
     parsed = parse(md)
     assert parsed.valid_until is None
     assert parsed.superseded_by is None
+
+
+def test_frontmatter_order_puts_area_after_type():
+    md = serialize(
+        "domain_x",
+        "domain",
+        "body",
+        {"area": "hooks", "created_at": 1.0, "superseded_by": "domain_y", "valid_until": 2.0, "edges": [{"target_id": "t", "edge_type": "confirms"}]},
+    )
+    keys = [line.split(":")[0] for line in md.split("\n---\n")[0].splitlines()]
+    assert keys == ["id", "type", "area", "created", "superseded_by", "valid_until", "edges"]
+    assert parse(md).area == "hooks"
+
+
+def test_legacy_file_without_area_parses_as_general():
+    parsed = parse("id: domain_old\ntype: domain\ncreated: 1.0\n\n---\n\nbody")
+    assert parsed.area == "general"
+
+
+def test_roundtrip_default_area_is_byte_identical():
+    md = serialize("domain_x", "domain", "body", {"created_at": 1.0})
+    assert "area: general\n" in md
+    parsed = parse(md)
+    again = serialize(
+        parsed.id, parsed.type, parsed.text,
+        {"area": parsed.area, "created_at": parsed.created_at, "superseded_by": parsed.superseded_by,
+         "valid_until": parsed.valid_until, "edges": parsed.edges},
+    )
+    assert again == md
+
+
+def test_learning_type_roundtrips_with_area():
+    md = serialize("learning_x", "learning", "Observed: a\nCause: unknown\nEvidence: b", {"area": "search"})
+    parsed = parse(md)
+    assert (parsed.type, parsed.area) == ("learning", "search")

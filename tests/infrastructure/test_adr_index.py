@@ -6,9 +6,12 @@ from ai_mem.infrastructure.adr_index import regenerate_index
 
 
 def _write_adr(adr_dir, entry_id, entry_type, text, metadata=None):
-    adr_dir.mkdir(parents=True, exist_ok=True)
-    content = adr_markdown.serialize(entry_id, entry_type, text, metadata or {})
-    (adr_dir / f"{entry_id}.md").write_text(content)
+    metadata = metadata or {}
+    kind = "learnings" if entry_type == "learning" else "decisions"
+    target_dir = adr_dir / metadata.get("area", "general") / kind
+    target_dir.mkdir(parents=True, exist_ok=True)
+    content = adr_markdown.serialize(entry_id, entry_type, text, metadata)
+    (target_dir / f"{entry_id}.md").write_text(content)
 
 
 def test_regenerate_index_lists_entries_sorted_by_id_with_status(tmp_path):
@@ -28,19 +31,19 @@ def test_regenerate_index_lists_entries_sorted_by_id_with_status(tmp_path):
     content = (adr_dir / "INDEX.md").read_text()
     lines = content.splitlines()
     assert lines[0] == "# Decision Records Index"
-    header_idx = lines.index("| id | title | status |")
+    header_idx = lines.index("| id | area | type | title | status |")
     rows = lines[header_idx + 2:]
     assert rows == [
-        "| domain_alpha | Decision: first alphabetically. | active |",
-        "| domain_old | Decision: outdated. | superseded_by: domain_alpha |",
-        "| domain_zebra | Decision: last alphabetically. | active |",
+        "| domain_alpha | general | domain | Decision: first alphabetically. | active |",
+        "| domain_old | general | domain | Decision: outdated. | superseded_by: domain_alpha |",
+        "| domain_zebra | general | domain | Decision: last alphabetically. | active |",
     ]
 
 
 def test_regenerate_index_skips_malformed_file_and_reports_it(tmp_path, capsys):
     adr_dir = tmp_path / "decisions"
     _write_adr(adr_dir, "domain_good", "domain", "Decision: fine.\nWhy: y.\nScope: s.")
-    (adr_dir / "domain_broken.md").write_text("not valid frontmatter at all")
+    (adr_dir / "general" / "decisions" / "domain_broken.md").write_text("not valid frontmatter at all")
 
     regenerate_index(adr_dir)
 
@@ -86,3 +89,33 @@ def test_regenerate_index_ignores_readme_silently(tmp_path, capsys):
 
     assert "README" not in capsys.readouterr().err
     assert "README" not in (adr_dir / "INDEX.md").read_text()
+
+
+def test_regenerate_index_covers_areas_and_kinds_recursively(tmp_path):
+    adr_dir = tmp_path / "records"
+    _write_adr(adr_dir, "domain_a", "domain", "Decision: a.", metadata={"area": "hooks"})
+    _write_adr(adr_dir, "learning_b", "learning", "Observed: b.\nCause: unknown\nEvidence: c", metadata={"area": "search"})
+    _write_adr(adr_dir, "pattern_c", "pattern", "Decision: c.")
+
+    regenerate_index(adr_dir)
+
+    rows = (adr_dir / "INDEX.md").read_text().splitlines()[4:]
+    assert rows == [
+        "| domain_a | hooks | domain | Decision: a. | active |",
+        "| learning_b | search | learning | Observed: b. | active |",
+        "| pattern_c | general | pattern | Decision: c. | active |",
+    ]
+
+
+def test_regenerate_index_skips_only_top_level_index_and_readme(tmp_path):
+    adr_dir = tmp_path / "records"
+    _write_adr(adr_dir, "domain_a", "domain", "Decision: a.")
+    (adr_dir / "README.md").write_text("handwritten")
+    nested = adr_dir / "general" / "decisions"
+    (nested / "README.md").write_text(adr_markdown.serialize("README", "domain", "Decision: nested.", {}))
+
+    regenerate_index(adr_dir)
+
+    content = (adr_dir / "INDEX.md").read_text()
+    assert "| README | general | domain | Decision: nested. |" in content
+    assert "handwritten" not in content
