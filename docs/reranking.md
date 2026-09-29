@@ -3,7 +3,7 @@
 > **Dropped 2026-09-26.** The `confidence`/`access_count` lifecycle described below was
 > retired in favor of evidence edges (`contradicts` / `supersedes` / `confirms`) and a
 > librarian-style retrieval agent — see
-> `docs/records/general/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md`.
+> `docs/records/architecture/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md`.
 > `confidence` and `access_count` are no longer written or read anywhere in the codebase;
 > legacy values remain untouched in stored metadata. The rest of this page is kept as a
 > historical record of the model that preceded that change — present-tense statements
