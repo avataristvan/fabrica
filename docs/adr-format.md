@@ -32,9 +32,23 @@ reviewable, git-native record fits.
   semantically named (e.g. `domain_bmad_vs_ai_mem_epistemology_2026_09_25`), so
   no sequence number is needed.
 - `INDEX.md` and `README.md` stay central at `<root>/`, not per area.
-- `global` and `workspace` collections have no 1:1 repo root and are never
-  backed by files — they remain ChromaDB-only. This is a deliberate scope
-  boundary of the migration, not a gap.
+- `global`, `workspace` and `subagent.*` collections have no 1:1 repo root. They are
+  backed by files below a separate private records repo: `$AI_MEM_RECORDS_HOME`, else
+  `$AI_MEM_WORKSPACE_ROOT/ai-mem-records`, as `<collection>/docs/records/…`. Opt-in:
+  while that directory does not exist they remain ChromaDB-only (extended 2026-10-03;
+  supersedes the earlier "deliberate scope boundary").
+
+## FOCUS.md
+
+- `<root>/FOCUS.md` holds the text of the `current_focus` entry, whatever its type
+  (one file per collection, replaces the old ChromaDB-only focus; see
+  `domain_records_model_replaces_chroma_2026_10_04`).
+- No frontmatter: the file is the plain text plus a trailing newline. It is
+  overwritten in place and git keeps the history. A boost-only upsert leaves it untouched.
+- Not a record: never listed in `INDEX.md`, and `FOCUS` is a reserved id stem like
+  `INDEX`/`README`. Deleting `current_focus` removes the file.
+- `mem-adr-sync export` writes it; `import` restores `current_focus` from it
+  (type `project` on a fresh rebuild).
 
 ## Area
 
@@ -50,7 +64,7 @@ reviewable, git-native record fits.
 ## Frontmatter schema
 
 Only structural, ADR-relevant fields are persisted. They are written in a fixed,
-literal order (`id, type, area, created, superseded_by, valid_until, edges`) — never by iterating a Python `metadata` dict's own key order,
+literal order (`id, type, area, created, superseded_by, valid_until, edges, cue`) — never by iterating a Python `metadata` dict's own key order,
 since that order can vary across code paths that merge dicts. This determinism
 is what lets a decorator skip rewriting a file when only volatile fields changed
 (see below).
@@ -58,12 +72,13 @@ is what lets a decorator skip rewriting a file when only volatile fields changed
 | Field | Required | Notes |
 |---|---|---|
 | `id` | yes | ai-mem entry ID, matches the filename stem. |
-| `type` | yes | One of `domain`, `pattern`, `anti-pattern`, `learning`. |
+| `type` | yes | One of `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` (kinds `decisions`, `learnings`, `todos`, `user`; `todo`/`user` added 2026-10-04). Entries of any other type are never file-backed. |
 | `area` | yes | Topic area, matches `^[a-z0-9][a-z0-9_-]*$`; `general` when the entry has none. Written directly after `type`. |
 | `created` | yes | ISO-ish timestamp the entry was first created. |
 | `superseded_by` | no | Entry ID of the entry that supersedes this one, if any. |
 | `valid_until` | no | Timestamp after which this entry is considered stale, if set. |
 | `edges` | no | Single-line embedded JSON array of `{"target_id": ..., "edge_type": ...}` objects — not multi-line YAML. A decision that rests on a learning carries `derived_from` (source = decision, target = learning), stored outgoing on the decision. |
+| `cue` | no | One-line experience-index cue (the situation in which this entry would have helped), set via `mem_boost(cue=...)`. Written last. Persisted since 2026-10-04 so the experience index survives without ChromaDB; a cue change rewrites the file but never INDEX.md. |
 
 After the frontmatter, the entry's raw text body follows unchanged (its existing
 `Decision:/Why:/Scope:`, `Rule:/When:/Why:`, or `Tried:/Failed because:/Instead:`
@@ -85,12 +100,14 @@ written to the Markdown frontmatter even if present in the input metadata dict:
 - `access_count` (legacy metadata only — no longer written or read anywhere; dropped 2026-09-26, see CLAUDE.md)
 - `boost_count`
 - `last_accessed_at`
-- `cue`
+
+(`cue` was on this list until 2026-10-04 and is now a frontmatter field, see above.)
 
 Rationale: the Markdown file is a derived projection of the current ChromaDB
 state *minus* these volatile fields. A `mem_boost` call mutates `boost_count`
-(and `last_accessed_at`, and optionally `cue`) and a `record_access` call
-mutates `last_accessed_at`, but neither must ever cause a file rewrite — see the
+(and `last_accessed_at`) and a `record_access` call mutates `last_accessed_at`,
+but neither must ever cause a file rewrite; only a `mem_boost` that sets or
+clears a `cue` does — see the
 "Confidence-Lifecycle" section of `docs/adr-migration-chunk-plan.md` for the
 original reasoning (historical: predates the 2026-09-26 confidence/access_count
 removal) and the diff-before-write requirement this implies for the

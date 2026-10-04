@@ -1,69 +1,48 @@
 # CLAUDE.md
 
-Agent-facing supplement to README.md. Dev commands and critical contributor gotchas.
+Agent-facing supplement to README.md: what is true now and bites in the first hour.
+History and rationale live in `docs/records/` (start with `INDEX.md`, or ask the librarian agent).
+
+## Map
+
+- `ai_mem/domain/` contracts (`MemoryRepository`) → `ai_mem/application/` one use case per file → `ai_mem/infrastructure/` storage. `server.py` (MCP tools), `hook.py` (SessionStart), `dream_cli.py`, `adr_cli.py` (`mem-adr-sync`) are adapters.
+- Storage is the record files only: `FileMemoryRepository`, chosen in `infrastructure/repository_factory.py`. No database is opened. `AI_MEM_BACKEND=chroma` is the rollback — its facts are in `docs/reference/chroma_rollback_backend.md`.
+- Sources vs. deployed copies: `skills/examples/reflect.md` and `install.py`'s `_MEM_INIT_CONTENT` are installed to `~/.claude/commands/` (sync: `install.py --sync-commands`); `examples/agents/librarian.md` is symlinked to `~/.claude/agents/`.
 
 ## Dev Commands
 
 ```bash
-pip install -e .            # editable install (no ML, no BM25)
-pip install -e ".[hybrid]"  # with BM25 hybrid search
-pip install -e ".[config]"  # with pyyaml for agents.yaml support
-python3 -m ai_mem.server    # run MCP server directly
-python3 install.py          # register with Claude Code / Gemini CLI / Cursor
-python3 uninstall.py        # remove all integration artifacts (preserves data)
-python3 -m ai_mem.hook          # run SessionStart hook manually
-python3 -m ai_mem.posttool_hook # run PostToolUse hook manually (pipe JSON payload on stdin)
-python -m pytest tests/ -v  # run tests
-mem-dream --dry-run         # preview entries without API calls
-mem-dream --mode hier       # consolidate all collections (hier = default)
-mem-dream --expert          # consolidate all subagent.* collections with expert focus hint
+pip install -e .                 # editable install
+python -m pytest tests/ -q       # run tests
+python3 -m ai_mem.hook           # SessionStart hook by hand (pipe a JSON payload on stdin)
+python3 -m ai_mem.server         # MCP server by hand
+mem-adr-sync reindex --collection <c>   # rebuild docs/records/INDEX.md
+mem-adr-sync migrate             # records_v1 dry run, ChromaDB -> files (--apply writes; install.py offers it once)
+mem-dream --dry-run              # preview what mem-dream would read, no API calls
+python3 install.py               # interactive — the user runs it, not the agent
 ```
 
-## Automation Subsystems
+## Records
 
-- `session_stats.py` — rolling per-scope injection tracking (20-entry window). `record_injection()` is called from `hook.py` (SessionStart). `injection_rate()` has no production caller besides its own test; whether to delete it is an open decision.
-- `memory_index.py` — MEMORY.md auto-demotion (180→160 line threshold) — **built but not yet deployed, no trigger wired**
+- One Markdown file per entry: `docs/records/<area>/<kind>/<id>.md`, kind `decisions/` (domain, pattern, anti-pattern), `learnings/`, `todos/`, `user/`. `current_focus` → `docs/records/FOCUS.md` (plain text, overwritten). `reference` → `docs/reference/<id>.md`. Format: `docs/adr-format.md`.
+- `global`, `workspace`, `subagent.*` live in the records home `$AI_MEM_WORKSPACE_ROOT/ai-mem-records/<collection>/` (only if that directory exists).
+- `user` records are a role's yardstick, pulled on a fixed trigger (the reviewer template in `dev-team.md`); preferences that must act in every session belong in CLAUDE.md instead.
 
-## Decision Records
+## Gotchas
 
-`domain`/`pattern`/`anti-pattern`/`learning`-Wissen ist git-nativ unter `docs/records/<area>/<kind>/`
-(`decisions/` für domain/pattern/anti-pattern, `learnings/` für learning; `area` Default `general`;
-eine Markdown-Datei pro Eintrag, Dateiname = ai-mem-Entry-ID; eine Entscheidung, die auf einem
-Learning beruht, trägt eine `derived_from`-Kante dorthin) — direkt durchsuchbar mit
-grep/ls/Read, ohne ai-mem-Tools. ChromaDB ist ein lokal regenerierbarer Semantik-Index
-darüber (`mem-adr-sync import` baut ihn aus den Dateien neu auf), nicht die Wahrheitsquelle.
+- `mem_add` rejects types without a file (`feedback`, `project`, `fact`, `dilemma`, untyped). The id `current_focus` takes any type.
+- A collection can only be written when its directory resolves: mapping file `~/.local/share/ai-mem/adr_collection_roots.json` (the server records its cwd's collection at startup), cwd detection, or the records home.
+- `mem_delete` without `ids` is refused. `record_access`, `delete_expired`, `delete_stale` are no-ops; `boost_count`, `last_accessed_at`, `expires_at` are never stored. `mem_query` is keyword overlap, not semantic.
+- `cue` is the last frontmatter line; `mem_boost(cue=...)` rewrites the file, INDEX.md only changes when a row changes.
+- `get_by_ids` silently skips missing ids.
+- SessionStart pushes no content: routing line(s) plus one `Records:` pointer. Only that hook is registered; the PreToolUse/UserPromptSubmit/PostToolUse modules exist but are unwired.
+- `detect_repo_context()` names collections from the CLAUDE.md path relative to `AI_MEM_WORKSPACE_ROOT`, before the git fallback; worktrees map to their main checkout. Hook subprocesses don't inherit the MCP server's env, so `install.py` prefixes the hook command with `AI_MEM_WORKSPACE_ROOT=`. Subagents get no SessionStart output — `mem_context(cwd)` tells them their collection.
+- `mem_move` bypasses `AddMemoryUseCase` (its merge would reset metadata across collections); a differing id at the target is a `MoveConflict`, and incoming edges to a moved entry go dangling.
+- `mem_dream` calls the `claude` CLI with bare model aliases (`sonnet`, `haiku`), never versioned tags, and surfaces the CLI's stderr on failure.
+- Never edit `~/.claude/commands/*.md` copies that have a repo source — edit the source and sync. Global-only files (`chunk-plan.md`, `dev-team.md`) are edited in place.
 
-**Offen, durch diese Migration NICHT gelöst:** das generelle mem_query-Retrieval-Trigger-
-Problem (`eval_pull_gap_test_2026_09_20`, Collection `repo.ai-mem`) — ein Agent, der eine
-Frage hat, ruft mem_query in den meisten Fällen nicht von sich aus auf. Dieser Abschnitt
-macht `docs/records/` nur über den Kanal auffindbar, der im Gap-Test nachweislich
-funktionierte (CLAUDE.md-Verweis + Repo-Grep), löst aber nicht das Trigger-Problem für
-ai-mems eigene Query-Tools.
+## Known noise
 
-`docs/records/INDEX.md` listet alle Einträge kompakt (id | area | type | Titel | Status) —
-bei vielen Dateien zuerst diese eine Datei lesen statt einzeln zu greppen;
-`mem-adr-sync reindex`/`export` hält sie aktuell.
-
-## Critical Invariants
-
-Things that will bite you in the first hour. Current-state facts only.
-
-- `get_by_ids(collection, ids)` silently skips missing IDs — no error, no placeholder; the returned list only contains found entries.
-- Tests that call `upsert` directly must include non-empty metadata (ChromaDB rejects empty dicts). Use `AddMemoryUseCase` in tests — it always injects timestamps.
-- `posttool_hook.py` imports `GLOBAL_COLLECTION` and `detect_repo_context` at **module level** (not lazily inside `main()`) so tests can patch them via `patch.object`. Check test-side `patch.object` targets before removing an import that looks dead in source — a test may still patch it by name.
-- `mem_delete` with no `ids` drops the **entire collection**; repo signals this by returning `-1`.
-- `QueryMemoryUseCase` takes only `(repo, track_access)` — no ranker, no build_features.
-- Cosine similarity from ChromaDB distance: `cos_sim = 1 - dist/2` (collections use `l2`/squared-L2 space, not cosine space — verified via `col.configuration_json`). The older `1 - dist` formula was wrong.
-- `_hook_deps.py` exposes `_build_query_uc(db_path, with_bm25)` — the single assembly point for hooks. `posttool_hook` passes `with_bm25=False`.
-- The ML ranker (`TorchMicroRanker`, `RankerRegistry`) was removed in 2026-06. No `[ml]` extra or `torch` dependency remains.
-- Never edit `~/.claude/commands/*.md` directly to change a skill/command — those are the *installed* copies, not source. Edit the actual source (e.g. `skills/examples/reflect.md`), then re-run `install.py` (or the relevant sync step) to update the deployed copy; a direct edit silently drifts from source and gets overwritten on the next install. Exception: files with no repo source (`chunk-plan.md`, `dev-team.md`) are global-only by design and edited in place; `~/.claude/agents/librarian.md` is a symlink to `examples/agents/librarian.md` (edit the repo file, restart to reload).
-- `confidence` and `access_count` are no longer written or read (dropped 2026-09-26 for evidence edges — `confirms`/`contradicts`/`supersedes`). Old values stay in stored metadata untouched; never migrate them away. `mem_boost` only records a `/reflect` citation (`boost_count` + optional `cue`); a passed `delta` is ignored.
-- `[available]` gate: `boost_count ≥ 1` only, scanned against both the repo collection and a separately (smaller) capped `GLOBAL_COLLECTION`. Entries without an explicit `/reflect` boost never qualify, regardless of age. The block lists id + title only.
-- `last_accessed_at` means deliberate use (an explicit `min_score_for_tracking` query, a `mem_get` by id, or a `mem_boost`) — not passive query surfacing; a plain `mem_query` with no threshold tracks nothing.
-- `mem_move` deliberately bypasses `AddMemoryUseCase` (whose metadata-preserving merge only looks within the collection it's writing to, which would wrongly reset `boost_count`/`cue`/`created_at` on a cross-collection move) — reads via `get_by_ids`, writes via `upsert`, deletes the confirmed subset from source. An id that already exists at the target with different text is skipped as a `MoveConflict`, not overwritten. `from_collection == to_collection` raises `ValueError`. Known v1 limitation: edges only reference `target_id`, no collection field — a moved entry's old incoming edges go dangling.
-- `detect_repo_context()` checks `AI_MEM_WORKSPACE_ROOT` before the git-based fallback, deriving collection names from the CLAUDE.md path relative to that root instead of `git remote`. Hook subprocesses don't inherit the MCP server's own `env` block, so `install.py` prefixes hook commands with `AI_MEM_WORKSPACE_ROOT=<path>` directly. Linked git worktrees (git common-dir differs, or a `.claude/worktrees/<name>` path) are first mapped to the main checkout's path, so they share its collection; agents without SessionStart output resolve their collection via the `mem_context(cwd)` tool.
-- Only `SessionStart` and `PostToolUse` hooks are registered. The `PreToolUse` and `UserPromptSubmit` push hooks were retired (per-edit and per-message injection cost more context than it was worth). `install.py` no longer registers either; both self-heal off existing installations on re-run via `_remove_hook_command`. Module files and tests for both still exist, just unwired.
-- `mem_dream`'s `claude` CLI subprocess call (`dream_memory.py::_call()`) uses bare model aliases (`"sonnet"`, `"haiku"`), not versioned tags — a versioned tag is a bitrot risk since the CLI can stop resolving it whenever Anthropic retires it. On failure it raises with the CLI's actual `stderr`/`stdout` included, not just a bare exit code.
-- Daemon (`daemon.py`) is thread-per-connection with a locked `record_access()` write path; `ChromaMemoryRepository` caches embeddings per-text with per-key locking.
-- `injection_log.py` has had no live writer since 2026-09-13, when `userprompt_hook.py` — `record_pushed`'s only production caller — was unwired from Claude Code's hook registration (the module and call site still exist, per the hook-retirement bullet above; `install.py` just stopped registering it). `mem-dream`'s pull-through report (`dream_memory.py`, cross-referencing the log against `last_accessed_at`) still runs, but only ever covers the pushes logged before the log went frozen.
-- `MarkdownAdrRepository` additionally persists `domain`/`pattern`/`anti-pattern`/`learning` entries as Markdown under `docs/records/<area>/<kind>/<id>.md` (or `$AI_MEM_ADR_DIR`; `learning` → `learnings/`, the others → `decisions/`; `area` metadata, default `general`, must match `^[a-z0-9][a-z0-9_-]*$` else `upsert` raises for ADR-typed entries; `derived_from` edge = decision → learning); `boost_count`/`last_accessed_at`/`cue` (and legacy `confidence`/`access_count`) are never written to the file — `mem_boost` never produces a file diff. Both `server.py` and `dream_cli.py`'s `_build_repo()` wire it in identically (not optional): `mem-dream --auto_delete/--auto_link/--auto_supersede` mutate the same repository stack and would otherwise orphan or silently desync a `.md` file. `docs/records/INDEX.md` is regenerated (full rescan, atomic temp-file + `os.replace`) whenever a record file is created/removed/moved or a row changes (superseded_by, type, area, title) — on `upsert`, `delete(ids)` and `add_edge` — never on a boost-only or body-only upsert; concurrent writers can leave a stale-but-untorn table that heals on the next regeneration. `AI_MEM_ADR_DISABLED=1` skips the Markdown layer entirely as a rollback escape hatch. Re-typing or re-areaing an entry removes the old file (also legacy flat ones); re-typing away from an ADR type deletes it; an ADR-type id that isn't a safe filename (`/`, `..`, `INDEX`, `README`) makes `upsert` raise before Chroma is written. `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir and `AI_MEM_ADR_DISABLED=1` for the whole suite — ADR tests build `MarkdownAdrRepository` directly.
+- `tests/test_daemon.py` fails sporadically (ConnectionRefusedError); rerun it alone before suspecting a change.
+- A running MCP server and agent definitions keep the code they started with — changes show up only after a Claude Code restart. Test changes with the modules or a fresh process, not through this session's `mem_*` tools.
+- `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir, `AI_MEM_ADR_DISABLED=1`, and unsets `AI_MEM_RECORDS_HOME`/`AI_MEM_WORKSPACE_ROOT`.

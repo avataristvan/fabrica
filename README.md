@@ -1,6 +1,6 @@
 # ai-mem
 
-A pull-based knowledge base for AI agents — not automatic context injection. Stores, searches, and retrieves information across sessions using natural language, backed by [ChromaDB](https://www.trychroma.com/). Semantic search means you don't have to phrase a query the way an entry was written — "how do I avoid X" surfaces an anti-pattern about X even if it never uses those words.
+A pull-based knowledge base for AI agents — not automatic context injection. Decisions, learnings, todos and the current focus live as git-native Markdown files in each project (`docs/records/`), reviewable and greppable without any tooling; ai-mem's MCP tools write and link them, and a librarian agent reads them by judgment. No database (since 2026-10-04; an existing ChromaDB store is migrated once, see `docs/migration-chroma-to-records.md`).
 
 Works with **Claude Code**, **Gemini CLI**, and **Cursor**.
 
@@ -47,7 +47,7 @@ python3 install.py
 | `mem_split` | Split a long entry into focused sub-entries for more precise retrieval. |
 | `mem_dream` | Consolidate a collection using Claude — detects contradictions, redundancies, and stale entries. Proposes UPDATE / MERGE / DELETE / ADD / SPLIT / LINK / SUPERSEDE; `auto_delete`, `auto_link` and `auto_supersede` apply the respective actions. |
 | `mem_get` | Fetch entries by ID directly — bypasses semantic search and ranking. Use when the exact ID is known. |
-| `mem_boost` | Cite an entry as decisive during `/reflect`: increments `boost_count` and bumps `last_accessed_at`. No `delta` parameter. Optional `cue` names the situation in which the entry would have helped and puts it into the experience index shown at session start. |
+| `mem_boost` | Cite an entry as decisive during `/reflect`: increments `boost_count` and bumps `last_accessed_at`. No `delta` parameter. Optional `cue` names the situation in which the entry would have helped; it is written into the record file's frontmatter, where the librarian agent reads it. |
 | `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`). |
 | `mem_edges` | List all outgoing edges for an entry. |
 
@@ -66,16 +66,15 @@ The `SessionStart` hook injects the active collection on every session start.
 
 ## Lifecycle Hooks
 
-ai-mem registers two Claude Code hooks automatically during install:
+ai-mem registers one Claude Code hook during install:
 
 | Hook | Trigger | What it does |
 |------|---------|--------------|
 | `SessionStart` | Session opens | Announces the active collection (and, for a registered subagent, its own expert collection) — no memory content by default |
-| `PostToolUse` | After Write/Edit | Updates `last_accessed_at` on matched entries |
 
 **Pull, not push.** Earlier versions injected `current_focus` text, high-confidence entries, and even per-prompt semantic search results automatically. That got expensive and noisy — content unrelated to the task in hand was in context on every message. Now `SessionStart` only tells the agent *which* collection to use; retrieving anything from it is a deliberate `mem_query` or `mem_get` call the agent (or a skill like `/reflect`) makes on purpose. Set `session_start_verbose: true` in `agents.yaml` to opt back into the old push behavior — see `docs/hooks.md`.
 
-**One exception: the experience index.** Agents rarely think to query memory unless something in their context points at an entry (`scripts/eval_pull` measured this). So `SessionStart` also prints a small fixed-size block of `situation -> entry` lines (max 20), built from entries that carry a `cue`. You write the cue during `/reflect` by answering "in which moment would this have helped me?" (`mem_boost(ids=[...], cue="...")`). The block is derived on every read, so superseded, expired or deleted entries fall out on their own, and entries earn a line by cue, not by score. `session_start_index: false` turns it off.
+**A pointer instead of content.** Agents rarely think to query memory unless something in their context points at it (`scripts/eval_pull` measured this). So `SessionStart` adds one line naming the repo's `docs/records/` (FOCUS.md, INDEX.md) and the librarian agent. The librarian reads the record files by judgment, including each record's `cue` — the situation in which it helps, written during `/reflect` (`mem_boost(ids=[...], cue="...")`). Until 2026-10-04 those cues were pushed as an "experience index" block at every session start; the librarian replaces it.
 
 ## Trust Signals
 
@@ -84,9 +83,11 @@ ai-mem registers two Claude Code hooks automatically during install:
 | Event | Effect |
 |-------|--------|
 | `/reflect` cites an entry as decisive | `mem_boost(ids=[...])` — increments `boost_count`, bumps `last_accessed_at` |
-| `boost_count ≥ 1` | Eligible for the **[available]** listing (id + title only, full text via `mem_get`), sorted by `boost_count` desc — shown when `session_start_verbose: true`, or on request |
+| `mem_boost(ids=[...], cue="...")` | Additionally records the situation in which the entry helps, in the record file's `cue:` line |
 
-Retrieval uses ChromaDB's native cosine similarity, unaffected by this change.
+The `[available]` listing that `boost_count ≥ 1` used to unlock was retired 2026-10-04 (push → pull, see `docs/hooks.md`).
+
+Retrieval is INDEX.md, grep, and the librarian agent; `mem_query` is a keyword search over the files.
 
 ## Typed Causal Edges
 
@@ -137,10 +138,7 @@ signatures:
       - "unique phrase from the agent's system prompt"
 
 settings:
-  min_label_score: 0.50          # [0.0–1.0] posttool_hook label threshold
-  query_k: 5                     # posttool_hook candidate count
-  session_start_verbose: false   # true restores focus text + [available] + deltas at session start
-  session_start_index: true      # false drops the experience index from session start
+  session_start_verbose: false   # true restores focus text + expired warnings + deltas at session start
 ```
 
 Requires `pyyaml`: `pip install ai-mem[config]`. Falls back to defaults if absent.
@@ -153,7 +151,7 @@ Three-layer capability-centric DDD — imports only flow downward.
 |---|---|---|
 | Domain | `ai_mem/domain/` | Pure contracts (`MemoryRepository` protocol). No I/O. |
 | Application | `ai_mem/application/` | One use case per file, single `execute()`, deps injected. |
-| Infrastructure | `ai_mem/infrastructure/` | `ChromaMemoryRepository`, `BM25MemoryRepository` (optional wrapper). |
+| Infrastructure | `ai_mem/infrastructure/` | `FileMemoryRepository` (default), chosen in `repository_factory.py`; `ChromaMemoryRepository` + `MarkdownAdrRepository` + `BM25MemoryRepository` only with `AI_MEM_BACKEND=chroma`. |
 
 `server.py` is the adapter — wires use cases at module load, exposes MCP tools.
 
