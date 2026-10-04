@@ -11,18 +11,20 @@ from typing import get_args
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.domain.memory import EdgeType, MemoryEntry, MemoryRepository
 
-_DELETE_RE = re.compile(r"^\s*[-*•]\s+DELETE\s+(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+# An id as the model writes it, with or without Markdown code backticks around it.
+_ID = r"`?([^\s`]+)`?"
+_DELETE_RE = re.compile(r"^\s*[-*•]\s+DELETE\s+" + _ID + r"\s*:", re.MULTILINE | re.IGNORECASE)
 _ADD_TARGET_RE = re.compile(
-    r"^\s*[-*•]\s+ADD\s+(\S+)\s+\[target=([^\]]+)\]\s*:",
+    r"^\s*[-*•]\s+ADD\s+" + _ID + r"\s+\[target=([^\]]+)\]\s*:",
     re.MULTILINE | re.IGNORECASE,
 )
-_SPLIT_RE = re.compile(r"^\s*[-*•]\s+SPLIT\s+(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
-_MERGE_RE = re.compile(r"^\s*[-*•]\s+MERGE\s+(\S+)\s*\+\s*(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+_SPLIT_RE = re.compile(r"^\s*[-*•]\s+SPLIT\s+" + _ID + r"\s*:", re.MULTILINE | re.IGNORECASE)
+_MERGE_RE = re.compile(r"^\s*[-*•]\s+MERGE\s+" + _ID + r"\s*\+\s*" + _ID + r"\s*:", re.MULTILINE | re.IGNORECASE)
 _LINK_RE = re.compile(
-    r"^\s*[-*•]\s+LINK\s+(\S+)\s*->\s*(\S+)\s+\[type=([^\]]+)\]\s*:",
+    r"^\s*[-*•]\s+LINK\s+" + _ID + r"\s*->\s*" + _ID + r"\s+\[type=([^\]]+)\]\s*:",
     re.MULTILINE | re.IGNORECASE,
 )
-_SUPERSEDE_RE = re.compile(r"^\s*[-*•]\s+SUPERSEDE\s+(\S+)\s*->\s*(\S+)\s*:", re.MULTILINE | re.IGNORECASE)
+_SUPERSEDE_RE = re.compile(r"^\s*[-*•]\s+SUPERSEDE\s+" + _ID + r"\s*->\s*" + _ID + r"\s*:", re.MULTILINE | re.IGNORECASE)
 
 # LINK covers the relational edge types. Derived from EdgeType so a new type cannot drift out of
 # sync; 'supersedes' has its own action (SUPERSEDE) because it also flags its target, and

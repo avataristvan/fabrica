@@ -243,3 +243,17 @@ class TestPullThroughReport:
 
         out = _pull_through_report(entries, log)
         assert "## Pull-Through Report" in out
+
+
+def test_action_ids_in_markdown_backticks_are_parsed_without_them():
+    # Sonnet formats ids as `code`; every auto-apply failed with "unknown id '`x`'" before.
+    from ai_mem.application.dream_memory import _parse_link_proposals, _parse_supersede_proposals
+
+    synthesis = (
+        "- LINK `new_id` -> `old_id` [type=confirms]: same claim held up\n"
+        "- LINK plain_a -> plain_b [type=related]: no backticks\n"
+        "- SUPERSEDE `succ` -> `pred`: overtaken\n"
+    )
+
+    assert _parse_link_proposals(synthesis) == [("new_id", "old_id", "confirms"), ("plain_a", "plain_b", "related")]
+    assert _parse_supersede_proposals(synthesis) == [("succ", "pred")]
