@@ -162,3 +162,24 @@ def test_reads_existing_migrated_layout_without_writing(repo, root):
     [entry] = repo.get_all(COLLECTION)
     assert (entry.id, entry.metadata["area"], entry.metadata["created_at"]) == ("l1", "workflow", 5.0)
     assert not (_records(root) / "INDEX.md").exists()
+
+
+@pytest.mark.parametrize("pattern", ["*", "d?", "[d]0", "**", "d0\x00"])
+def test_glob_like_ids_never_select_other_records(repo, root, pattern):
+    repo.upsert(COLLECTION, [_entry(f"d{i}", "Decision: x", type="domain") for i in range(3)])
+
+    assert repo.delete(COLLECTION, [pattern]) == 0
+    assert repo.get_by_ids(COLLECTION, [pattern]) == []
+    assert len(repo.get_all(COLLECTION)) == 3
+    with pytest.raises(ValueError, match="filename"):
+        repo.upsert(COLLECTION, [_entry(pattern, "x", type="domain")])
+
+
+@pytest.mark.parametrize("collection", ["subagent.x/../../escape", "subagent.*"])
+def test_rootless_collection_names_cannot_leave_the_records_home(tmp_path, monkeypatch, collection):
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(home))
+
+    assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", collection) is None
+    assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", "subagent.ok") == home / "subagent.ok"

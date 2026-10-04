@@ -40,8 +40,8 @@ from ai_mem.infrastructure.adr_paths import (
     read_mapping,
     record_collection_root,
     records_dir_for_root,
-    records_home,
     reference_dir,
+    rootless_collection_root,
     write_atomic,
 )
 from ai_mem.repo_context import detect_repo_context
@@ -174,8 +174,7 @@ def _resolve_root(db_path: Path, collection: str, overrides: dict[str, Path], di
     if collection in overrides:
         return overrides[collection]
     if has_no_repo_root(collection):
-        home = records_home()
-        return home / collection if home is not None else None
+        return rootless_collection_root(collection)
     cached = read_mapping(db_path).get(collection)
     if cached:
         return Path(cached)

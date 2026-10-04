@@ -87,6 +87,13 @@ def has_no_repo_root(collection: str) -> bool:
     return collection in (GLOBAL_COLLECTION, WORKSPACE_COLLECTION) or collection.startswith(SUBAGENT_PREFIX)
 
 
+def rootless_collection_root(collection: str) -> Path | None:
+    """`<records_home>/<collection>` for global/workspace/subagent.*; None without a records home
+    or when the name is not a single plain path segment (no traversal out of the records home)."""
+    home = records_home()
+    return home / collection if home is not None and is_safe_path_segment(collection) else None
+
+
 def resolve_repo_root_for_collection(db_path: Path, collection: str) -> Path | None:
     """Resolve the filesystem root backing a collection's record files.
 
@@ -94,8 +101,7 @@ def resolve_repo_root_for_collection(db_path: Path, collection: str) -> Path | N
     `<records_home>/<collection>`, or None while no records home exists.
     """
     if has_no_repo_root(collection):
-        home = records_home()
-        return home / collection if home is not None else None
+        return rootless_collection_root(collection)
 
     mapping = read_mapping(db_path)
     cached = mapping.get(collection)
@@ -166,19 +172,21 @@ def remove_files(adr_dir: Path, files) -> None:
                 parent.rmdir()
 
 
+_UNSAFE_SEGMENT_CHARS = frozenset("/\\*?[]\0")
+
+
+def is_safe_path_segment(name: str) -> bool:
+    """One plain path component: not empty, not `.`/`..`, no separators, glob metacharacters or NUL."""
+    return bool(name) and name not in (".", "..") and not any(char in name for char in _UNSAFE_SEGMENT_CHARS)
+
+
 def is_safe_entry_id(entry_id: str) -> bool:
     """True if `entry_id` can be used as a filename stem inside the ADR directory.
 
-    Rejects path separators / `..` (which would write outside docs/records/) and the
-    stems of the directory's own generated/handwritten files (INDEX.md, README.md).
+    Rejects path separators / `..` (which would write outside docs/records/), glob
+    metacharacters, and the stems of the directory's own files (INDEX/README/FOCUS.md).
     """
-    return (
-        bool(entry_id)
-        and entry_id not in (".", "..")
-        and "/" not in entry_id
-        and "\\" not in entry_id
-        and entry_id not in _RESERVED_STEMS
-    )
+    return is_safe_path_segment(entry_id) and entry_id not in _RESERVED_STEMS
 
 
 def is_safe_area(area: str) -> bool:
@@ -197,7 +205,12 @@ def adr_file_path(db_path: Path, collection: str, entry_id: str, entry_type: str
 
 
 def find_adr_files(adr_dir: Path, entry_id: str) -> list[Path]:
-    """Every `<entry_id>.md` anywhere below `adr_dir`, sorted; [] for an unsafe id or missing dir."""
+    """Every `<entry_id>.md` anywhere below `adr_dir`, sorted; [] for an unsafe id or missing dir.
+
+    Matched by exact filename, never by building a glob from the id: an id like `*` must not
+    select every record (callers delete what this returns).
+    """
     if not is_safe_entry_id(entry_id) or not adr_dir.is_dir():
         return []
-    return sorted(adr_dir.glob(f"**/{entry_id}.md"))
+    filename = f"{entry_id}.md"
+    return sorted(path for path in adr_dir.rglob("*.md") if path.name == filename)
