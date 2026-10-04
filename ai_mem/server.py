@@ -26,27 +26,20 @@ from ai_mem.application.query_memory import QueryMemoryUseCase
 from ai_mem.application.split_memory import SplitMemoryUseCase
 from ai_mem.application.track_access import TrackAccessUseCase
 from ai_mem.infrastructure.adr_paths import ADR_TYPES, record_collection_root, resolve_repo_root_for_collection
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
-from ai_mem.infrastructure.markdown_adr_repository import MarkdownAdrRepository
+from ai_mem.infrastructure.repository_factory import build_repository, records_enabled
 from ai_mem.repo_context import detect_repo_context
 
 DEFAULT_COLLECTION = "workspace"
 
 _db_path = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
-_inner_repo = ChromaMemoryRepository(_db_path)
 
-if os.environ.get("AI_MEM_ADR_DISABLED") == "1":
-    _repo = _inner_repo
-else:
-    _adr_repo = MarkdownAdrRepository(_inner_repo, _db_path)
+if records_enabled():
+    # Remember where this session's collection lives, so its record files can be found later
+    # from any working directory.
     _ctx = detect_repo_context()
     if _ctx.git_root or _ctx.claude_md_dir:
         record_collection_root(_db_path, _ctx.collection, _ctx.git_root or _ctx.claude_md_dir)
-    try:
-        from ai_mem.infrastructure.bm25_repository import BM25MemoryRepository
-        _repo = BM25MemoryRepository(_adr_repo)
-    except ImportError:
-        _repo = _adr_repo
+_repo = build_repository(_db_path)
 
 _track_access = TrackAccessUseCase(_repo)
 _add = AddMemoryUseCase(_repo)
@@ -76,18 +69,10 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_add",
             description=(
-                "Store or update information in memory. "
-                f"Leave 'collection' empty to use the default ('{DEFAULT_COLLECTION}'). "
-                "Use the repo collection injected at session start (e.g. 'repo.ai-mem') for repo-specific context, "
-                "or 'global' for cross-session knowledge shared across all repos. "
-                "When the user asks to store something for a different project (e.g. 'note for my-app'), "
-                "pass that project's collection explicitly (e.g. 'repo.my-app') — never rely on the active collection default for cross-project intent. "
-                "Set 'ttl_days' to expire the entry automatically (e.g. 30 for one month). "
-                "When updating an existing entry (same id), existing metadata is preserved by default — "
-                "boost_count, created_at, edges, and type are all kept intact (any legacy confidence or "
-                "access_count from an older entry also survives untouched, though this tool no longer "
-                "sets or computes either). You do NOT need to re-pass existing metadata fields for a "
-                "text-only update."
+                "Store or update record files (one file per id; several documents+ids in one call). "
+                "Use the repo collection from session start (e.g. 'repo.ai-mem'), 'global' for knowledge that "
+                "applies everywhere, or another project's collection when the user names that project. "
+                "Updating an id keeps its type, area, created and edges; a text-only update needs no metadata."
             ),
             inputSchema={
                 "type": "object",
@@ -96,9 +81,9 @@ async def list_tools() -> list[types.Tool]:
                     "ids": {"type": "array", "items": {"type": "string"}, "description": "Unique ID per entry (used for updates)"},
                     "collection": {"type": "string", "description": f"Collection name (default: '{DEFAULT_COLLECTION}')"},
                     "metadatas": {"type": "array", "items": {"type": "object"}, "description": "Optional metadata per entry"},
-                    "ttl_days": {"type": "number", "description": "Optional TTL in days — entry is deleted by mem_cleanup after expiry"},
-                    "type": {"type": "string", "description": "Optional entry type tag (e.g. 'feedback', 'reference', 'project', 'user', 'anti-pattern', 'dilemma', 'domain') for later filtering. For type='anti-pattern', use this mandatory structure: 'Tried: <approach>\\nFailed because: <reason>\\nInstead: <alternative>'. When the anti-pattern involves human stakeholders (people treated as variables, trust broken, social dynamics), add: 'Affected: <who was affected and how>'. For type='dilemma' (genuine value conflicts with no single correct answer, e.g. across cultures), use: 'Tension: <value A> vs. <value B>\\nContext A: <when value A applies and why>\\nContext B: <when value B applies and why>\\nAffected A: <who, how — from frame A>\\nAffected B: <who, how — from frame B>\\nQuestions: <what to ask to determine which context applies>'. Dilemmas encode the tension itself and the right questions, not a resolved answer. For type='domain' (business/domain knowledge — why a rule exists, a domain constraint, a business decision behind the code — not a coding technique), use: 'Decision: <what was decided or is true>\\nWhy: <business/domain reason>\\nScope: <where/when this applies>'. Store domain entries as soon as the knowledge surfaces during coding, not only at end-of-session reflection — the insight is easy to lose otherwise. For type='learning' (an observed fact about how the system behaves, kept separate from the decisions built on it), use: 'Observed: <fact or measurement>\\nCause: <root cause, or unknown>\\nEvidence: <test, commit sha or entry ids>'. Link a decision to the learning it rests on with mem_link edge_type 'derived_from'."},
-                    "area": {"type": "string", "description": "Optional topic area for Markdown-persisted entries (types domain, pattern, anti-pattern, learning); default 'general'. Must match ^[a-z0-9][a-z0-9_-]*$. Merged into each entry's metadata; ignored for other types."},
+                    "ttl_days": {"type": "number", "description": "Ignored by record files (kept for compatibility)"},
+                    "type": {"type": "string", "description": "Required for a new id. 'domain': 'Decision: …\\nWhy: …\\nScope: …' (why a rule or constraint exists; store it as soon as it surfaces). 'pattern': 'Rule: …\\nWhen: …\\nWhy: …'. 'anti-pattern': 'Tried: …\\nFailed because: …\\nInstead: …'. 'learning': 'Observed: …\\nCause: …\\nEvidence: …' (a decision based on it links to it via mem_link 'derived_from'). 'todo': open work, one file per todo; close it by deleting it and writing a learning with the commit sha. 'reference': background docs (docs/reference/). The id 'current_focus' (any type) is FOCUS.md, overwritten on every update."},
+                    "area": {"type": "string", "description": "Topic folder for records, ^[a-z0-9][a-z0-9_-]*$, default 'general'."},
                 },
                 "required": ["documents", "ids"],
             },
@@ -106,30 +91,25 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_query",
             description=(
-                "Search memory semantically. Returns an object with 'results' (ranked entries with "
-                "similarity scores) and 'split_hints' (long entries that may benefit from being split "
-                "into more granular sub-topics). "
-                f"Leave 'collection' empty to search the default ('{DEFAULT_COLLECTION}'). "
-                "Use the repo collection injected at session start (e.g. 'repo.ai-mem') for repo-specific context, "
-                "or 'global' for cross-session general knowledge. "
-                "When the user asks to search in a different project, pass that project's collection explicitly (e.g. 'repo.my-app'). "
-                "Use 'max_age_days' to exclude older entries."
+                "Keyword search over a collection's records (term overlap, not semantic). Returns 'results' and "
+                "'split_hints'. Candidates only -- read and judge them; for 'why / was this tried' questions "
+                "the librarian agent or INDEX.md is usually the better start."
             ),
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Natural language search query"},
+                    "query": {"type": "string", "description": "Search terms"},
                     "collection": {"type": "string", "description": f"Collection to search (default: '{DEFAULT_COLLECTION}')"},
                     "n_results": {"type": "integer", "default": 5, "description": "Number of results to return"},
                     "max_age_days": {"type": "number", "description": "Only return entries created within this many days"},
-                    "type": {"type": "string", "description": "Only return entries with this type tag (e.g. 'feedback', 'reference')"},
+                    "type": {"type": "string", "description": "Only return entries of this type"},
                 },
                 "required": ["query"],
             },
         ),
         types.Tool(
             name="mem_get",
-            description="Fetch specific memory entries by ID. Use when you know the exact ID(s) — bypasses semantic search and ranking entirely.",
+            description="Fetch entries by exact id.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -142,9 +122,7 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_list",
             description=(
-                "List memory collections with their entry counts. "
-                "If 'collection' is provided, returns all entries in that collection as a list of {id, title} pairs "
-                "(title = first non-empty line of the entry text, max 80 characters)."
+                "Without 'collection': all collections with counts. With it: every entry as {id, title}."
             ),
             inputSchema={
                 "type": "object",
@@ -170,10 +148,7 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_topics",
             description=(
-                "Browse a collection's entries grouped by type (pattern, anti-pattern, project, fact, domain, "
-                "feedback, reference, dilemma, or 'untyped') — the rung between mem_list's flat {id, title} "
-                "dump and mem_get's full text. Use this instead of mem_list when a collection is large enough "
-                "that a flat list is unwieldy, or when you want to browse by category first."
+                "A collection's entries as {id, title}, grouped by type."
             ),
             inputSchema={
                 "type": "object",
@@ -185,12 +160,12 @@ async def list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="mem_delete",
-            description="Delete entries from memory by ID. Omit 'ids' to drop the entire collection.",
+            description="Delete entries (their files) by id.",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "collection": {"type": "string", "description": f"Collection name (default: '{DEFAULT_COLLECTION}')"},
-                    "ids": {"type": "array", "items": {"type": "string"}, "description": "Entry IDs to delete (omit to drop entire collection)"},
+                    "ids": {"type": "array", "items": {"type": "string"}, "description": "Entry IDs to delete"},
                 },
                 "required": [],
             },
@@ -198,14 +173,9 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_move",
             description=(
-                "Move entries from one collection to another, preserving id, text, and all metadata "
-                "verbatim (confidence, access_count, edges, type, etc.) — no manual retyping needed. "
-                "If an id already exists at the target with different text, it is skipped and reported "
-                "under 'conflicts' rather than overwritten (identical text at the target is treated as "
-                "a no-op merge and still moved). "
-                "Caveat: edges reference target_id only, with no collection field — other entries in "
-                "the source collection that referenced a moved entry are not updated and may become "
-                "dangling references."
+                "Move entries to another collection with id, text and metadata intact. An id that exists at "
+                "the target with different text is reported under 'conflicts', not overwritten. Edges pointing "
+                "at a moved entry from the source collection are not updated."
             ),
             inputSchema={
                 "type": "object",
@@ -220,9 +190,7 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_cleanup",
             description=(
-                "Delete expired entries (TTL-based). Optionally also delete stale entries — "
-                "those whose last access is older than 'stale_after_days' (forgetting curve). "
-                "Omit 'collection' to clean all collections."
+                "Legacy (TTL / last-access cleanup). Record files have neither, so this deletes nothing."
             ),
             inputSchema={
                 "type": "object",
@@ -239,19 +207,9 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_dream",
             description=(
-                "Consolidate memories using Claude models — identifies contradictions, redundancies, "
-                "stale entries, and undocumented emergent principles. "
-                "Modes: 'single-haiku', 'single-sonnet', 'hier' (Haiku fast pass → Sonnet synthesis, default), "
-                "'team' (4-turn Haiku↔Sonnet exchange). "
-                "Invoked via the claude CLI — no API key required. "
-                "Returns a structured diff proposal (UPDATE, MERGE, DELETE, ADD, SPLIT, LINK, SUPERSEDE). "
-                "Set 'auto_delete' to true to automatically execute DELETE actions, 'auto_link' to "
-                "create the proposed LINK edges, and 'auto_supersede' to apply SUPERSEDE actions "
-                "(flags the old entry, keeps it readable). Actions that cannot be applied are listed "
-                "with their reason. MERGE proposals that conflict with a 'contradicts' or 'supersedes' "
-                "edge are flagged in the report. "
-                "Use 'focus_hint' to steer consolidation — e.g. for expert collections: "
-                "'These are cross-project learnings. Flag entries too project-specific to be worth keeping.'"
+                "Consolidate a collection with Claude (via the claude CLI): finds contradictions, redundancies "
+                "and stale entries and returns a proposal (UPDATE, MERGE, DELETE, ADD, SPLIT, LINK, SUPERSEDE). "
+                "Nothing is applied unless auto_delete / auto_link / auto_supersede is set."
             ),
             inputSchema={
                 "type": "object",
@@ -280,12 +238,7 @@ async def list_tools() -> list[types.Tool]:
                     },
                     "focus_hint": {
                         "type": "string",
-                        "description": (
-                            "Optional instruction to steer consolidation. "
-                            "For expert collections: 'These are cross-project learnings from a <role> agent. "
-                            "Flag entries too project-specific to keep cross-project. "
-                            "Prefer DELETE over MERGE for project-specific entries.'"
-                        ),
+                        "description": "Optional instruction to steer consolidation",
                     },
                 },
                 "required": [],
@@ -294,18 +247,10 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_split",
             description=(
-                "Split a coarse memory entry using Claude, which picks the mode per entry. "
-                "If 'entry_id' is omitted, auto-splits all hinted entries in the collection "
-                f"(text ≥ {SPLIT_MIN_TEXT_CHARS} chars, or carrying multiple structural sections). "
-                "Mode topics (independent sub-topics): 2-3 focused sub-entries replace the original, "
-                "which is deleted; new_ids lists the sub-entries. "
-                "Mode learning+decision (the entry mixes an observation with a decision): the ORIGINAL id "
-                "stays and becomes the rewritten decision (metadata, boost_count, cue, created_at and edges "
-                "kept; type domain/pattern/anti-pattern), a new learning entry '<id>_learning' "
-                "('Observed:/Cause:/Evidence:', type learning, same area) is created, and a "
-                "'derived_from' edge decision -> learning is added; new_ids lists the learning(s). "
-                "The original is never deleted in this mode. "
-                f"Leave 'collection' empty to use the default ('{DEFAULT_COLLECTION}')."
+                "Split a coarse entry with Claude (omit entry_id to split every hinted entry, "
+                f"≥ {SPLIT_MIN_TEXT_CHARS} chars or several sections). Independent topics: 2-3 sub-entries "
+                "replace the original. Observation mixed with a decision: the original id becomes the "
+                "decision, '<id>_learning' is added and linked via 'derived_from'."
             ),
             inputSchema={
                 "type": "object",
@@ -319,21 +264,11 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_link",
             description=(
-                "Add a typed causal edge between two memory entries. "
-                "Useful for linking an anti-pattern to the pattern it contradicts, "
-                "a bug fix to the cause, or related concepts. "
-                "When the source entry is retrieved by mem_query, its linked target is automatically "
-                "appended to the results (1-hop, budget: 2 linked entries per query; edges are "
-                "stored on the source only). "
-                "Edge types: 'contradicts' | 'fixes' | 'causes' | 'related' | 'supersedes' | 'confirms' | 'derived_from'. "
-                "'supersedes' (source = the newer entry, target = the entry it replaces) flags the "
-                "target as superseded: mem_query keeps returning it but marks it with "
-                "'superseded_by' and appends the successor. To undo, mem_add the target with "
-                "metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]. "
-                "'confirms' (source = the later entry, target = the earlier one it bears out) records "
-                "where and how an insight held up again -- traceable evidence instead of a score. "
-                "'derived_from' (source = decision, target = the learning it is based on) records "
-                "a decision's provenance."
+                "Add a typed edge source -> target (stored in the source's file). 'supersedes': source "
+                "replaces target, which stays readable but is flagged superseded_by (undo: mem_add the target "
+                "with metadatas [{\"superseded_by\": \"\", \"valid_until\": \"\"}]). 'confirms': source is later "
+                "evidence that target held up. 'derived_from': source decision rests on target learning. "
+                "'contradicts' also links an anti-pattern to the rule it violates."
             ),
             inputSchema={
                 "type": "object",
@@ -352,7 +287,7 @@ async def list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="mem_edges",
-            description="List all outgoing causal edges for a memory entry.",
+            description="List an entry's outgoing edges.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -365,13 +300,9 @@ async def list_tools() -> list[types.Tool]:
         types.Tool(
             name="mem_boost",
             description=(
-                "Record a /reflect citation on existing memory entries: increments boost_count, "
-                "the signal that an entry mattered enough to cite. To flag an entry as wrong or "
-                "outdated, use mem_link with edge_type 'contradicts' or 'supersedes' instead; to record "
-                "that an entry held up again, use mem_link with edge_type 'confirms'. "
-                "Entries not found are silently skipped. "
-                "Pass 'cue' to put the entry into the experience index shown at session start: one sentence "
-                "naming the situation in which it would have helped (empty string removes the cue)."
+                "During /reflect: set an entry's cue -- one sentence naming the situation in which it helps; "
+                "it is written into the record file, where the librarian finds it ('' removes it). "
+                "Wrong or outdated entries get a mem_link 'contradicts'/'supersedes' instead."
             ),
             inputSchema={
                 "type": "object",
@@ -471,13 +402,16 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
                     meta_entry.setdefault("type", type_tag)
                 if area is not None:
                     meta_entry.setdefault("area", area)
-        count = _add.execute(
-            collection=collection,
-            documents=arguments["documents"],
-            ids=arguments["ids"],
-            metadatas=metadatas,
-            ttl_days=arguments.get("ttl_days"),
-        )
+        try:
+            count = _add.execute(
+                collection=collection,
+                documents=arguments["documents"],
+                ids=arguments["ids"],
+                metadatas=metadatas,
+                ttl_days=arguments.get("ttl_days"),
+            )
+        except ValueError as exc:
+            return [types.TextContent(type="text", text=f"Error: {exc}")]
         base_text = f"Stored {count} entry/entries in '{collection}'."
 
         if type_tag in ADR_TYPES and resolve_repo_root_for_collection(_db_path, collection) is None:
@@ -569,7 +503,10 @@ async def call_tool(name: str, arguments: dict) -> list[types.TextContent]:
         return [types.TextContent(type="text", text=json.dumps(topics, indent=2, ensure_ascii=False))]
 
     if name == "mem_delete":
-        affected = _delete.execute(collection=collection, ids=arguments.get("ids"))
+        try:
+            affected = _delete.execute(collection=collection, ids=arguments.get("ids"))
+        except ValueError as exc:
+            return [types.TextContent(type="text", text=f"Error: {exc}")]
         if affected == -1:
             return [types.TextContent(type="text", text=f"Dropped collection '{collection}'.")]
         return [types.TextContent(type="text", text=f"Deleted {affected} entry/entries from '{collection}'.")]

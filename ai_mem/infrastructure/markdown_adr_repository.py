@@ -10,18 +10,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ai_mem.application.list_entries import title_of
-from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, MemoryRepository, QueryResult
+from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry, MemoryRepository, QueryResult, title_of
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     DEFAULT_AREA,
+    FOCUS_ID,
     adr_dir_for,
     adr_file_path,
     find_adr_files,
+    focus_file_path,
     is_safe_area,
     is_safe_entry_id,
+    plain_file_content,
+    remove_files,
 )
 
 
@@ -36,13 +39,6 @@ class MarkdownAdrRepository:
     @staticmethod
     def _area_of(entry: MemoryEntry) -> str:
         return entry.metadata.get("area") or DEFAULT_AREA
-
-    def _remove_files(self, adr_dir: Path, files: list[Path]) -> None:
-        for file_path in files:
-            file_path.unlink(missing_ok=True)
-            for parent in (file_path.parent, file_path.parent.parent):
-                if parent != adr_dir and parent.is_dir() and not any(parent.iterdir()):
-                    parent.rmdir()
 
     def _sync_file(self, collection: str, entry: MemoryEntry) -> bool:
         """Write the entry's ADR file if its content changed and remove every other file for this
@@ -76,7 +72,7 @@ class MarkdownAdrRepository:
         if not file_path.exists() or file_path.read_text() != new_content:
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(new_content)
-        self._remove_files(adr_dir, others)
+        remove_files(adr_dir, others)
         return index_stale
 
     def _reindex(self, collection: str) -> None:
@@ -96,7 +92,9 @@ class MarkdownAdrRepository:
         self._inner.upsert(collection, entries)
         status_changed = False
         for entry in entries:
-            if entry.metadata.get("type") in ADR_TYPES:
+            if entry.id == FOCUS_ID:
+                self._sync_focus_file(collection, entry.text)
+            elif entry.metadata.get("type") in ADR_TYPES:
                 status_changed |= self._sync_file(collection, entry)
             else:
                 status_changed |= self._remove_stale_files(collection, entry.id)
@@ -106,13 +104,24 @@ class MarkdownAdrRepository:
         if status_changed:
             self._reindex(collection)
 
+    def _sync_focus_file(self, collection: str, text: str) -> None:
+        # Overwritten in place, git keeps the history; not a record, so never listed in INDEX.md.
+        # Only written on a text change, so a mem_boost on current_focus produces no diff.
+        focus_path = focus_file_path(self._db_path, collection)
+        if focus_path is None:
+            return
+        content = plain_file_content(text)
+        if not focus_path.exists() or focus_path.read_text() != content:
+            focus_path.parent.mkdir(parents=True, exist_ok=True)
+            focus_path.write_text(content)
+
     def _remove_stale_files(self, collection: str, entry_id: str) -> bool:
         # An entry re-typed away from an ADR type must not leave its old record behind in the repo.
         adr_dir = self._adr_dir(collection)
         if adr_dir is None:
             return False
         stale = find_adr_files(adr_dir, entry_id)
-        self._remove_files(adr_dir, stale)
+        remove_files(adr_dir, stale)
         return bool(stale)
 
     def query(
@@ -138,12 +147,16 @@ class MarkdownAdrRepository:
 
         adr_entries = [entry for entry in self._inner.get_by_ids(collection, ids) if entry.metadata.get("type") in ADR_TYPES]
         affected = self._inner.delete(collection, ids)
+        if FOCUS_ID in ids:
+            focus_path = focus_file_path(self._db_path, collection)
+            if focus_path is not None:
+                focus_path.unlink(missing_ok=True)
         adr_dir = self._adr_dir(collection)
         if adr_dir is not None:
             for entry in adr_entries:
                 # Metadata-derived path first, recursive search for anything stale (legacy/misplaced).
                 target = adr_file_path(self._db_path, collection, entry.id, entry.metadata["type"], self._area_of(entry))
-                self._remove_files(adr_dir, sorted({*find_adr_files(adr_dir, entry.id), *([target] if target else [])}))
+                remove_files(adr_dir, sorted({*find_adr_files(adr_dir, entry.id), *([target] if target else [])}))
             if adr_entries:
                 self._reindex(collection)
         return affected

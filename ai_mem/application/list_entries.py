@@ -1,19 +1,9 @@
 """List all entries in a collection as id + title pairs."""
 from __future__ import annotations
 
-from ai_mem.domain.memory import MemoryRepository
+from ai_mem.domain.memory import MemoryRepository, title_of
 
-_MAX_TITLE_LEN = 80
-
-
-def title_of(text: str, max_len: int = _MAX_TITLE_LEN) -> str:
-    """First non-empty line of an entry's text, truncated — shared by mem_list, mem_topics,
-    and the [available] injection format in hook.py / userprompt_hook.py."""
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped:
-            return stripped[:max_len]
-    return ""
+__all__ = ["ListEntriesUseCase", "title_of"]  # title_of re-exported for the hooks
 
 
 class ListEntriesUseCase:

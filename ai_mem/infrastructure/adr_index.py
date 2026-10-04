@@ -5,14 +5,12 @@ MarkdownAdrRepository whenever a record file appears/vanishes or an INDEX row ch
 """
 from __future__ import annotations
 
-import os
 import sys
-import tempfile
 from pathlib import Path
 
-from ai_mem.application.list_entries import title_of
+from ai_mem.domain.memory import title_of
 from ai_mem.infrastructure import adr_markdown
-from ai_mem.infrastructure.adr_paths import NON_ADR_FILENAMES
+from ai_mem.infrastructure.adr_paths import iter_record_files, write_atomic
 
 _INDEX_FILENAME = "INDEX.md"
 
@@ -26,9 +24,7 @@ def regenerate_index(adr_dir: Path) -> None:
     order is fixed, so output is byte-identical across runs given unchanged sources.
     """
     rows: list[tuple[str, str, str, str, str]] = []
-    for file_path in sorted(adr_dir.glob("**/*.md")):
-        if file_path.parent == adr_dir and file_path.name in NON_ADR_FILENAMES:
-            continue
+    for file_path in iter_record_files(adr_dir):
         try:
             parsed = adr_markdown.parse(file_path.read_text())
         except ValueError as exc:
@@ -43,19 +39,8 @@ def regenerate_index(adr_dir: Path) -> None:
     lines = ["# Decision Records Index", "", "| id | area | type | title | status |", "|---|---|---|---|---|"]
     lines.extend(f"| {row_id} | {area} | {entry_type} | {title} | {status} |" for row_id, area, entry_type, title, status in rows)
 
-    _write_atomic(adr_dir / _INDEX_FILENAME, "\n".join(lines) + "\n")
+    # Full rescan, not read-modify-write: two concurrent writers each produce a complete table and
+    # the swap is atomic. A writer that scanned before another writer's file landed can leave a
+    # stale table; it heals on the next regeneration.
+    write_atomic(adr_dir / _INDEX_FILENAME, "\n".join(lines) + "\n")
 
-
-def _write_atomic(target: Path, content: str) -> None:
-    # Full rescan, not read-modify-write of INDEX content: two concurrent writers each produce a
-    # complete file, and os.replace makes the swap atomic so readers never see a torn one. The
-    # tradeoff: a writer that scanned before another writer's file landed can overwrite with a
-    # stale table -- it self-heals on the next regeneration (any later create/delete/reindex).
-    fd, tmp_name = tempfile.mkstemp(dir=target.parent, prefix=f".{target.name}.", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w") as tmp:
-            tmp.write(content)
-        os.replace(tmp_name, target)
-    except BaseException:
-        Path(tmp_name).unlink(missing_ok=True)
-        raise

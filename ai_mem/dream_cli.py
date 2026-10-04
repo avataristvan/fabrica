@@ -9,8 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ai_mem.application.dream_memory import DreamMemoryUseCase, MODES
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
-from ai_mem.infrastructure.markdown_adr_repository import MarkdownAdrRepository
+from ai_mem.infrastructure.repository_factory import build_repository
 
 _DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local/share/ai-mem"))
 _LOG_DIR = Path.home() / ".claude/dream-log"
@@ -26,21 +25,9 @@ _EXPERT_FOCUS_HINT = (
 
 
 def _build_repo():
-    inner_repo = ChromaMemoryRepository(_DB_PATH)
-    if os.environ.get("AI_MEM_ADR_DISABLED") == "1":
-        return inner_repo
-
-    # mem-dream's auto_delete/auto_link/auto_supersede flags mutate real data for the
-    # migrated types (domain/pattern/anti-pattern) through this repo stack, so it needs
-    # the same MarkdownAdrRepository wiring as server.py's MCP-side stack — otherwise
-    # auto_delete would orphan a Markdown file and auto_link/auto_supersede would change
-    # Chroma's edges/superseded_by without updating the .md file.
-    adr_repo = MarkdownAdrRepository(inner_repo, _DB_PATH)
-    try:
-        from ai_mem.infrastructure.bm25_repository import BM25MemoryRepository
-        return BM25MemoryRepository(adr_repo)
-    except ImportError:
-        return adr_repo
+    # mem-dream's auto_delete/auto_link/auto_supersede flags mutate real data, so it must use
+    # exactly the server's repository stack -- otherwise a file and its entry could diverge.
+    return build_repository(_DB_PATH)
 
 
 def main() -> None:

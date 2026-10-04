@@ -118,3 +118,48 @@ def test_stop_running_daemon_silent_when_package_not_yet_installed():
     """A fresh machine has no ai_mem.daemon to import yet — must not raise."""
     with patch.dict("sys.modules", {"ai_mem.daemon": None}):
         install.stop_running_daemon()  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# run_records_migration (records_v1)
+# ---------------------------------------------------------------------------
+
+def _run_records_migration(tmp_path, answers, db_exists=True, returncode=0):
+    db_path = tmp_path / "db"
+    if db_exists:
+        db_path.mkdir()
+    completed = type("Completed", (), {"returncode": returncode, "stdout": "1 files to write\nReport: x", "stderr": "boom"})
+    with (
+        patch.object(install, "DB_PATH", db_path),
+        patch.object(install, "MIGRATIONS_DIR", db_path / ".migrations"),
+        patch.object(install, "python_exe", return_value="python3"),
+        patch.object(install.subprocess, "run", return_value=completed) as run,
+        patch("builtins.input", side_effect=answers),
+    ):
+        install.run_records_migration(str(tmp_path / "ws"))
+    return run, db_path / ".migrations" / "records_v1.done"
+
+
+def test_records_migration_declined_runs_only_dry_run_and_asks_again_later(tmp_path):
+    run, sentinel = _run_records_migration(tmp_path, ["n", "n"])
+    assert run.call_count == 1 and "--apply" not in run.call_args.args[0]
+    assert not sentinel.exists()
+
+
+def test_records_migration_accepted_applies_and_marks_done(tmp_path):
+    run, sentinel = _run_records_migration(tmp_path, ["n", "y"])
+    assert run.call_count == 2 and run.call_args.args[0][-1] == "--apply"
+    assert "--scan-root" in run.call_args.args[0]
+    assert sentinel.exists()
+
+
+def test_records_migration_failed_apply_leaves_no_sentinel(tmp_path):
+    run, sentinel = _run_records_migration(tmp_path, ["n", "y"], returncode=1)
+    assert run.call_count == 1  # the failed dry run stops before asking
+    assert not sentinel.exists()
+
+
+def test_records_migration_without_store_only_marks_done(tmp_path):
+    run, sentinel = _run_records_migration(tmp_path, [], db_exists=False)
+    run.assert_not_called()
+    assert sentinel.exists()

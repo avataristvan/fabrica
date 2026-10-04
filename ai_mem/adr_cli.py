@@ -19,14 +19,17 @@ from ai_mem.infrastructure.adr_index import regenerate_index
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     DEFAULT_AREA,
-    NON_ADR_FILENAMES,
+    FOCUS_ID,
+    FOCUS_TYPE,
     adr_dir_for,
     adr_file_path,
     find_adr_files,
+    focus_file_path,
     is_safe_entry_id,
+    iter_record_files,
+    plain_file_content,
 )
 from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
-from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION
 
 _DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local/share/ai-mem"))
 
@@ -35,9 +38,6 @@ def _exportable_collections(repo: ChromaMemoryRepository, db_path: Path) -> list
     names = []
     for col_info in repo.list_collections():
         name = col_info.name
-        if name in (GLOBAL_COLLECTION, WORKSPACE_COLLECTION):
-            print(f"skipping {name}: no file-backed repo root for this collection", file=sys.stderr)
-            continue
         if adr_dir_for(db_path, name) is None:
             print(f"skipping {name}: could not resolve a repo root", file=sys.stderr)
             continue
@@ -70,6 +70,11 @@ def _export_collection(repo: ChromaMemoryRepository, db_path: Path, collection: 
         for stale in find_adr_files(adr_dir, entry.id):
             if stale != target:
                 stale.unlink()
+
+    focus = repo.get_by_ids(collection, [FOCUS_ID])
+    if focus:
+        adr_dir.mkdir(parents=True, exist_ok=True)
+        focus_file_path(db_path, collection).write_text(plain_file_content(focus[0].text))
 
     if adr_dir.is_dir():
         regenerate_index(adr_dir)
@@ -104,9 +109,7 @@ def _cmd_import(args: argparse.Namespace) -> int:
 
     skipped: list[str] = []
     imported = 0
-    for file_path in sorted(adr_dir.rglob("*.md")):
-        if file_path.parent == adr_dir and file_path.name in NON_ADR_FILENAMES:
-            continue
+    for file_path in iter_record_files(adr_dir):
         try:
             parsed = adr_markdown.parse(file_path.read_text())
         except ValueError as exc:
@@ -123,6 +126,8 @@ def _cmd_import(args: argparse.Namespace) -> int:
             metadata["superseded_by"] = parsed.superseded_by
         if parsed.valid_until is not None:
             metadata["valid_until"] = parsed.valid_until
+        if parsed.cue:
+            metadata["cue"] = parsed.cue
 
         add_memory.execute(args.collection, [parsed.text], [parsed.id], metadatas=[metadata])
 
@@ -142,6 +147,14 @@ def _cmd_import(args: argparse.Namespace) -> int:
             refreshed.metadata["created_at"] = parsed.created_at
             repo.upsert(args.collection, [refreshed])
 
+        imported += 1
+
+    focus_path = focus_file_path(db_path, args.collection)
+    if focus_path.is_file():
+        # The type is only set on a fresh rebuild; an existing current_focus keeps its metadata.
+        metadata = {} if repo.get_by_ids(args.collection, [FOCUS_ID]) else {"type": FOCUS_TYPE}
+        add_memory.execute(args.collection, [focus_path.read_text().rstrip("\n")], [FOCUS_ID],
+                           metadatas=[metadata])
         imported += 1
 
     plural = "y" if imported == 1 else "ies"
@@ -164,6 +177,42 @@ def _cmd_reindex(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_migrate(args: argparse.Namespace) -> int:
+    from ai_mem.infrastructure import records_migration
+
+    db_path = Path(args.db_path) if args.db_path else _DB_PATH
+    if not db_path.is_dir():
+        print(f"no ai-mem store at {db_path} -- nothing to migrate")
+        return 0
+    overrides: dict[str, Path] = {}
+    for spec in args.root or []:
+        name, sep, path = spec.partition("=")
+        if not sep or not name or not path:
+            print(f"--root expects <collection>=<path>, got {spec!r}", file=sys.stderr)
+            return 2
+        overrides[name] = Path(path).expanduser()
+    scan_roots = [Path(p).expanduser() for p in args.scan_root or []]
+    workspace_root = os.environ.get("AI_MEM_WORKSPACE_ROOT")
+    if not scan_roots and workspace_root:
+        scan_roots = [Path(workspace_root).expanduser()]
+
+    repo = ChromaMemoryRepository(db_path)
+    plan = records_migration.build_plan(repo, db_path, scan_roots, overrides)
+    report_path = db_path / records_migration.REPORT_FILENAME
+    if not args.apply:
+        print(records_migration.render_summary(plan))
+        print("Dry run -- nothing written. Re-run with --apply to write the files.")
+        return 0
+
+    backup = records_migration.apply_plan(plan, repo, db_path)
+    report_path.write_text(records_migration.render_report(plan))
+    print(records_migration.render_summary(plan))
+    if backup is not None:
+        print(f"Backup of the store: {backup}")
+    print(f"Report: {report_path}")
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Sync ADR-style Markdown files with ai-mem's ChromaDB store.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -183,6 +232,16 @@ def main() -> None:
     reindex_parser.add_argument("--collection", metavar="NAME", required=True, help="Collection whose ADR directory to reindex")
     reindex_parser.add_argument("--db-path", metavar="PATH", help="Override the ai-mem ChromaDB path")
     reindex_parser.set_defaults(func=_cmd_reindex)
+
+    migrate_parser = subparsers.add_parser(
+        "migrate", help="One-time move of a ChromaDB-only store to record files (dry run unless --apply)")
+    migrate_parser.add_argument("--apply", action="store_true", help="Write the files (default: only show the plan)")
+    migrate_parser.add_argument("--root", action="append", metavar="COLLECTION=PATH",
+                                help="Place a collection the scan cannot resolve (repeatable)")
+    migrate_parser.add_argument("--scan-root", action="append", metavar="PATH",
+                                help="Where to look for CLAUDE.md directories (default: $AI_MEM_WORKSPACE_ROOT)")
+    migrate_parser.add_argument("--db-path", metavar="PATH", help="Override the ai-mem ChromaDB path")
+    migrate_parser.set_defaults(func=_cmd_migrate)
 
     args = parser.parse_args()
     sys.exit(args.func(args))

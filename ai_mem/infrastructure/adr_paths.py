@@ -1,6 +1,6 @@
-"""Filesystem-path resolution for ADR-style Markdown persistence.
+"""Filesystem paths and small file helpers for the record files.
 
-Pure logic module: no ChromaDB, no MemoryRepository imports. Every function
+No ChromaDB, no MemoryRepository imports. Every function
 takes `db_path` explicitly rather than reading server.py's AI_MEM_PATH itself,
 to avoid a circular import between infrastructure and the MCP server entry point.
 """
@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import tempfile
 from pathlib import Path
 
 from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION, detect_repo_context
@@ -18,20 +19,26 @@ KIND_BY_TYPE = {
     "domain": "decisions",
     "pattern": "decisions",
     "anti-pattern": "decisions",
+    "todo": "todos",
+    "user": "user",
 }
 ADR_TYPES = frozenset(KIND_BY_TYPE)
+REFERENCE_TYPE = "reference"  # stored as plain docs/reference/<id>.md, not as a record
+FOCUS_TYPE = "project"  # type given to current_focus when it is read back from FOCUS.md
 
 DEFAULT_AREA = "general"
 _AREA_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
 _MAPPING_FILENAME = "adr_collection_roots.json"
+RECORDS_HOME_ENV = "AI_MEM_RECORDS_HOME"
+SUBAGENT_PREFIX = "subagent."
 
 
 def _mapping_file(db_path: Path) -> Path:
     return db_path / _MAPPING_FILENAME
 
 
-def _read_mapping(db_path: Path) -> dict[str, str]:
+def read_mapping(db_path: Path) -> dict[str, str]:
     mapping_file = _mapping_file(db_path)
     if not mapping_file.exists():
         return {}
@@ -43,24 +50,54 @@ def _read_mapping(db_path: Path) -> dict[str, str]:
 
 def record_collection_root(db_path: Path, collection: str, root: Path) -> None:
     """Merge `collection -> root` into the mapping file, written atomically."""
-    mapping = _read_mapping(db_path)
+    mapping = read_mapping(db_path)
     mapping[collection] = str(root)
-    mapping_file = _mapping_file(db_path)
-    mapping_file.parent.mkdir(parents=True, exist_ok=True)
-    tmp_file = mapping_file.with_suffix(mapping_file.suffix + ".tmp")
-    tmp_file.write_text(json.dumps(mapping, indent=2, sort_keys=True))
-    tmp_file.replace(mapping_file)
+    write_atomic(_mapping_file(db_path), json.dumps(mapping, indent=2, sort_keys=True))
+
+
+def write_atomic(target: Path, content: str) -> None:
+    """Write via a uniquely named temp file + os.replace: readers and concurrent writers never see a torn file."""
+    target.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(dir=target.parent, prefix=f".{target.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as tmp:
+            tmp.write(content)
+        os.replace(tmp_name, target)
+    except BaseException:
+        Path(tmp_name).unlink(missing_ok=True)
+        raise
+
+
+def records_home() -> Path | None:
+    """Directory holding the records of collections without a 1:1 repo root, or None if unset/missing.
+
+    `$AI_MEM_RECORDS_HOME`, else `$AI_MEM_WORKSPACE_ROOT/ai-mem-records`. Opt-in: the directory must
+    already exist, so nothing is written to a path the user never created.
+    """
+    explicit = os.environ.get(RECORDS_HOME_ENV)
+    if explicit:
+        home = Path(explicit).expanduser()
+    else:
+        workspace_root = os.environ.get("AI_MEM_WORKSPACE_ROOT")
+        home = Path(workspace_root).expanduser() / "ai-mem-records" if workspace_root else None
+    return home if home is not None and home.is_dir() else None
+
+
+def has_no_repo_root(collection: str) -> bool:
+    return collection in (GLOBAL_COLLECTION, WORKSPACE_COLLECTION) or collection.startswith(SUBAGENT_PREFIX)
 
 
 def resolve_repo_root_for_collection(db_path: Path, collection: str) -> Path | None:
-    """Resolve the filesystem repo root backing a `repo.<name>` collection.
+    """Resolve the filesystem root backing a collection's record files.
 
-    `global`/`workspace` never have a 1:1 repo root and always resolve to None.
+    `global`, `workspace` and `subagent.*` have no 1:1 repo root: they resolve to
+    `<records_home>/<collection>`, or None while no records home exists.
     """
-    if collection in (GLOBAL_COLLECTION, WORKSPACE_COLLECTION):
-        return None
+    if has_no_repo_root(collection):
+        home = records_home()
+        return home / collection if home is not None else None
 
-    mapping = _read_mapping(db_path)
+    mapping = read_mapping(db_path)
     cached = mapping.get(collection)
     if cached:
         return Path(cached)
@@ -75,16 +112,58 @@ def resolve_repo_root_for_collection(db_path: Path, collection: str) -> Path | N
     return None
 
 
-def adr_dir_for(db_path: Path, collection: str) -> Path | None:
-    root = resolve_repo_root_for_collection(db_path, collection)
-    if root is None:
-        return None
+def records_dir_for_root(root: Path) -> Path:
+    """`<root>/docs/records`, or `<root>/$AI_MEM_ADR_DIR`."""
     return root / os.environ.get("AI_MEM_ADR_DIR", "docs/records")
 
 
-_RESERVED_STEMS = frozenset({"INDEX", "README"})
-# Files that live in the ADR directory but aren't decision records (INDEX.md generated, README.md handwritten).
+def reference_dir(records_dir: Path) -> Path:
+    """Plain reference docs live next to the records directory: `docs/reference/` by default."""
+    return records_dir.parent / "reference"
+
+
+def adr_dir_for(db_path: Path, collection: str) -> Path | None:
+    root = resolve_repo_root_for_collection(db_path, collection)
+    return records_dir_for_root(root) if root is not None else None
+
+
+_RESERVED_STEMS = frozenset({"INDEX", "README", "FOCUS"})
+# Files that live in the ADR directory but aren't decision records (INDEX.md generated, README.md handwritten,
+# FOCUS.md the overwritten projection of the `current_focus` entry).
 NON_ADR_FILENAMES = frozenset(f"{stem}.md" for stem in _RESERVED_STEMS)
+
+FOCUS_ID = "current_focus"
+FOCUS_FILENAME = "FOCUS.md"
+
+
+def focus_file_path(db_path: Path, collection: str) -> Path | None:
+    """`<root>/FOCUS.md`: one per collection, holds the `current_focus` text whatever its type."""
+    adr_dir = adr_dir_for(db_path, collection)
+    return adr_dir / FOCUS_FILENAME if adr_dir is not None else None
+
+
+def plain_file_content(text: str) -> str:
+    """Content of a frontmatter-less file (FOCUS.md, reference docs): the text plus one trailing newline."""
+    return text.rstrip("\n") + "\n"
+
+
+def iter_record_files(adr_dir: Path) -> list[Path]:
+    """Every record file below `adr_dir`, sorted -- all `*.md` except the top-level INDEX/README/FOCUS."""
+    if not adr_dir.is_dir():
+        return []
+    return sorted(
+        path for path in adr_dir.rglob("*.md")
+        if not (path.parent == adr_dir and path.name in NON_ADR_FILENAMES)
+    )
+
+
+def remove_files(adr_dir: Path, files) -> None:
+    """Delete `files` and prune the `<area>/<kind>` folders they leave empty (never `adr_dir` itself)."""
+    for file_path in files:
+        file_path.unlink(missing_ok=True)
+        for parent in (file_path.parent, file_path.parent.parent):
+            if parent != adr_dir and parent.is_dir() and not any(parent.iterdir()):
+                parent.rmdir()
 
 
 def is_safe_entry_id(entry_id: str) -> bool:

@@ -176,100 +176,16 @@ def register_claude(workspace_root: str = ""):
     print(f"\n🤖 Registering with Claude Code ({mcp_path})...")
 
     INSTRUCTIONS = (
-        "ai-mem is a persistent semantic memory store for AI agents. "
-        "When these tools are available, ai-mem is installed and active. "
-        "\n\n"
-        "THE LEARNING LOOP — ai-mem is not just storage. It is the persistence layer of an epistemology framework: "
-        "a system for how an agent accumulates structured experience and becomes more effective over time. "
-        "The loop is: Plan (query relevant context) → work → Reflect (store learnings, blockers, todos). "
-        "Run /reflect after every task to close the loop. "
-        "Run /mem-init to initialize memory for a new project scope. "
-        "Over time, validated entries, typed edges and situation cues accumulate — "
-        "the agent becomes more competent not by using a larger model, but through better-organized knowledge. "
-        "\n\n"
-        "MEMORY SCOPING: Memory is scoped to the nearest CLAUDE.md. "
-        "Use the repo collection injected at session start (e.g. 'repo.my-project') for project-specific context, "
-        "'global' for cross-repo knowledge that should surface everywhere, "
-        "and 'workspace' as the fallback when no CLAUDE.md is present. "
-        "\n\n"
-        "WHAT TO MEMORISE — store and retrieve these proactively:\n"
-        "1. Current focus / session handoff: what is being worked on right now (id='current_focus'). "
-        "Update this at the end of every productive session so the next session starts with context.\n"
-        "2. Architectural decisions & rationale: why a design was chosen, what was rejected and why. "
-        "Query before making architectural choices to avoid re-litigating settled decisions.\n"
-        "3. Recurring gotchas & tribal knowledge: API quirks, hardware oddities, build system traps, "
-        "environment setup steps — things that would take time to rediscover. "
-        "Query when hitting a confusing error or environment issue.\n"
-        "4. Backlog / TODO items: tasks with optional TTL so they auto-expire. "
-        "Query at session start ('what's pending?') to resume work naturally.\n"
-        "5. External research: summaries of docs, API behaviour, blog posts, library quirks looked up "
-        "during a session. Query before fetching docs again.\n"
-        "6. Cross-repo / global knowledge: workspace structure, available tools and their quirks, "
-        "personal preferences that apply everywhere. Store in 'global' collection.\n"
-        "7. Debug postmortems: root cause + fix for tricky bugs. "
-        "Query when a similar symptom reappears ('have we seen this before?').\n"
-        "8. Meeting / conversation outcomes: decisions made, blockers raised, people involved. "
-        "Scoped to the relevant repo.\n"
-        "\n"
-        "WHEN TO QUERY: use mem_query proactively whenever the user asks about plans, prior decisions, "
-        "context, errors, or anything that may have been stored — e.g. 'what's next?', "
-        "'what did we decide?', 'have we seen this error?', 'what's the status?'. "
-        "Do not wait to be asked. "
-        "\n\n"
-        "WHEN TO STORE: use mem_add after any decision, fix, or discovery worth remembering. "
-        "One entry = one concept — if you find yourself writing multiple ## sections or independent "
-        "sub-topics in one entry, split it into separate entries instead (or use mem_split afterward). "
-        "Prefer short, precise entries. Use ttl_days for time-bounded items (tasks, reminders). "
-        "Always update current_focus (id='current_focus') at the end of a working session. "
-        "Run /reflect to do this as a structured ritual. "
-        "\n\n"
-        "ENTRY TYPES — use the 'type' field to control retrieval and lifecycle:\n"
-        "- type='pattern': transferable mental models and design principles. No TTL — exempt from cleanup forever. "
-        "Use for insights that apply across sessions and projects (e.g. architecture decisions, epistemological rules).\n"
-        "- type='fact': time-sensitive information (API behaviour, version notes, env state). Use a short ttl_days (30-60). "
-        "Aggressively cleaned by mem_cleanup.\n"
-        "- type='feedback': agent or user guidance about how to work. No TTL.\n"
-        "- type='anti-pattern': things tried that failed. Format: 'Tried: ...\\nFailed because: ...\\nInstead: ...'. "
-        "Exempt from TTL cleanup — the failure history is permanent.\n"
-        "- type='project': in-progress todos and project state. Use ttl_days=14 for short-lived tasks.\n"
-        "- type='learning' (repo.* collections only): an observation with evidence. Format: 'Observed: ...\\nCause: ...\\nEvidence: ...'. "
-        "A decision based on a learning links to it via 'derived_from'.\n"
-        "- domain/pattern/anti-pattern/learning are also persisted as Markdown under docs/records/<area>/decisions/ "
-        "(learnings: docs/records/<area>/learnings/), one file per entry, greppable without ai-mem tools. "
-        "Optional metadata 'area' (default 'general', lowercase [a-z0-9_-]) picks the folder. "
-        "\n\n"
-        "LINKING — use mem_link to connect related entries. "
-        "Edge types and their semantics:\n"
-        "- 'contradicts': one entry conflicts with another, or an anti-pattern violates a pattern/rule. "
-        "Use this for anti-pattern → pattern links — it is the canonical type for that relationship.\n"
-        "- 'causes': one entry is a root cause of another (e.g. a bug causes a symptom).\n"
-        "- 'fixes': one entry resolves another (e.g. a fix addresses a bug or anti-pattern).\n"
-        "- 'supersedes': source is the newer entry that replaces target (source → target). "
-        "The target stays queryable but is flagged 'superseded_by' and the successor is appended to results. "
-        "Use it when a decision, fact or rule has been overtaken — do not DELETE it if its reasoning is still worth reading.\n"
-        "- 'confirms': source is independent evidence that supports target. Together with 'contradicts' and "
-        "'supersedes' these edges are the trust signal for an entry.\n"
-        "- 'derived_from': source is a decision, target is the learning it is based on.\n"
-        "- 'related': general association when none of the above applies.\n"
-        "Do not invent new edge types — the ones above cover all cases. "
-        "When suggesting a new type, check whether 'contradicts' already applies.\n"
-        "\n\n"
-        "TRUST AND CITATION — entries carry no confidence score (confidence and access_count are no longer written or read). "
-        "Trust comes from evidence edges (confirms / contradicts / supersedes). "
-        "mem_boost only records a /reflect citation (boost_count) plus an optional cue; a passed delta is ignored. "
-        "Entries with boost_count >= 1 qualify for the [available] listing (id + title, shown at session start when session_start_verbose is on).\n"
-        "- Give an entry a cue when you know the situation in which it would have helped: "
-        "mem_boost(ids=[...], cue=\"<one sentence, the moment you would need it>\"); cue=\"\" removes it. "
-        "Entries with a cue appear in the [experience index] at session start "
-        "(\"situation -> entry id\"): if your situation matches a line, mem_get that entry before acting.\n"
-        "- Entries that turn out wrong should be corrected, superseded or deleted.\n"
-        "- Boosting is a deliberate act on a validated entry, not a reward for age.\n"
-        "\n\n"
-        "CONSOLIDATION — use mem_dream when: the collection has grown large (>30 entries); "
-        "you notice contradictions or stale entries while querying; or the user asks to 'clean up' memories. "
-        "mem_dream returns a structured diff proposal — it does NOT apply changes automatically (unless auto_delete, auto_link or auto_supersede is true for the respective action). "
-        "Review the proposal and apply agreed changes with mem_add / mem_delete. "
-        "The /reflect ritual prompts for consolidation automatically when the threshold is reached."
+        "ai-mem keeps an agent's experience as git-native record files: each project's docs/records/ "
+        "(decisions/, learnings/, todos/ per area, INDEX.md as catalogue, FOCUS.md for the current focus) and "
+        "docs/reference/ for background docs; 'global' holds what applies everywhere. Nothing is pushed into "
+        "your context -- pull on purpose: read INDEX.md / FOCUS.md or grep the files, and ask the librarian agent "
+        "for 'why is it like this / was this tried before?'.\n\n"
+        "Write as soon as knowledge surfaces (mem_add, one concept per id): domain = Decision/Why/Scope, "
+        "pattern = Rule/When/Why, anti-pattern = Tried/Failed because/Instead, learning = Observed/Cause/Evidence, "
+        "todo = open work (close it by deleting it and writing a learning with the commit sha). Link with mem_link "
+        "(supersedes, confirms, contradicts, derived_from, causes, fixes, related). Keep FOCUS.md current "
+        "(mem_add id='current_focus'); run /reflect after a task to do this as a ritual."
     )
 
     def update_mcp(data: dict) -> dict:
@@ -307,7 +223,6 @@ def register_claude(workspace_root: str = ""):
         workspace_root = _existing_workspace_root(settings_path, "ai_mem.hook")
     env_prefix = f"AI_MEM_WORKSPACE_ROOT={workspace_root} " if workspace_root else ""
     hook_cmd = f"{env_prefix}{python_exe()} -m ai_mem.hook 2>/dev/null || true"
-    posttool_cmd = f"{env_prefix}{python_exe()} -m ai_mem.posttool_hook 2>/dev/null || true"
 
     MCP_PERMISSIONS = [
         "mcp__ai-mem__mem_add",
@@ -337,8 +252,12 @@ def register_claude(workspace_root: str = ""):
             if not hooks["PreToolUse"]:
                 del hooks["PreToolUse"]
 
-        pt_hooks = hooks.setdefault("PostToolUse", [])
-        _upsert_hook_command(pt_hooks, "ai_mem.posttool_hook", posttool_cmd, timeout=10, matcher="Write|Edit")
+        # PostToolUse only bumped last_accessed_at after every Write/Edit; with record files there
+        # is no access counter left to bump (2026-10-04), so it is retired like the two above.
+        if "PostToolUse" in hooks:
+            _remove_hook_command(hooks["PostToolUse"], "ai_mem.posttool_hook")
+            if not hooks["PostToolUse"]:
+                del hooks["PostToolUse"]
 
         allow = data.setdefault("permissions", {}).setdefault("allow", [])
         for perm in MCP_PERMISSIONS:
@@ -390,7 +309,7 @@ Initialize or update the ai-mem memory for the current project scope.
    a. What is this project?
       Read README, pyproject.toml, package.json, or equivalent to find out.
       mem_add(ids=["seed_project"], collection="repo.<scope>",
-              documents=[<answer>], metadatas=[{"type": "project", "seeded_by": "mem-init"}])
+              documents=[<answer>], metadatas=[{"type": "reference", "seeded_by": "mem-init"}])
 
    b. What are the non-obvious architectural decisions — things not immediately visible from the directory structure?
       mem_add(ids=["seed_architecture"], collection="repo.<scope>",
@@ -400,7 +319,8 @@ Initialize or update the ai-mem memory for the current project scope.
       mem_add(ids=["seed_conventions"], collection="repo.<scope>",
               documents=[<answer>], metadatas=[{"type": "pattern", "seeded_by": "mem-init"}])
 
-   Re-running /mem-init updates these entries in place (same ids = upsert).
+   Each answer becomes a file: seed_project in docs/reference/, the patterns in docs/records/general/decisions/.
+   Re-running /mem-init updates these files in place (same ids = upsert).
 
 6. Confirm: "Done. Memory initialized for 'repo.<scope>'. Re-run /mem-init after major structural changes."
 
@@ -410,8 +330,8 @@ Initialize or update the ai-mem memory for the current project scope.
    ai-mem is just a database. With /reflect, the agent accumulates structured
    experience across sessions and builds progressively better context."
 
-To set a global focus (surfaced in every session across all repos):
-  Call mem_add with ids=["current_focus"] and collection="global".
+current_focus is written to docs/records/FOCUS.md. A focus that spans all repos goes into
+collection="global" (its FOCUS.md lives in the records home, ai-mem-records/global/).
 """
 
 
@@ -462,6 +382,59 @@ def run_pending_migrations():
         print(f"   ✓ {summary[-1] if summary else 'Done.'}")
     else:
         print(f"   ⚠ Migration failed (non-fatal): {result.stderr.strip()[:120]}")
+
+
+def run_records_migration(workspace_root: str = ""):
+    """records_v1: move a ChromaDB-only store to git-native record files, once, with consent.
+
+    Writes into the user's project repos, so it always shows a dry run first and only applies
+    on an explicit yes. Declining leaves no sentinel: the next install.py run asks again.
+    """
+    sentinel = MIGRATIONS_DIR / "records_v1.done"
+    if sentinel.exists():
+        return
+    if not DB_PATH.exists():
+        MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        sentinel.touch()
+        return
+
+    root = workspace_root or _existing_workspace_root(HOME / ".claude" / "settings.json", "ai_mem.hook")
+    print("\n🔄 One-time migration: records_v1 (ChromaDB -> Markdown record files)")
+    print("   Memory moves into each project's docs/records/ (decisions, learnings, todos, FOCUS.md)")
+    print("   and docs/reference/. ChromaDB is kept as a backup; nothing is deleted.")
+    if not root:
+        root = input("   Directory that contains your projects [default: skip]: ").strip()
+    env = dict(__import__("os").environ)
+    cmd = [python_exe(), "-m", "ai_mem.adr_cli", "migrate", "--db-path", str(DB_PATH)]
+    if root:
+        root_path = Path(root).expanduser()
+        env["AI_MEM_WORKSPACE_ROOT"] = str(root_path)
+        cmd += ["--scan-root", str(root_path)]
+        records_home = root_path / "ai-mem-records"
+        if not records_home.exists() and input(
+            f"   Create {records_home} for the global/workspace/subagent collections? [y/N]: "
+        ).strip().lower() == "y":
+            records_home.mkdir(parents=True)
+    else:
+        print("   Without a directory only collections with a recorded location can be placed.")
+
+    dry = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    if dry.returncode != 0:
+        print(f"   ⚠ Migration dry run failed (non-fatal): {dry.stderr.strip()[:200]}")
+        return
+    print("\n" + "\n".join(f"   {line}" for line in dry.stdout.splitlines()))
+    if input("\n   Write these files into your project repos now? [y/N]: ").strip().lower() != "y":
+        print("   Skipped. Run it later with: mem-adr-sync migrate --apply (asked again on the next install).")
+        return
+
+    applied = subprocess.run(cmd + ["--apply"], capture_output=True, text=True, env=env)
+    if applied.returncode != 0:
+        print(f"   ⚠ Migration failed (non-fatal): {applied.stderr.strip()[:200]}")
+        return
+    MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
+    sentinel.touch()
+    print("\n".join(f"   {line}" for line in applied.stdout.splitlines() if line.startswith(("Backup", "Report"))))
+    print("   ✓ Done. Review the report, then commit docs/records/ (and docs/reference/) in each repo.")
 
 
 def register_gemini():
@@ -543,6 +516,7 @@ def main():
     run_pending_migrations()
 
     workspace_root = prompt_workspace_root()
+    run_records_migration(workspace_root)
 
     targets = prompt_targets()
     for label, register_fn in targets:

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from ai_mem.domain.memory import CollectionInfo, MemoryEntry
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+from ai_mem.infrastructure.repository_factory import build_repository
 
 DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local/share/ai-mem"))
 
@@ -49,7 +49,7 @@ def _format_entry(entry: MemoryEntry) -> str:
 
 
 def main() -> None:
-    repo = ChromaMemoryRepository(DB_PATH)
+    repo = build_repository(DB_PATH, with_bm25=False)
     collections: list[CollectionInfo] = sorted(repo.list_collections(), key=lambda c: c.name)
     if not collections:
         print(f"No collections found at {DB_PATH}")

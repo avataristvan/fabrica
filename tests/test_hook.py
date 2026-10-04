@@ -27,12 +27,14 @@ def _make_repo_ctx(
     collection: str = "workspace",
     has_claude_md: bool = False,
     scope_name: str = "test",
+    git_root: Path | None = None,
 ) -> MagicMock:
     ctx = MagicMock()
     ctx.collection = collection
     ctx.has_claude_md = has_claude_md
     ctx.scope_name = scope_name
     ctx.claude_md_dir = None
+    ctx.git_root = git_root
     return ctx
 
 
@@ -40,14 +42,6 @@ def _make_entry(id: str, text: str) -> MagicMock:
     e = MagicMock()
     e.id = id
     e.text = text
-    return e
-
-
-def _make_mem_entry(id: str, text: str, confidence: float = 1.0, access_count: int = 0, boost_count: int = 0) -> MagicMock:
-    e = MagicMock()
-    e.id = id
-    e.text = text
-    e.metadata = {"confidence": str(confidence), "access_count": str(access_count), "boost_count": str(boost_count)}
     return e
 
 
@@ -60,8 +54,6 @@ def _run_main(
     session_delta: int | None = None,
     git_commits: list[str] | None = None,
     expert_query_results: list | None = None,
-    boosted_entries: list | None = None,
-    boosted_entries_by_collection: dict[str, list] | None = None,
     expired_entries: list | None = None,
     expired_entries_by_collection: dict[str, list] | None = None,
     has_claude_md: bool = False,
@@ -69,6 +61,7 @@ def _run_main(
     verbose: bool = True,
     extra_settings: dict | None = None,
     chroma_cls: MagicMock | None = None,
+    git_root: Path | None = None,
 ) -> str:
     """Run hook.main() with mocked dependencies; return captured stdout.
 
@@ -85,27 +78,14 @@ def _run_main(
     ctx.collection call from the unconditional GLOBAL_COLLECTION call. Takes
     precedence over the flat `expired_entries` when given.
 
-    boosted_entries_by_collection: same idea as expired_entries_by_collection,
-    but for _boosted_entries -- lets tests isolate the ctx.collection
-    [available] call from the separate, unconditional GLOBAL_COLLECTION
-    [available: global] call. Takes precedence over the flat
-    `boosted_entries` when given.
-
     verbose: patches _load_settings to control session_start_verbose (default True,
     matching the pre-2026-09-16 push behavior these tests were written against). Pass
     False to exercise the new pull-based default (routing lines only, no content).
 
     extra_settings: further keys merged into the patched settings dict (e.g. session_start_index).
 
-    chroma_cls: replaces the ChromaMemoryRepository class mock, to assert on or break construction.
+    chroma_cls: replaces the build_repository factory mock, to assert on or break construction.
     """
-    if boosted_entries_by_collection is not None:
-        def fake_boosted_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
-            return boosted_entries_by_collection.get(collection, [])
-    else:
-        def fake_boosted_entries(repo, collection: str, exclude_ids: set, max_count: int = 0) -> list:
-            return boosted_entries or []
-
     if expired_entries_by_collection is not None:
         def fake_expired_entries(repo, collection: str, now_ts: float) -> list:
             return expired_entries_by_collection.get(collection, [])
@@ -125,7 +105,8 @@ def _run_main(
     mock_repo_instance.query.return_value = expert_query_results or []
 
     agent_ctx = _make_agent_ctx(agent_type, should_inject)
-    repo_ctx = _make_repo_ctx(collection=repo_collection, has_claude_md=has_claude_md, scope_name=scope_name)
+    repo_ctx = _make_repo_ctx(collection=repo_collection, has_claude_md=has_claude_md, scope_name=scope_name,
+                              git_root=git_root)
 
     stdin_stream = StringIO(json.dumps({"transcript_path": None}))
 
@@ -138,14 +119,13 @@ def _run_main(
         patch.object(hook, "_write_prev_session"),
         patch.object(hook, "detect_for_session_start", return_value=agent_ctx),
         patch.object(hook, "write_to_env_file"),
-        patch.object(hook, "ChromaMemoryRepository", mock_chroma_cls),
+        patch.object(hook, "build_repository", mock_chroma_cls),
         patch.object(hook, "GetMemoryUseCase"),
         patch.object(hook, "detect_repo_context", return_value=repo_ctx),
         patch.object(hook, "record_injection"),
         patch.object(hook, "GLOBAL_COLLECTION", "global"),
         patch.object(hook, "WORKSPACE_COLLECTION", "workspace"),
         patch.object(hook, "ListCollectionsUseCase", mock_list_uc),
-        patch.object(hook, "_boosted_entries", side_effect=fake_boosted_entries),
         patch.object(hook, "_expired_entries", side_effect=fake_expired_entries),
         patch.object(hook, "_load_settings", return_value={"session_start_verbose": verbose, **(extra_settings or {})}),
     ):
@@ -423,112 +403,6 @@ def test_workspace_focus_suppressed_when_no_claude_md_anywhere(tmp_path: Path) -
 
 
 # ---------------------------------------------------------------------------
-# 13. Boosted-entry proactive injection ([available] block)
-# ---------------------------------------------------------------------------
-
-def test_boosted_entries_appear_in_always_present_block(tmp_path: Path) -> None:
-    entry = _make_mem_entry("pattern_ddd", "Always push domain logic down, never let infra leak upward.")
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="repo.ai-mem",
-        has_claude_md=True,
-        boosted_entries=[entry],
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" in ctx
-    assert "Always push domain logic down" in ctx
-
-
-def test_no_always_present_block_when_boosted_entries_empty(tmp_path: Path) -> None:
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="repo.ai-mem",
-        boosted_entries=[],
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" not in ctx
-
-
-def test_always_present_block_skipped_for_workspace_collection(tmp_path: Path) -> None:
-    entry = _make_mem_entry("pattern_x", "This should not appear.")
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="workspace",
-        boosted_entries_by_collection={"workspace": [entry], "global": []},
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" not in ctx
-    assert "This should not appear." not in ctx
-
-
-def test_always_present_block_shown_for_workspace_collection_with_claude_md(tmp_path: Path) -> None:
-    """CLAUDE.md at the workspace root → collection is still 'workspace' but
-    has_claude_md is True. The gate must key off has_claude_md, not the collection
-    name, or this real scope's boosted entries get silently dropped."""
-    entry = _make_mem_entry("pattern_root", "Root-level pattern that should surface.")
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="workspace",
-        has_claude_md=True,
-        boosted_entries=[entry],
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" in ctx
-    assert "Root-level pattern that should surface." in ctx
-
-
-def test_boosted_gate_excludes_zero_boost_count_even_with_high_confidence() -> None:
-    """boost_count=0 must NOT pass, regardless of stale confidence/access_count values --
-    confidence and access_count are no longer trust signals (2026-09-26)."""
-    mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_z", "Old entry never boosted.", confidence=1.0, access_count=99, boost_count=0)
-    mock_repo.get_all.return_value = [entry]
-
-    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert result == []
-
-
-def test_boosted_gate_passes_with_boost_count_one_even_with_zero_confidence() -> None:
-    """boost_count=1 must pass on its own -- stale confidence=0/access_count=0 must not
-    block it, since neither is part of the gate anymore."""
-    mock_repo = MagicMock()
-    entry = _make_mem_entry("pattern_w", "Boosted entry.", confidence=0.0, access_count=0, boost_count=1)
-    mock_repo.get_all.return_value = [entry]
-
-    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert len(result) == 1
-    assert result[0].id == "pattern_w"
-
-
-def test_boosted_gate_sorts_by_boost_count_desc_with_id_tiebreak() -> None:
-    """Ties on boost_count break deterministically by id, so output order never
-    depends on ChromaDB's incidental get_all() ordering."""
-    mock_repo = MagicMock()
-    low = _make_mem_entry("pattern_b", "Boosted once.", boost_count=1)
-    high = _make_mem_entry("pattern_a", "Boosted three times.", boost_count=3)
-    tie = _make_mem_entry("pattern_c", "Also boosted once.", boost_count=1)
-    mock_repo.get_all.return_value = [low, high, tie]
-
-    result = hook._boosted_entries(mock_repo, "repo.ai-mem", exclude_ids=set())
-
-    assert [entry.id for entry in result] == ["pattern_a", "pattern_b", "pattern_c"]
-
-
-# ---------------------------------------------------------------------------
 # Expired entries
 # ---------------------------------------------------------------------------
 
@@ -640,87 +514,6 @@ def test_expired_block_shown_for_workspace_collection_with_claude_md(tmp_path: P
     assert "todo_root" in ctx
 
 
-def test_global_always_present_fires_even_without_claude_md(tmp_path: Path) -> None:
-    """GLOBAL_COLLECTION's [available: global] must be unconditional -- global
-    applies everywhere, regardless of repo/CLAUDE.md context (unlike the repo-scoped
-    [available] block, which is correctly gated on has_claude_md)."""
-    entry = _make_mem_entry("pattern_global", "Universal rule that always applies.")
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="workspace",
-        has_claude_md=False,
-        boosted_entries_by_collection={"workspace": [], "global": [entry]},
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available: global]" in ctx
-    assert "Universal rule that always applies." in ctx
-    assert "[available]" not in ctx.replace("[available: global]", "")
-
-
-def test_global_and_repo_always_present_blocks_both_appear(tmp_path: Path) -> None:
-    """The two blocks are independent -- a full repo-scoped pool must not crowd out
-    global entries, and vice versa."""
-    repo_entry = _make_mem_entry("pattern_repo", "Repo-scoped rule.")
-    global_entry = _make_mem_entry("pattern_global", "Global rule.")
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="repo.ai-mem",
-        has_claude_md=True,
-        boosted_entries_by_collection={"repo.ai-mem": [repo_entry], "global": [global_entry]},
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" in ctx
-    assert "[available: global]" in ctx
-    assert "Repo-scoped rule." in ctx
-    assert "Global rule." in ctx
-
-
-def test_boosted_gate_respects_custom_max_count() -> None:
-    """max_count parameterizes the cap independently of _AVAILABLE_MAX -- this is
-    what lets the global block use a smaller, separate cap (_AVAILABLE_GLOBAL_MAX)
-    than the repo-scoped block, without sharing a budget."""
-    mock_repo = MagicMock()
-    entries = [
-        _make_mem_entry(f"pattern_{i}", f"Entry {i}", confidence=0.95, access_count=5, boost_count=1)
-        for i in range(5)
-    ]
-    mock_repo.get_all.return_value = entries
-
-    result = hook._boosted_entries(mock_repo, "global", exclude_ids=set(), max_count=2)
-
-    assert len(result) == 2
-    assert hook._AVAILABLE_GLOBAL_MAX == 2
-    assert hook._AVAILABLE_GLOBAL_MAX != hook._AVAILABLE_MAX
-
-
-def test_always_present_text_truncated_to_title_length(tmp_path: Path) -> None:
-    """[available] shows only id + title (title_of's 80-char cap) -- full text is never
-    dumped, and the id is present so mem_get(ids=[...]) can retrieve it on demand."""
-    long_text = "B" * 500
-    entry = _make_mem_entry("pattern_long", long_text)
-    out = _run_main(
-        tmp_path,
-        focus_map={"global": "global mem"},
-        repo_collection="repo.ai-mem",
-        has_claude_md=True,
-        boosted_entries=[entry],
-    )
-
-    parsed = json.loads(out)
-    ctx = parsed["hookSpecificOutput"]["additionalContext"]
-    assert "[available]" in ctx
-    assert long_text not in ctx
-    assert "pattern_long" in ctx
-    assert "B" * 80 in ctx
-    assert "mem_get" in ctx
-
-
 # ---------------------------------------------------------------------------
 # Pull-based default (2026-09-16): session_start_verbose defaults to False,
 # so SessionStart announces routing only -- no focus text, [available] lists,
@@ -729,15 +522,12 @@ def test_always_present_text_truncated_to_title_length(tmp_path: Path) -> None:
 
 def test_default_is_non_verbose_routing_only(tmp_path: Path) -> None:
     """With no agents.yaml override, only the Active collection line appears --
-    focus text and [available] entries, though present in the mocked data, are
-    never pulled into the output."""
-    entry = _make_mem_entry("pattern_x", "some pattern")
+    focus text, though present in the mocked data, is never pulled into the output."""
     out = _run_main(
         tmp_path,
         focus_map={"repo.ai-mem": "repo focus text", "global": "global focus text"},
         repo_collection="repo.ai-mem",
         has_claude_md=True,
-        boosted_entries=[entry],
         verbose=False,
     )
 
@@ -798,64 +588,53 @@ def test_verbose_true_restores_full_push_behavior(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Experience index (chunk 3): the one content block SessionStart still pushes.
+# Records pointer (2026-10-04): replaces the pushed experience index with one line
+# naming docs/records/ and the librarian; the default path touches no storage.
 # ---------------------------------------------------------------------------
 
-def test_index_block_appears_in_default_mode_after_routing(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.return_value = "- before merging -> a: Title"
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+def _with_records(tmp_path: Path, focus: bool = True) -> Path:
+    root = tmp_path / "repo"
+    (root / "docs" / "records").mkdir(parents=True)
+    if focus:
+        (root / "docs" / "records" / "FOCUS.md").write_text("focus\n")
+    return root
+
+
+def test_records_pointer_names_focus_index_and_librarian(tmp_path: Path) -> None:
+    root = _with_records(tmp_path)
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False, git_root=root)
     ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
-    assert ctx.index('Active collection: "repo.x"') < ctx.index("[experience index]")
-    assert "- before merging -> a: Title" in ctx
-    index_uc.return_value.execute.assert_called_once_with(["repo.x", "global"])
+    assert ctx.index('Active collection: "repo.x"') < ctx.index("Records: ")
+    assert str(root / "docs" / "records") in ctx
+    assert "FOCUS.md" in ctx and "INDEX.md" in ctx and "librarian" in ctx
+    assert "experience index" not in ctx
 
 
-def test_index_uses_only_global_without_claude_md(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.return_value = "- g -> b: T"
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(tmp_path, has_claude_md=False, verbose=False)
-    assert "- g -> b: T" in json.loads(out)["hookSpecificOutput"]["additionalContext"]
-    index_uc.return_value.execute.assert_called_once_with(["global"])
-
-
-def test_no_index_block_when_index_is_empty(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.return_value = ""
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
-    assert "experience index" not in out
-
-
-def test_index_failure_does_not_break_routing(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.side_effect = RuntimeError("chroma exploded")
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+def test_records_pointer_omits_focus_when_no_focus_file(tmp_path: Path) -> None:
+    root = _with_records(tmp_path, focus=False)
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False, git_root=root)
     ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
-    assert 'Active collection: "repo.x"' in ctx and "experience index" not in ctx
+    assert "Records: " in ctx and "FOCUS.md" not in ctx
 
 
-def test_index_setting_false_suppresses_block(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.return_value = "- x -> a: T"
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(
-            tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False,
-            extra_settings={"session_start_index": False},
-        )
-    assert "experience index" not in out
-    index_uc.return_value.execute.assert_not_called()
+def test_no_records_pointer_without_records_dir(tmp_path: Path) -> None:
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False, git_root=tmp_path)
+    assert "Records: " not in json.loads(out)["hookSpecificOutput"]["additionalContext"]
 
 
-def test_index_block_also_appears_in_verbose_mode(tmp_path: Path) -> None:
-    index_uc = MagicMock()
-    index_uc.return_value.execute.return_value = "- x -> a: T"
-    with patch.object(hook, "ExperienceIndexUseCase", index_uc):
-        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=True)
-    assert "[experience index]" in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+def test_no_records_pointer_without_claude_md(tmp_path: Path) -> None:
+    root = _with_records(tmp_path)
+    out = _run_main(tmp_path / "db", has_claude_md=False, verbose=False, git_root=root)
+    assert out == ""
+
+
+def test_default_mode_never_builds_the_repository(tmp_path: Path) -> None:
+    chroma = MagicMock()
+    root = _with_records(tmp_path)
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False,
+                    chroma_cls=chroma, git_root=root)
+    chroma.assert_not_called()
+    assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]
 
 
 def test_repo_construction_failure_keeps_routing_line(tmp_path: Path) -> None:
@@ -873,15 +652,4 @@ def test_repo_construction_failure_in_verbose_mode_falls_back_to_routing(tmp_pat
         tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=True,
         chroma_cls=MagicMock(side_effect=RuntimeError("chroma db locked")),
     )
-    assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]
-
-
-def test_repo_not_built_when_index_disabled_in_default_mode(tmp_path: Path) -> None:
-    """With the index off, the default path touches no storage, as before the index existed."""
-    chroma = MagicMock()
-    out = _run_main(
-        tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False,
-        extra_settings={"session_start_index": False}, chroma_cls=chroma,
-    )
-    chroma.assert_not_called()
     assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]

@@ -56,9 +56,34 @@ def test_export_writes_file_with_correct_content(wired):
     assert "Decision: use X." in content
 
 
-def test_export_skips_non_adr_types(wired):
+def test_export_writes_todo_under_todos_kind(wired):
+    AddMemoryUseCase(wired.repo).execute(wired.collection, ["open work"], ["todo_example"], metadatas=[{"type": "todo"}])
+
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+
+    assert (wired.repo_root / "docs" / "records" / "general" / "todos" / "todo_example.md").exists()
+
+
+def test_focus_roundtrip_via_focus_md(wired):
+    AddMemoryUseCase(wired.repo).execute(wired.collection, ["Fokus: X"], ["current_focus"], metadatas=[{"type": "project"}])
+
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    assert (wired.repo_root / "docs" / "records" / "FOCUS.md").read_text() == "Fokus: X\n"
+
+    fresh_db_path = wired.db_path.parent / "fresh_db"
+    record_collection_root(fresh_db_path, wired.collection, wired.repo_root)
+    rc = _cmd_import(_import_args(wired.collection, fresh_db_path))
+
+    assert rc == 0
+    [focus] = ChromaMemoryRepository(fresh_db_path).get_by_ids(wired.collection, ["current_focus"])
+    assert focus.text == "Fokus: X"
+    assert focus.metadata["type"] == "project"
+
+
+def test_export_skips_untyped_and_unknown_types(wired):
     add_memory = AddMemoryUseCase(wired.repo)
-    add_memory.execute(wired.collection, ["some feedback"], ["feedback_example"], metadatas=[{"type": "feedback"}])
+    add_memory.execute(wired.collection, ["a"], ["untyped_example"], metadatas=[{"source": "x"}])
+    add_memory.execute(wired.collection, ["b"], ["scratch_example"], metadatas=[{"type": "scratch"}])
 
     _cmd_export(_export_args(wired.collection, wired.db_path))
 
@@ -131,6 +156,20 @@ def test_second_import_does_not_overwrite_boosted_boost_count(wired):
     assert rc == 0
     after_import = wired.repo.get_by_ids(wired.collection, ["domain_example"])[0]
     assert after_import.metadata["boost_count"] == boosted_count
+
+
+def test_import_restores_cue_from_file(wired):
+    AddMemoryUseCase(wired.repo).execute(
+        wired.collection, ["Decision: use X."], ["domain_example"], metadatas=[{"type": "domain", "cue": "when deciding X"}]
+    )
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+
+    fresh_db_path = wired.db_path.parent / "fresh_db"
+    record_collection_root(fresh_db_path, wired.collection, wired.repo_root)
+    assert _cmd_import(_import_args(wired.collection, fresh_db_path)) == 0
+
+    [restored] = ChromaMemoryRepository(fresh_db_path).get_by_ids(wired.collection, ["domain_example"])
+    assert restored.metadata["cue"] == "when deciding X"
 
 
 def test_import_skips_malformed_file_reports_it_and_continues(wired):
@@ -301,3 +340,36 @@ def test_import_skips_only_top_level_index_and_readme(wired):
     rc = _cmd_import(_import_args(wired.collection, wired.db_path))
 
     assert rc != 0
+
+
+@pytest.mark.parametrize(("entry_type", "kind"), [("todo", "todos"), ("user", "user")])
+def test_roundtrip_restores_todo_and_user_types(wired, entry_type, kind):
+    _add(wired, "entry_x", entry_type)
+    _cmd_export(_export_args(wired.collection, wired.db_path))
+    assert (wired.repo_root / "docs" / "records" / "general" / kind / "entry_x.md").exists()
+
+    wired.repo.delete(wired.collection, ["entry_x"])
+    assert _cmd_import(_import_args(wired.collection, wired.db_path)) == 0
+
+    [restored] = wired.repo.get_by_ids(wired.collection, ["entry_x"])
+    assert restored.metadata["type"] == entry_type
+    assert restored.text == "Decision: use X."
+
+
+def test_export_and_import_roundtrip_for_rootless_collection(tmp_path, monkeypatch):
+    home = tmp_path / "records"
+    home.mkdir()
+    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(home))
+    db_path = tmp_path / "db"
+    repo = ChromaMemoryRepository(db_path)
+    AddMemoryUseCase(repo).execute("global", ["Rule: x"], ["pattern_g"], metadatas=[{"type": "pattern"}])
+    AddMemoryUseCase(repo).execute("subagent.the-coder", ["no"], ["learning_s"], metadatas=[{"type": "learning"}])
+
+    _cmd_export(_export_args(None, db_path))
+
+    assert (home / "global" / "docs" / "records" / "general" / "decisions" / "pattern_g.md").exists()
+    assert (home / "subagent.the-coder" / "docs" / "records" / "general" / "learnings" / "learning_s.md").exists()
+
+    repo.delete("global", ["pattern_g"])
+    assert _cmd_import(_import_args("global", db_path)) == 0
+    assert repo.get_by_ids("global", ["pattern_g"])[0].text == "Rule: x"

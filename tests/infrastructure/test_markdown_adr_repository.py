@@ -121,12 +121,59 @@ def test_upsert_domain_type_writes_file(adr_repo, repo_root):
     assert "access_count" not in content
 
 
-def test_upsert_non_adr_type_writes_no_file(adr_repo, repo_root):
-    entry = MemoryEntry(id="feedback_x", text="Rule: ...\nWhen: ...\nWhy: ...", metadata={"type": "feedback"})
+def test_upsert_untracked_type_writes_no_file(adr_repo, repo_root):
+    entry = MemoryEntry(id="scratch_x", text="note", metadata={"type": "scratch"})
 
     adr_repo.upsert(COLLECTION, [entry])
 
-    assert not _adr_file(repo_root, "feedback_x").exists()
+    assert not _adr_file(repo_root, "scratch_x").exists()
+
+
+def test_upsert_todo_writes_file_under_todos_kind(adr_repo, repo_root):
+    entry = MemoryEntry(id="todo_x", text="Do the thing", metadata={"type": "todo"})
+
+    adr_repo.upsert(COLLECTION, [entry])
+
+    assert _adr_file(repo_root, "todo_x", "general", "todos").exists()
+
+
+def _focus_file(repo_root):
+    return repo_root / "docs" / "records" / "FOCUS.md"
+
+
+def test_current_focus_is_written_to_focus_md_and_overwritten(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus A", metadata={"type": "project"})])
+    assert _focus_file(repo_root).read_text() == "Fokus A\n"
+
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus B", metadata={"type": "project"})])
+    assert _focus_file(repo_root).read_text() == "Fokus B\n"
+    assert not (repo_root / "docs" / "records" / "INDEX.md").exists()
+
+
+def test_focus_boost_only_upsert_does_not_rewrite_focus_md(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus", metadata={"type": "project"})])
+    mtime = _focus_file(repo_root).stat().st_mtime_ns
+
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus", metadata={"type": "project", "boost_count": 3})])
+
+    assert _focus_file(repo_root).stat().st_mtime_ns == mtime
+
+
+def test_delete_current_focus_removes_focus_md(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus", metadata={"type": "project"})])
+
+    adr_repo.delete(COLLECTION, ["current_focus"])
+
+    assert not _focus_file(repo_root).exists()
+
+
+def test_focus_md_is_not_listed_in_index(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="current_focus", text="Fokus", metadata={"type": "project"})])
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="todo_x", text="Do it", metadata={"type": "todo"})])
+
+    index = (repo_root / "docs" / "records" / "INDEX.md").read_text()
+    assert "todo_x" in index
+    assert "current_focus" not in index and "FOCUS" not in index
 
 
 def test_confidence_only_change_does_not_rewrite_file(adr_repo, repo_root):
@@ -221,6 +268,18 @@ def test_boost_only_upsert_does_not_regenerate_index(adr_repo, repo_root):
     assert index_path.stat().st_mtime_ns == index_mtime_ns
 
 
+def test_cue_change_rewrites_file_but_not_index(adr_repo, repo_root):
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="domain_x", text="Decision: ...", metadata={"type": "domain"})])
+    index_path = repo_root / "docs" / "records" / "INDEX.md"
+    index_mtime_ns = index_path.stat().st_mtime_ns
+
+    adr_repo.upsert(COLLECTION, [MemoryEntry(id="domain_x", text="Decision: ...",
+                                             metadata={"type": "domain", "boost_count": 1, "cue": "when X"})])
+
+    assert "cue: when X" in _adr_file(repo_root, "domain_x").read_text()
+    assert index_path.stat().st_mtime_ns == index_mtime_ns
+
+
 def test_upsert_no_resolvable_root_is_a_noop(tmp_path):
     # No record_collection_root() call, no detectable repo context: adr_file_path()
     # returns None, so _sync_file() must no-op rather than crash.
@@ -252,8 +311,8 @@ def test_unsafe_adr_id_is_rejected_before_inner_write(adr_repo, repo_root, bad_i
     assert not (repo_root / "docs" / "escape.md").exists()
 
 
-def test_unsafe_id_is_fine_for_non_adr_types(adr_repo):
-    entry = MemoryEntry(id="sub/dir", text="note", metadata={"type": "fact"})
+def test_unsafe_id_is_fine_for_untracked_types(adr_repo):
+    entry = MemoryEntry(id="sub/dir", text="note", metadata={"type": "scratch"})
 
     adr_repo.upsert(COLLECTION, [entry])
 
@@ -286,11 +345,11 @@ def test_retype_domain_to_learning_moves_file_and_refreshes_index(adr_repo, repo
     assert "| x | general | learning |" in (repo_root / "docs" / "records" / "INDEX.md").read_text()
 
 
-def test_retype_to_non_adr_deletes_file_and_prunes_empty_dirs(adr_repo, repo_root):
+def test_retype_to_untracked_deletes_file_and_prunes_empty_dirs(adr_repo, repo_root):
     _upsert(adr_repo, "x", type="learning", area="ble")
     assert _adr_file(repo_root, "x", "ble", "learnings").exists()
 
-    _upsert(adr_repo, "x", type="fact", area="ble")
+    _upsert(adr_repo, "x", type="scratch", area="ble")
 
     assert not _adr_file(repo_root, "x", "ble", "learnings").exists()
     assert not (repo_root / "docs" / "records" / "ble").exists()
@@ -357,8 +416,8 @@ def test_invalid_area_on_adr_type_raises_before_inner_write(adr_repo, repo_root,
     assert not (repo_root / "docs" / "records").exists()
 
 
-def test_invalid_area_is_ignored_for_non_adr_types(adr_repo):
-    _upsert(adr_repo, "x", type="fact", area="Not Valid!")
+def test_invalid_area_is_ignored_for_untracked_types(adr_repo):
+    _upsert(adr_repo, "x", type="scratch", area="Not Valid!")
 
     assert adr_repo.get_by_ids(COLLECTION, ["x"])[0].metadata["area"] == "Not Valid!"
 

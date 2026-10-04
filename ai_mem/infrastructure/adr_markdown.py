@@ -23,6 +23,7 @@ class ParsedAdr:
     valid_until: float | None
     edges: list[dict] = field(default_factory=list)
     area: str = DEFAULT_AREA
+    cue: str | None = None
 
 
 def _canonical_edges(raw_edges) -> list[dict] | None:
@@ -44,12 +45,13 @@ def _canonical_edges(raw_edges) -> list[dict] | None:
 def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     """Render an ADR-style Markdown document: fixed-order frontmatter + separator + raw text.
 
-    Field order is hard-coded (id, type, area, created, superseded_by, valid_until, edges) and never
+    Field order is hard-coded (id, type, area, created, superseded_by, valid_until, edges, cue) and never
     derived from metadata's own key order, so that two logically-identical entries always
     serialize byte-identically regardless of dict insertion order — a downstream diff-before-
     write step (a later chunk) depends on this to avoid rewriting files on volatile-only changes.
-    Volatile fields (confidence/access_count/boost_count/last_accessed_at/cue) are never emitted,
-    even if present in `metadata`.
+    Volatile fields (confidence/access_count/boost_count/last_accessed_at) are never emitted,
+    even if present in `metadata`. `cue` is: it carries the experience index, which must survive
+    without ChromaDB (domain_records_model_replaces_chroma_2026_10_04).
     """
     # `area` is always written (default `general`) so serialize(parse(x)) is byte-identical
     # even for entries whose Chroma metadata has no area.
@@ -72,6 +74,12 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     canonical_edges = _canonical_edges(metadata.get("edges"))
     if canonical_edges:
         lines.append(f"edges: {json.dumps(canonical_edges)}")
+
+    # normalize_cue() already collapses a cue to one line; re-collapse defensively, since a
+    # newline here would break the line-based frontmatter.
+    cue = " ".join(str(metadata.get("cue") or "").split())
+    if cue:
+        lines.append(f"cue: {cue}")
 
     frontmatter = "\n".join(lines)
     return f"{frontmatter}{_FRONTMATTER_SEPARATOR}{text}"
@@ -132,4 +140,5 @@ def parse(markdown_text: str) -> ParsedAdr:
         valid_until=valid_until,
         edges=edges,
         area=fields.get("area") or DEFAULT_AREA,
+        cue=fields.get("cue") or None,
     )

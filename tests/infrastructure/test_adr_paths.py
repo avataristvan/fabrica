@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
+    records_home,
     adr_dir_for,
     adr_file_path,
     find_adr_files,
@@ -19,12 +20,39 @@ from ai_mem.repo_context import RepoContext
 
 
 def test_adr_types_contains_expected_types():
-    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern", "learning"})
+    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern", "learning", "todo", "user"})
 
 
-def test_global_and_workspace_always_none(tmp_path):
+def test_rootless_collections_none_without_records_home(tmp_path):
     assert resolve_repo_root_for_collection(tmp_path, "global") is None
     assert resolve_repo_root_for_collection(tmp_path, "workspace") is None
+    assert resolve_repo_root_for_collection(tmp_path, "subagent.the-coder") is None
+
+
+def test_rootless_collections_resolve_below_records_home(tmp_path, monkeypatch):
+    home = tmp_path / "records"
+    home.mkdir()
+    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(home))
+
+    for collection in ("global", "workspace", "subagent.the-coder"):
+        assert resolve_repo_root_for_collection(tmp_path, collection) == home / collection
+    assert adr_dir_for(tmp_path, "global") == home / "global" / "docs" / "records"
+
+
+def test_records_home_falls_back_to_workspace_root_and_requires_existing_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("AI_MEM_WORKSPACE_ROOT", str(tmp_path))
+    assert records_home() is None  # ai-mem-records/ not created yet: opt-in only
+
+    (tmp_path / "ai-mem-records").mkdir()
+    assert records_home() == tmp_path / "ai-mem-records"
+
+
+def test_records_home_env_overrides_workspace_root(tmp_path, monkeypatch):
+    explicit = tmp_path / "elsewhere"
+    explicit.mkdir()
+    monkeypatch.setenv("AI_MEM_WORKSPACE_ROOT", str(tmp_path))
+    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(explicit))
+    assert records_home() == explicit
 
 
 def test_global_and_workspace_ignore_existing_mapping(tmp_path):
@@ -204,9 +232,9 @@ def test_adr_file_path_returns_none_for_unsafe_id(tmp_path):
     assert adr_file_path(tmp_path / "db", "repo.x", "../escape", "domain", "general") is None
 
 
-def test_adr_file_path_none_for_non_adr_type(tmp_path):
+def test_adr_file_path_none_for_untracked_type(tmp_path):
     record_collection_root(tmp_path, "repo.x", tmp_path / "repo")
-    assert adr_file_path(tmp_path, "repo.x", "note_1", "feedback", "general") is None
+    assert adr_file_path(tmp_path, "repo.x", "note_1", "scratch", "general") is None
 
 
 def test_adr_file_path_none_for_unsafe_area(tmp_path):

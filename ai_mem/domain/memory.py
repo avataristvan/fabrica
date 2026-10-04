@@ -91,3 +91,15 @@ class MemoryRepository(Protocol):
     def get_edges(self, collection: str, entry_id: str) -> list[MemoryEdge]:
         """Return all outgoing edges for entry_id. Empty list when none exist or entry missing."""
         ...
+
+
+_MAX_TITLE_LEN = 80
+
+
+def title_of(text: str, max_len: int = _MAX_TITLE_LEN) -> str:
+    """First non-empty line of an entry's text, truncated: the title in listings, INDEX.md and queries."""
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped:
+            return stripped[:max_len]
+    return ""

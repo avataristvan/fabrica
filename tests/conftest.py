@@ -18,6 +18,9 @@ import pytest
 _TEST_DB_PATH = tempfile.mkdtemp(prefix="ai-mem-test-")
 atexit.register(shutil.rmtree, _TEST_DB_PATH, ignore_errors=True)
 os.environ["AI_MEM_PATH"] = _TEST_DB_PATH
+# Never resolve the real private records repo from a test run.
+os.environ.pop("AI_MEM_RECORDS_HOME", None)
+os.environ.pop("AI_MEM_WORKSPACE_ROOT", None)
 os.environ["AI_MEM_ADR_DISABLED"] = "1"
 
 from ai_mem.application.track_access import TrackAccessUseCase

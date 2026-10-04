@@ -36,14 +36,14 @@ Ask both questions together:
 > **"Was hast du gelernt oder was hat dich überrascht?"**
 > **"Was hat dich gehindert?"**
 
-Wait for the user's answer. Store each learning or blocker immediately:
+Wait for the user's answer. Store each learning or blocker immediately — an observation is a `learning` (each entry becomes one record file; types without a file, like `feedback` or `project`, are rejected):
 
 ```
 mem_add(
-    documents=[<learning or blocker>],
+    documents=["Observed: <what happened or got in the way>\nCause: <root cause, or 'unknown'>\nEvidence: <test, commit sha or entry ids>"],
     collection=<active>,
-    type="feedback",
-    ids=["feedback_<slug>"],
+    type="learning",
+    ids=["learning_<slug>"],
 )
 ```
 
@@ -73,17 +73,19 @@ mem_add(
 
 The `Rule:` structure makes the entry scannable during dream consolidation and prevents it from being incorrectly merged with the anti-pattern it replaces.
 
-If what was learned is an observed fact or measurement (not yet a rule or choice) and the active collection is a `repo.*` collection, store it as a learning. It is persisted as Markdown under `docs/records/<area>/learnings/`; other collections have no repo root, so do not use `learning` there.
+If it is a choice or a business/domain reason (why something is the way it is), store it as a `domain` decision:
 
 ```
 mem_add(
-    documents=["Observed: <fact or measurement>\nCause: <root cause, or 'unknown'>\nEvidence: <test, commit sha or entry ids>"],
+    documents=["Decision: <what was decided or is true>\nWhy: <reason>\nScope: <where it applies>"],
     collection=<active>,
-    type="learning",
+    type="domain",
     area="<area, e.g. general, marketing>",   # optional, default "general"; ^[a-z0-9][a-z0-9_-]*$
-    ids=["learning_<slug>"],
+    ids=["domain_<slug>"],
 )
 ```
+
+Every entry is a file under `docs/records/<area>/<kind>/` (`global`, `workspace` and `subagent.*` live in the records home, `ai-mem-records/<collection>/`).
 
 If a decision (`domain`/`pattern`/`anti-pattern`) is derived from a learning, link it from the decision to the learning:
 
@@ -97,16 +99,7 @@ Skip if the user has nothing to add.
 
 ## Step 3.1 — Citation & Cue
 
-Schau zurück auf die Session: welche aus dem Kontext-Hook eingespielten Memories waren **entscheidend** — haben eine Entscheidung verändert, einen Fehler verhindert, oder nicht-offensichtlichen Kontext geliefert?
-
-Für jede entscheidende Memory (das ist das Zitier-Signal — `mem_boost` erhöht nur noch `boost_count` und setzt optional den Cue, es liest oder schreibt keine Confidence mehr):
-
-```
-mem_boost(
-    ids=["<memory_id>"],
-    collection=<active>,
-)
-```
+Schau zurück auf die Session: welche Records, die du gelesen hast (FOCUS.md, INDEX.md, eine Record-Datei, eine Antwort des Bibliothekars), waren **entscheidend** — haben eine Entscheidung verändert, einen Fehler verhindert, oder nicht-offensichtlichen Kontext geliefert? Das Vertrauenssignal ist eine nachvollziehbare Kante oder ein Cue, kein Zähler.
 
 War eine Memory falsch oder irreführend? Dann nicht decayen — das Vertrauenssignal ist eine nachvollziehbare Kante, kein Punktabzug:
 
@@ -126,13 +119,13 @@ Hat eine in dieser Session neu gespeicherte Erkenntnis (z. B. aus Step 2 oder 3.
 mem_link(source_id="<neue_id>", target_id="<memory_id>", edge_type="confirms", collection=<active>)
 ```
 
-`confirms` braucht einen echten zweiten Eintrag als Beleg; wurde in dieser Session nichts Neues dazu geschrieben, reicht der Citation-Boost oben.
+`confirms` braucht einen echten zweiten Eintrag als Beleg; wurde in dieser Session nichts Neues dazu geschrieben, reicht ein Cue (unten).
 
-Die Memory-IDs stehen im `[ai-mem]`-Kontext vom Session-Start. Überspring diesen Schritt still wenn keine Memories eingespielt wurden oder keine davon den Unterschied gemacht hat.
+Überspring diesen Schritt still, wenn keine Records gelesen wurden oder keiner den Unterschied gemacht hat.
 
 ### Cue: in welchem Moment hätte dir das geholfen?
 
-Der Erfahrungsindex im `[ai-mem]`-Kontext ("Situation → Eintrag") besteht nur aus Einträgen mit Cue. Frag dich bei jeder Erkenntnis, die du in dieser Session gewonnen oder bestätigt hast: **In welcher Situation hätte ich das gebraucht, ohne zu wissen, dass ich danach fragen muss?** Formuliere die Situation aus der Sicht dessen, der noch nichts weiß (was er gerade tut oder vorhat), nicht als Stichwort der Lösung.
+Der Cue steht als `cue:`-Zeile in der Record-Datei; der Bibliothekar sucht darüber nach "Situation → Eintrag". Frag dich bei jeder Erkenntnis, die du in dieser Session gewonnen oder bestätigt hast: **In welcher Situation hätte ich das gebraucht, ohne zu wissen, dass ich danach fragen muss?** Formuliere die Situation aus der Sicht dessen, der noch nichts weiß (was er gerade tut oder vorhat), nicht als Stichwort der Lösung.
 
 ```
 mem_boost(
@@ -142,7 +135,7 @@ mem_boost(
 )
 ```
 
-Nur was du wirklich in einer Situation wiederfinden würdest, bekommt einen Cue: der Index hat einen festen Rahmen und lebt davon, klein zu bleiben. Ist ein Cue überholt oder falsch, entferne ihn mit `cue=""`. Überholte Einträge (`supersedes`) verschwinden von selbst aus dem Index.
+Nur was du wirklich in einer Situation wiederfinden würdest, bekommt einen Cue — ein Cue ist ein Versprechen, dass der Eintrag dann hilft. Ist ein Cue überholt oder falsch, entferne ihn mit `cue=""`.
 
 ---
 
@@ -180,16 +173,18 @@ Present them as a short list. Do not store automatically — ask which ones to k
 
 > **"Welche davon sind relevant?"**
 
-Store confirmed todos:
+Store confirmed todos — one file each under `docs/records/<area>/todos/`, several in one call:
 
 ```
 mem_add(
-    documents=[<todo>],
+    documents=["TODO: <first>", "TODO: <second>"],
+    ids=["todo_<slug1>", "todo_<slug2>"],
     collection=<active>,
-    type="project",
-    ttl_days=14,   # optional, adjust per todo
+    type="todo",
 )
 ```
+
+A todo finished in this session is closed, not kept: `mem_delete` it and store a `learning` naming the commit sha (`Observed: … done in <sha>`).
 
 ---
 
@@ -212,7 +207,7 @@ If yes:
 mem_add(
     documents=[<learning text>],
     collection="subagent.<agent-type>",   # e.g. "subagent.the-coder"
-    type="feedback",
+    type="pattern",   # or "anti-pattern" / "learning" as appropriate
     ids=["<agent-type>_<slug>"],
 )
 ```
@@ -229,7 +224,7 @@ If the user names one or more, store each in the appropriate collection — `glo
 mem_add(
     documents=[<principle>],
     collection=<global or subagent.*>,
-    type="feedback",   # or "anti-pattern" / "pattern" as appropriate
+    type="pattern",   # or "anti-pattern" / "learning" as appropriate
     ids=["<slug>"],
 )
 ```
@@ -244,7 +239,7 @@ The expert collection accumulates across all projects. Over time it gives the ag
 
 ## Step 5 — Update current_focus
 
-Ask: **"Was ist dein nächster Fokus?"** (or derive from the confirmed todos if obvious).
+Ask: **"Was ist dein nächster Fokus?"** (or derive from the confirmed todos if obvious). It is written to `docs/records/FOCUS.md` and overwritten each time — git keeps the history, so no dates or status words that will rot.
 
 ```
 mem_add(

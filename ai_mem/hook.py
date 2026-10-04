@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SessionStart hook — announces the active collection and prints the experience index; verbose mode adds focus text."""
+"""SessionStart hook — announces the active collection and where the records live; verbose mode adds focus text."""
 import json
 import os
 import sys
@@ -12,11 +12,11 @@ DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / 
 # Module-level imports for patchability in tests (same pattern as posttool_hook.py).
 try:
     from ai_mem.agent_context import _CONFIG_PATH, _load_settings, detect_for_session_start, write_to_env_file
-    from ai_mem.application.experience_index import ExperienceIndexUseCase
     from ai_mem.application.get_memory import GetMemoryUseCase
     from ai_mem.application.list_collections import ListCollectionsUseCase
     from ai_mem.application.list_entries import title_of
-    from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+    from ai_mem.infrastructure.adr_paths import records_dir_for_root
+    from ai_mem.infrastructure.repository_factory import build_repository
     from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION, detect_repo_context
     from ai_mem.session_stats import record_injection
 except ImportError:
@@ -24,11 +24,11 @@ except ImportError:
     _load_settings = None  # type: ignore[assignment]
     detect_for_session_start = None  # type: ignore[assignment]
     write_to_env_file = None  # type: ignore[assignment]
-    ExperienceIndexUseCase = None  # type: ignore[assignment]
     GetMemoryUseCase = None  # type: ignore[assignment]
     ListCollectionsUseCase = None  # type: ignore[assignment]
     title_of = None  # type: ignore[assignment]
-    ChromaMemoryRepository = None  # type: ignore[assignment]
+    build_repository = None  # type: ignore[assignment]
+    records_dir_for_root = None  # type: ignore[assignment]
     GLOBAL_COLLECTION = "global"
     WORKSPACE_COLLECTION = "workspace"
     detect_repo_context = None  # type: ignore[assignment]
@@ -41,19 +41,15 @@ FOCUS_ID = "current_focus"
 # session_start_verbose: true in ~/.config/ai-mem/agents.yaml to restore the old push
 # behavior for a workflow that wants it.
 _SETTING_VERBOSE = "session_start_verbose"
-# The experience index (chunk 3) is the one content block SessionStart still pushes: a fixed,
-# small frame of "situation -> entry" lines built from cues written during /reflect. It exists
-# because agents do not think to query memory unless something in their context points at an
-# entry (eval_pull). Set session_start_index: false to get the routing line alone.
-_SETTING_INDEX = "session_start_index"
+# The experience index used to be the one content block still pushed here (~900 tokens per
+# session). Since 2026-10-04 it is replaced by a one-line pointer: agents do not query memory
+# unless something in their context points at it (eval_pull_gap_test_2026_09_20), so the pointer
+# names the record files and the librarian agent, which reads them -- cues included -- on demand.
 _STATS_PATH = DB_PATH / "session_stats.json"
 _SESSION_START_FILE = DB_PATH / "session_start.txt"
 _PREV_SESSION_MAX_AGE_DAYS = 7
 _FOCUS_PREVIEW_CHARS = 150
 _GIT_COMMITS_MAX = 5
-_AVAILABLE_MIN_BOOSTS = 1
-_AVAILABLE_MAX = 3
-_AVAILABLE_GLOBAL_MAX = 2
 _EXPIRED_MAX = 3
 _EXPIRED_PREVIEW_CHARS = 120
 
@@ -117,24 +113,6 @@ def _focus_text(get_memory, collection: str) -> str | None:
         return None
 
 
-def _boosted_entries(repo, collection: str, exclude_ids: set[str], max_count: int = _AVAILABLE_MAX) -> list:
-    """Return entries with an explicit /reflect boost, sorted by boost_count desc (ties by id)."""
-    try:
-        all_entries = repo.get_all(collection)
-        candidates = []
-        for entry in all_entries:
-            if entry.id in exclude_ids:
-                continue
-            boost_count = int(entry.metadata.get("boost_count", 0))
-            if boost_count >= _AVAILABLE_MIN_BOOSTS:
-                candidates.append((boost_count, entry))
-        candidates.sort(key=lambda x: (-x[0], x[1].id))
-        return [entry for _, entry in candidates[:max_count]]
-    except Exception:
-        return []
-
-
-
 def _expired_entries(repo, collection: str, now_ts: float) -> list:
     """Return entries with expires_at in the past, sorted oldest-first."""
     try:
@@ -155,22 +133,21 @@ def _expired_entries(repo, collection: str, now_ts: float) -> list:
         return []
 
 
-def _experience_block(repo, ctx) -> str | None:
-    """The experience index for this session's scope plus global, or None when empty."""
-    if ExperienceIndexUseCase is None:
-        return None
-    collections = [ctx.collection, GLOBAL_COLLECTION] if ctx.has_claude_md else [GLOBAL_COLLECTION]
+def _records_pointer(ctx) -> str | None:
+    """One line naming this repo's record files and the librarian, or None when the repo has none."""
     try:
-        lines = ExperienceIndexUseCase(repo).execute(collections)
+        root = ctx.git_root or ctx.claude_md_dir
+        if not ctx.has_claude_md or root is None:
+            return None
+        records = records_dir_for_root(Path(root))
+        if not records.is_dir():
+            return None
     except Exception:
         return None
-    if not lines:
-        return None
+    focus = "FOCUS.md = current focus, " if (records / "FOCUS.md").is_file() else ""
     return (
-        "[experience index]\n"
-        "If the situation you are in matches a line, fetch the entry before acting: "
-        f'mem_get(ids=[...], collection="{collections[0]}") (collection shown in brackets when different).\n'
-        + lines
+        f"Records: {records} ({focus}INDEX.md = catalogue of decisions, learnings, todos). "
+        "Read them on demand; for \"why is it like this / was this tried before?\" ask the librarian agent."
     )
 
 
@@ -181,7 +158,7 @@ def main():
         stdin_json = {}
 
     if (detect_for_session_start is None or write_to_env_file is None
-            or ChromaMemoryRepository is None or GetMemoryUseCase is None
+            or build_repository is None or GetMemoryUseCase is None
             or ListCollectionsUseCase is None or title_of is None
             or detect_repo_context is None or record_injection is None):
         return
@@ -210,7 +187,6 @@ def main():
     except Exception:
         pass
     verbose = bool(settings.get(_SETTING_VERBOSE, False))
-    with_index = bool(settings.get(_SETTING_INDEX, True))
 
     try:
         ctx = detect_repo_context()
@@ -231,22 +207,23 @@ def main():
                 f'Pass collection="{ctx.collection}" to mem_add and mem_query in this session.'
             )
 
-        # The default path used to touch no storage at all. Build the repo only when the index or
-        # verbose mode reads it, and never let a failing build swallow the routing line.
+        records_line = _records_pointer(ctx)
+        if records_line:
+            parts.append(records_line)
+
+        # The default path touches no storage. Build the repo only for verbose mode, and never
+        # let a failing build swallow the routing lines.
         repo = None
-        if with_index or verbose:
+        if verbose:
             try:
-                repo = ChromaMemoryRepository(DB_PATH)
+                repo = build_repository(DB_PATH, with_bm25=False)
             except Exception:
                 repo = None
-        index_block = _experience_block(repo, ctx) if with_index and repo is not None else None
 
         if not verbose or repo is None:
-            if not parts and not index_block:
+            if not parts:
                 return
             body = "\n".join(parts)
-            if index_block:
-                body = f"{body}\n\n{index_block}" if body else index_block
             output = {
                 "hookSpecificOutput": {
                     "hookEventName": "SessionStart",
@@ -302,25 +279,6 @@ def main():
                     f"- {_truncate(entry.text, 200)}" for entry in expert_entries
                 )
             parts.append(block)
-        _avail_exclude = {FOCUS_ID}
-        if ctx.has_claude_md:
-            _avail_entries = _boosted_entries(repo, ctx.collection, _avail_exclude)
-            if _avail_entries:
-                parts.append(
-                    "[available]\n"
-                    + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _avail_entries)
-                    + f"\n(mem_get(ids=[...], collection=\"{ctx.collection}\") for full text)"
-                )
-        # Unconditional: global applies everywhere, regardless of repo/CLAUDE.md context.
-        # Separate, smaller cap so a full repo-scoped pool never crowds out global entries
-        # (or vice versa) -- same fixed-cap-not-dump discipline as every other injection point.
-        _avail_global_entries = _boosted_entries(repo, GLOBAL_COLLECTION, _avail_exclude, max_count=_AVAILABLE_GLOBAL_MAX)
-        if _avail_global_entries:
-            parts.append(
-                "[available: global]\n"
-                + "\n".join(f"- {entry.id}: {title_of(entry.text)}" for entry in _avail_global_entries)
-                + '\n(mem_get(ids=[...], collection="global") for full text)'
-            )
         _now_ts = time.time()
         _expired: list = []
         if ctx.has_claude_md:
@@ -335,9 +293,6 @@ def main():
                 preview = _truncate(entry.text, _EXPIRED_PREVIEW_CHARS)
                 _exp_lines.append(f"⏰ {entry.id}: \"{preview}\" (expired {exp_date})")
             parts.append("[ai-mem expired]\n" + "\n".join(_exp_lines))
-
-        if index_block:
-            parts.append(index_block)
 
         if ctx.has_claude_md and not repo_focus:
             parts.append("No focus entry found. Add one via mem_add with id=\"current_focus\".")

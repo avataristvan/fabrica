@@ -43,13 +43,34 @@ def test_volatile_fields_excluded_from_output():
         "access_count": 42,
         "boost_count": 3,
         "last_accessed_at": 1700000000.0,
-        "cue": "some cue text",
     }
     md = serialize("domain_foo", "domain", "body text", metadata)
 
     frontmatter = md.split("\n---\n\n", 1)[0]
-    for volatile_key in ("confidence", "access_count", "boost_count", "last_accessed_at", "cue"):
+    for volatile_key in ("confidence", "access_count", "boost_count", "last_accessed_at"):
         assert volatile_key not in frontmatter
+
+
+def test_cue_is_written_last_and_roundtrips():
+    md = serialize("domain_foo", "domain", "body", {"edges": '[{"target_id": "x", "edge_type": "related"}]',
+                                                    "cue": "before touching the hook: check X"})
+
+    assert md.split("\n---\n\n", 1)[0].splitlines()[-1] == "cue: before touching the hook: check X"
+    assert parse(md).cue == "before touching the hook: check X"
+    assert serialize("domain_foo", "domain", "body", {"edges": parse(md).edges, "cue": parse(md).cue}) == md
+
+
+def test_cue_with_newlines_is_collapsed_to_one_frontmatter_line():
+    md = serialize("domain_foo", "domain", "body", {"cue": "line one\nline two"})
+
+    assert parse(md).cue == "line one line two"
+
+
+def test_empty_cue_is_omitted():
+    md = serialize("domain_foo", "domain", "body", {"cue": ""})
+
+    assert "cue" not in md.split("\n---\n\n", 1)[0]
+    assert parse(md).cue is None
 
 
 def test_deterministic_field_order_ignores_dict_insertion_order():

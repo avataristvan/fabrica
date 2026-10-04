@@ -16,6 +16,16 @@ def _build_query_uc(db_path: Path, with_bm25: bool = False):
     ~1.1s that a daemon avoids by staying warm across calls. Falls back to building
     everything in-process (the original, always-correct path) when the daemon is unavailable.
     """
+    from ai_mem.application.query_memory import QueryMemoryUseCase
+    from ai_mem.application.track_access import TrackAccessUseCase
+    from ai_mem.infrastructure.repository_factory import uses_chroma
+
+    if not uses_chroma():
+        # Record files need no warm process: nothing to load, no daemon.
+        from ai_mem.infrastructure.file_repository import FileMemoryRepository
+        repo = FileMemoryRepository(db_path)
+        return QueryMemoryUseCase(repo, TrackAccessUseCase(repo))
+
     try:
         from ai_mem.daemon_client import get_daemon_query_uc
         daemon_uc = get_daemon_query_uc(db_path, with_bm25)
@@ -24,8 +34,6 @@ def _build_query_uc(db_path: Path, with_bm25: bool = False):
     except Exception:
         pass
 
-    from ai_mem.application.query_memory import QueryMemoryUseCase
-    from ai_mem.application.track_access import TrackAccessUseCase
     from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
 
     repo = ChromaMemoryRepository(db_path)

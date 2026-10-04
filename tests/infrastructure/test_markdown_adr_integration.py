@@ -33,13 +33,15 @@ def stack(tmp_path):
     return repo, repo_root / "docs" / "records" / "general" / "decisions"
 
 
-def test_boost_and_cue_do_not_touch_the_file(stack):
+def test_cue_is_written_to_the_file_but_a_plain_boost_is_not(stack):
     repo, adr_dir = stack
     AddMemoryUseCase(repo).execute(COLLECTION, ["Decision: A\nWhy: B\nScope: C"], ["domain_a"], [{"type": "domain"}])
     file_path = adr_dir / "domain_a.md"
-    content, mtime_ns = file_path.read_text(), file_path.stat().st_mtime_ns
 
     BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"], cue="when deciding A")
+    assert adr_markdown.parse(file_path.read_text()).cue == "when deciding A"
+    content, mtime_ns = file_path.read_text(), file_path.stat().st_mtime_ns
+
     BoostConfidenceUseCase(repo).execute(COLLECTION, ["domain_a"])
 
     assert file_path.read_text() == content
