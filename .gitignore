@@ -8,3 +8,8 @@ build/
 .idea/
 *.iml
 .claude/worktrees/
+
+# ai-mem's own memory records are private (the user's decision graph), not part of the tool.
+docs/records/
+docs/reference/*
+!docs/reference/chroma_rollback_backend.md
