@@ -11,6 +11,10 @@ from dataclasses import dataclass, field
 from ai_mem.infrastructure.adr_paths import DEFAULT_AREA
 
 _FRONTMATTER_SEPARATOR = "\n---\n\n"
+KNOWN_KEYS = frozenset({"id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges", "cue"})
+# Telemetry that is never persisted: dropped from a file's frontmatter, never carried as an extra key.
+_VOLATILE_KEYS = frozenset({"confidence", "access_count", "boost_count", "last_accessed_at", "expires_at"})
+EXTRA_FRONTMATTER = "extra_frontmatter"  # metadata slot carrying unknown frontmatter keys through a rewrite
 
 
 @dataclass
@@ -24,6 +28,9 @@ class ParsedAdr:
     edges: list[dict] = field(default_factory=list)
     area: str = DEFAULT_AREA
     cue: str | None = None
+    perspective: str | None = None
+    # Unknown frontmatter keys in file order, re-emitted by serialize so normalisation never drops content.
+    extra: dict[str, str] = field(default_factory=dict)
 
 
 def _canonical_edges(raw_edges) -> list[dict] | None:
@@ -45,7 +52,8 @@ def _canonical_edges(raw_edges) -> list[dict] | None:
 def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     """Render an ADR-style Markdown document: fixed-order frontmatter + separator + raw text.
 
-    Field order is hard-coded (id, type, area, created, superseded_by, valid_until, edges, cue) and never
+    Field order is hard-coded (id, type, area, perspective, created, superseded_by, valid_until, edges,
+    <unknown keys from `metadata["extra_frontmatter"]` in their own order>, cue) and never
     derived from metadata's own key order, so that two logically-identical entries always
     serialize byte-identically regardless of dict insertion order — a downstream diff-before-
     write step (a later chunk) depends on this to avoid rewriting files on volatile-only changes.
@@ -56,6 +64,10 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     # `area` is always written (default `general`) so serialize(parse(x)) is byte-identical
     # even for entries whose Chroma metadata has no area.
     lines = [f"id: {entry_id}", f"type: {entry_type}", f"area: {metadata.get('area') or DEFAULT_AREA}"]
+
+    perspective = metadata.get("perspective")
+    if perspective:
+        lines.append(f"perspective: {perspective}")
 
     created_at = metadata.get("created_at")
     if created_at is not None:
@@ -75,6 +87,9 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     if canonical_edges:
         lines.append(f"edges: {json.dumps(canonical_edges)}")
 
+    for key, value in (metadata.get(EXTRA_FRONTMATTER) or {}).items():
+        lines.append(f"{key}: {value}" if value else f"{key}:")
+
     # normalize_cue() already collapses a cue to one line; re-collapse defensively, since a
     # newline here would break the line-based frontmatter.
     cue = " ".join(str(metadata.get("cue") or "").split())
@@ -83,6 +98,16 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
 
     frontmatter = "\n".join(lines)
     return f"{frontmatter}{_FRONTMATTER_SEPARATOR}{text}"
+
+
+def check_extra_frontmatter(extra) -> None:
+    """Raise ValueError unless `extra` is a dict of one-line `key: value` pairs serialize can re-emit and parse read back."""
+    if not isinstance(extra, dict):
+        raise ValueError(f"{EXTRA_FRONTMATTER} must be a dict of strings, got {type(extra).__name__}")
+    for key, value in extra.items():
+        if (not isinstance(key, str) or not isinstance(value, str) or not key or key != key.strip()
+                or key in KNOWN_KEYS or key in _VOLATILE_KEYS or ":" in key or "\n" in key or "\n" in value or value != value.strip()):
+            raise ValueError(f"frontmatter key {key!r} with value {value!r} cannot be written as one 'key: value' line")
 
 
 def parse(markdown_text: str) -> ParsedAdr:
@@ -141,4 +166,6 @@ def parse(markdown_text: str) -> ParsedAdr:
         edges=edges,
         area=fields.get("area") or DEFAULT_AREA,
         cue=fields.get("cue") or None,
+        perspective=fields.get("perspective") or None,
+        extra={key: value for key, value in fields.items() if key not in KNOWN_KEYS and key not in _VOLATILE_KEYS},
     )

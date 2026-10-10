@@ -3,7 +3,44 @@ from __future__ import annotations
 
 import pytest
 
-from ai_mem.infrastructure.adr_markdown import ParsedAdr, parse, serialize
+from ai_mem.infrastructure.adr_markdown import ParsedAdr, check_extra_frontmatter, parse, serialize
+
+
+def test_perspective_is_written_after_area_and_roundtrips():
+    md = serialize("user_x", "user", "body", {"area": "workflow", "perspective": "user", "created_at": 1.0})
+
+    assert md.startswith("id: user_x\ntype: user\narea: workflow\nperspective: user\ncreated: 1.0\n")
+    assert parse(md).perspective == "user"
+    assert parse(serialize("d", "domain", "b", {})).perspective is None
+
+
+def test_unknown_keys_are_preserved_before_cue_in_their_own_order():
+    md = (
+        "id: domain_x\ntype: domain\narea: arch\ncreated: 1.0\n"
+        'edges: [{"target_id": "../other:l", "edge_type": "related"}]\n'
+        "status: accepted\nDatum: 2026-10-10\nempty:\ncue: when x\n---\n\nDecision: X"
+    )
+    parsed = parse(md)
+
+    assert parsed.extra == {"status": "accepted", "Datum": "2026-10-10", "empty": ""}
+    metadata = {"area": parsed.area, "created_at": parsed.created_at, "edges": parsed.edges, "cue": parsed.cue,
+                "extra_frontmatter": parsed.extra, "last_accessed_at": 9.0, "expires_at": 9.0}
+    assert serialize(parsed.id, parsed.type, parsed.text, metadata) == md
+
+
+def test_volatile_keys_in_a_file_are_dropped_not_kept_as_extra():
+    parsed = parse("id: d\ntype: domain\nboost_count: 3\nlast_accessed_at: 1.0\nstatus: ok\n---\n\nX")
+
+    assert parsed.extra == {"status": "ok"}
+
+
+@pytest.mark.parametrize("extra", [
+    {"id": "x"}, {"cue": "x"}, {"expires_at": "1.0"}, {"a:b": "x"}, {"": "x"}, {" a": "x"}, {"a": "x\ny: z"}, {"a\nb": "x"},
+    {"a": 1}, {"a": " x"}, ["a"],
+])
+def test_check_extra_frontmatter_rejects_what_cannot_round_trip(extra):
+    with pytest.raises(ValueError):
+        check_extra_frontmatter(extra)
 
 
 def test_roundtrip_id_type_text():

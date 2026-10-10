@@ -142,10 +142,14 @@ FOCUS_ID = "current_focus"
 FOCUS_FILENAME = "FOCUS.md"
 
 
+def focus_path(records_dir: Path) -> Path:
+    """`<records_dir>/FOCUS.md`: one per records directory, holds the `current_focus` text whatever its type."""
+    return records_dir / FOCUS_FILENAME
+
+
 def focus_file_path(db_path: Path, collection: str) -> Path | None:
-    """`<root>/FOCUS.md`: one per collection, holds the `current_focus` text whatever its type."""
     adr_dir = adr_dir_for(db_path, collection)
-    return adr_dir / FOCUS_FILENAME if adr_dir is not None else None
+    return focus_path(adr_dir) if adr_dir is not None else None
 
 
 def plain_file_content(text: str) -> str:
@@ -193,15 +197,26 @@ def is_safe_area(area: str) -> bool:
     return bool(_AREA_PATTERN.fullmatch(area))
 
 
-def adr_file_path(db_path: Path, collection: str, entry_id: str, entry_type: str, area: str) -> Path | None:
-    """`<root>/<area>/<kind>/<id>.md`, or None if the type isn't an ADR type or id/area are unsafe."""
+def _record_relpath(entry_id: str, entry_type: str, topic: str) -> Path | None:
     kind = KIND_BY_TYPE.get(entry_type)
-    if kind is None or not is_safe_entry_id(entry_id) or not is_safe_area(area):
+    if kind is None or not is_safe_entry_id(entry_id) or not is_safe_area(topic):
+        return None
+    return Path(topic, kind, f"{entry_id}.md")
+
+
+def record_file_path(records_dir: Path, entry_id: str, entry_type: str, topic: str) -> Path | None:
+    """`<records_dir>/<topic>/<kind>/<id>.md`, or None if the type isn't an ADR type or id/topic are unsafe."""
+    relpath = _record_relpath(entry_id, entry_type, topic)
+    return records_dir / relpath if relpath is not None else None
+
+
+def adr_file_path(db_path: Path, collection: str, entry_id: str, entry_type: str, area: str) -> Path | None:
+    # Validated before the collection is resolved: resolving may record a mapping-file entry.
+    relpath = _record_relpath(entry_id, entry_type, area)
+    if relpath is None:
         return None
     adr_dir = adr_dir_for(db_path, collection)
-    if adr_dir is None:
-        return None
-    return adr_dir / area / kind / f"{entry_id}.md"
+    return adr_dir / relpath if adr_dir is not None else None
 
 
 def find_adr_files(adr_dir: Path, entry_id: str) -> list[Path]:

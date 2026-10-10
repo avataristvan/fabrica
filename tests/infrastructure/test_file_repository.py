@@ -10,6 +10,7 @@ from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.boost_confidence import BoostConfidenceUseCase
 from ai_mem.domain.memory import MemoryEdge, MemoryEntry
 from ai_mem.infrastructure import adr_markdown, adr_paths
+from ai_mem.infrastructure.areas import area_records_dir
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 
 COLLECTION = "repo.example"
@@ -183,3 +184,81 @@ def test_rootless_collection_names_cannot_leave_the_records_home(tmp_path, monke
 
     assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", collection) is None
     assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", "subagent.ok") == home / "subagent.ok"
+
+
+def test_perspective_and_unknown_keys_survive_a_rewrite_through_the_repository(repo, root):
+    path = _records(root) / "arch" / "decisions" / "domain_x.md"
+    path.parent.mkdir(parents=True)
+    original = ("id: domain_x\ntype: domain\narea: arch\nperspective: user\ncreated: 1.0\n"
+                "status: accepted\nowner: team-a\ncue: when x\n---\n\nDecision: X")
+    path.write_text(original)
+
+    [entry] = repo.get_by_ids(COLLECTION, ["domain_x"])
+    assert entry.metadata["perspective"] == "user"
+    assert entry.metadata["extra_frontmatter"] == {"status": "accepted", "owner": "team-a"}
+    repo.upsert(COLLECTION, [entry])
+    assert path.read_text() == original
+
+    repo.upsert(COLLECTION, [_entry("domain_y", "Decision: Y", type="domain", area="arch")])
+    AddEdgeUseCase(repo).execute(COLLECTION, "domain_x", "domain_y", "related")
+    text = path.read_text()
+    assert "perspective: user\n" in text and "status: accepted\nowner: team-a\ncue: when x\n---" in text
+
+
+def test_invalid_perspective_and_extra_keys_are_rejected_before_writing(repo, root):
+    with pytest.raises(ValueError, match="perspective"):
+        repo.upsert(COLLECTION, [_entry("d", "x", type="domain", perspective="../User")])
+    with pytest.raises(ValueError, match="frontmatter key"):
+        repo.upsert(COLLECTION, [_entry("d", "x", type="domain", extra_frontmatter={"cue": "x"})])
+    assert not _records(root).exists()
+
+
+@pytest.fixture
+def area_repo(tmp_path):
+    db_path = tmp_path / "db"
+    return db_path, FileMemoryRepository(db_path, records_dir_for=area_records_dir)
+
+
+def _area_key(path):
+    (path / "docs" / "records").mkdir(parents=True)
+    return str(path.resolve())
+
+
+def test_resolver_mode_writes_records_focus_and_references_without_the_mapping_file(tmp_path, area_repo, monkeypatch):
+    db_path, repo = area_repo
+    key = _area_key(tmp_path / "proj")
+    monkeypatch.chdir(tmp_path / "proj")
+
+    repo.upsert(key, [_entry("domain_x", "Decision: X", type="domain", area="arch"),
+                      _entry("current_focus", "Now: X", type="project"),
+                      _entry("ref_a", "How it works", type="reference")])
+
+    records = tmp_path / "proj" / "docs" / "records"
+    assert (records / "arch" / "decisions" / "domain_x.md").is_file()
+    assert (records / "FOCUS.md").read_text() == "Now: X\n"
+    assert (tmp_path / "proj" / "docs" / "reference" / "ref_a.md").is_file()
+    assert {e.id for e in repo.get_all(key)} == {"domain_x", "current_focus", "ref_a"}
+    assert [(c.name, c.count) for c in repo.list_collections()] == [(key, 3)]
+    assert repo.delete(key, ["current_focus", "domain_x"]) == 2
+    assert not db_path.exists()
+
+
+def test_resolver_mode_ignores_collection_names_and_the_mapping_file(tmp_path, area_repo, root, monkeypatch):
+    db_path, repo = area_repo
+    adr_paths.record_collection_root(db_path, COLLECTION, root)
+    mapping = (db_path / "adr_collection_roots.json").read_text()
+    monkeypatch.chdir(tmp_path)
+
+    assert repo.get_all(COLLECTION) == [] and repo.list_collections() == []
+    with pytest.raises(ValueError, match="no records directory for area"):
+        repo.upsert(COLLECTION, [_entry("d", "x", type="domain")])
+    assert not _records(root).exists()
+    assert (db_path / "adr_collection_roots.json").read_text() == mapping
+
+
+def test_qualified_ids_are_never_looked_up_locally(tmp_path, area_repo):
+    _, repo = area_repo
+    key = _area_key(tmp_path / "proj")
+    repo.upsert(key, [_entry("domain_x", "Decision: X", type="domain")])
+
+    assert repo.get_by_ids(key, ["../proj:domain_x", "./x:domain_x", "/etc:passwd"]) == []

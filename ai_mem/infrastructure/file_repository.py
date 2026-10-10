@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -23,23 +24,24 @@ from ai_mem.infrastructure.adr_index import regenerate_index
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     DEFAULT_AREA,
-    FOCUS_FILENAME,
     FOCUS_ID,
     FOCUS_TYPE,
     REFERENCE_TYPE,
     adr_dir_for,
-    adr_file_path,
     find_adr_files,
+    focus_path,
     is_safe_area,
     is_safe_entry_id,
     iter_record_files,
     plain_file_content,
     read_mapping,
+    record_file_path,
     records_home,
     reference_dir,
     remove_files,
     write_atomic,
 )
+from ai_mem.infrastructure.areas import find_area
 
 STORED_TYPES = ADR_TYPES | {REFERENCE_TYPE}
 _TERM = re.compile(r"[\wäöüß-]{3,}", re.IGNORECASE)
@@ -57,16 +59,27 @@ def _read_or_none(path: Path) -> str | None:
 
 
 class FileMemoryRepository:
-    def __init__(self, db_path: Path) -> None:
+    """Two modes. Default: `collection` is a collection name, resolved through the mapping file,
+    cwd detection and the records home (what the MCP server uses). With `records_dir_for`:
+    `collection` is an area key (the area root as an absolute path string) and only the resolver
+    maps it to a records directory -- the mapping file is never read or written.
+    """
+
+    def __init__(self, db_path: Path, records_dir_for: Callable[[str], Path | None] | None = None) -> None:
         # db_path only locates the collection -> repo-root mapping file; nothing else lives there.
         self._db_path = db_path
+        self._records_dir_for = records_dir_for
 
     def _records_dir(self, collection: str) -> Path | None:
+        if self._records_dir_for is not None:
+            return self._records_dir_for(collection)
         return adr_dir_for(self._db_path, collection)
 
     def _require_records_dir(self, collection: str) -> Path:
         records_dir = self._records_dir(collection)
         if records_dir is None:
+            if self._records_dir_for is not None:
+                raise ValueError(f"no records directory for area {collection!r}")
             raise ValueError(
                 f"no directory for collection {collection!r}: start the session inside its repo once, "
                 f"or create the records home for global/workspace/subagent collections"
@@ -94,6 +107,10 @@ class FileMemoryRepository:
             metadata["edges"] = json.dumps(parsed.edges)
         if parsed.cue:
             metadata["cue"] = parsed.cue
+        if parsed.perspective:
+            metadata["perspective"] = parsed.perspective
+        if parsed.extra:
+            metadata[adr_markdown.EXTRA_FRONTMATTER] = dict(parsed.extra)
         return MemoryEntry(id=parsed.id, text=parsed.text, metadata=metadata)
 
     @staticmethod
@@ -103,7 +120,7 @@ class FileMemoryRepository:
 
     def _get_one(self, records_dir: Path, entry_id: str) -> MemoryEntry | None:
         if entry_id == FOCUS_ID:
-            return self._plain_entry(FOCUS_ID, records_dir / FOCUS_FILENAME, FOCUS_TYPE)
+            return self._plain_entry(FOCUS_ID, focus_path(records_dir), FOCUS_TYPE)
         for path in find_adr_files(records_dir, entry_id):
             entry = self._record_entry(path)
             if entry is not None:
@@ -128,22 +145,30 @@ class FileMemoryRepository:
         if records_dir is None:
             return []
         entries = [self._record_entry(path) for path in iter_record_files(records_dir)]
-        entries.append(self._plain_entry(FOCUS_ID, records_dir / FOCUS_FILENAME, FOCUS_TYPE))
+        entries.append(self._plain_entry(FOCUS_ID, focus_path(records_dir), FOCUS_TYPE))
         entries += [self._plain_entry(path.stem, path, REFERENCE_TYPE) for path in self._reference_files(records_dir)]
         return [entry for entry in entries if entry is not None]
 
-    def list_collections(self) -> list[CollectionInfo]:
+    def _collection_names(self) -> set[str]:
+        if self._records_dir_for is not None:
+            area = find_area(Path.cwd())
+            return {str(area.root)} if area is not None else set()
         names = set(read_mapping(self._db_path))
         home = records_home()
         if home is not None:
             names |= {path.name for path in home.iterdir() if (path / "docs").is_dir()}
+        return names
+
+    def list_collections(self) -> list[CollectionInfo]:
+        """Default mode: every known collection with records. Resolver mode: the area of the cwd, named by its root."""
+        names = self._collection_names()
         infos = []
         for name in sorted(names):
             records_dir = self._records_dir(name)
             if records_dir is None:
                 continue
             # Counted from the file listing, not by parsing every file: callers only need names and sizes.
-            count = (len(iter_record_files(records_dir)) + (records_dir / FOCUS_FILENAME).is_file()
+            count = (len(iter_record_files(records_dir)) + focus_path(records_dir).is_file()
                      + len(self._reference_files(records_dir)))
             if count:
                 infos.append(CollectionInfo(name=name, count=count))
@@ -201,20 +226,27 @@ class FileMemoryRepository:
                 )
             if not is_safe_entry_id(entry.id):
                 raise ValueError(f"id {entry.id!r} cannot be used as a filename")
+            if entry_type == REFERENCE_TYPE:
+                continue
             area = entry.metadata.get("area") or DEFAULT_AREA
-            if entry_type != REFERENCE_TYPE and not is_safe_area(area):
+            if not is_safe_area(area):
                 raise ValueError(f"area {area!r} cannot be used as a folder name")
+            perspective = entry.metadata.get("perspective")
+            if perspective and not is_safe_area(perspective):
+                raise ValueError(f"perspective {perspective!r} must match the topic pattern ^[a-z0-9][a-z0-9_-]*$")
+            if adr_markdown.EXTRA_FRONTMATTER in entry.metadata:
+                adr_markdown.check_extra_frontmatter(entry.metadata[adr_markdown.EXTRA_FRONTMATTER])
         records_dir = self._require_records_dir(collection)
 
         index_stale = False
         for entry in entries:
             if entry.id == FOCUS_ID:
-                self._write_if_changed(records_dir / FOCUS_FILENAME, plain_file_content(entry.text))
+                self._write_if_changed(focus_path(records_dir), plain_file_content(entry.text))
             elif entry.metadata["type"] == REFERENCE_TYPE:
                 index_stale |= self._remove_records(records_dir, entry.id)
                 self._write_if_changed(self._reference_file(records_dir, entry.id), plain_file_content(entry.text))
             else:
-                index_stale |= self._write_record(collection, records_dir, entry)
+                index_stale |= self._write_record(records_dir, entry)
         if index_stale:
             regenerate_index(records_dir)
 
@@ -241,12 +273,12 @@ class FileMemoryRepository:
             return False
         return True
 
-    def _write_record(self, collection: str, records_dir: Path, entry: MemoryEntry) -> bool:
+    def _write_record(self, records_dir: Path, entry: MemoryEntry) -> bool:
         """Write the record and drop any other file for its id (retype, re-area, reference).
         Returns whether INDEX.md needs a refresh -- any content change can change its row."""
         entry_type = entry.metadata["type"]
         area = entry.metadata.get("area") or DEFAULT_AREA
-        target = adr_file_path(self._db_path, collection, entry.id, entry_type, area)
+        target = record_file_path(records_dir, entry.id, entry_type, area)
         content = adr_markdown.serialize(entry.id, entry_type, entry.text, {**entry.metadata, "area": area})
         changed = self._write_if_changed(target, content)
         others = [path for path in find_adr_files(records_dir, entry.id) if path != target]
@@ -276,7 +308,7 @@ class FileMemoryRepository:
         for entry_id in dict.fromkeys(ids):
             if entry_id == FOCUS_ID:
                 try:
-                    (records_dir / FOCUS_FILENAME).unlink()
+                    focus_path(records_dir).unlink()
                     deleted += 1
                 except FileNotFoundError:
                     pass
