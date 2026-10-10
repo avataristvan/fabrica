@@ -10,8 +10,8 @@ domain_records_model_replaces_chroma_2026_10_04:
 
 Collections are mapped to directories with the same naming logic the hooks use at runtime
 (`detect_repo_context` over every CLAUDE.md directory found below the scan roots), so no
-name is guessed. ChromaDB is never deleted from: the store is copied first, and only the
-`type`/`area` metadata of auto-classified entries is aligned with the files they now have.
+name is guessed. The store is read through `chroma_sqlite_reader` (read-only, no chromadb) and
+never written: it is copied first, and nothing in it is changed or deleted.
 Existing files are never overwritten; a run is idempotent.
 """
 from __future__ import annotations
@@ -20,9 +20,9 @@ import os
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Iterator, Literal, Protocol
 
-from ai_mem.domain.memory import MemoryEntry, MemoryRepository
+from ai_mem.domain.memory import CollectionInfo, MemoryEntry
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import regenerate_index
 from ai_mem.infrastructure.adr_paths import (
@@ -60,6 +60,14 @@ _STRUCTURE_PREFIXES = (
 
 
 PlacementKind = Literal["record", "focus", "reference"]
+
+
+class EntrySource(Protocol):
+    """What the migration reads: a `ChromaStoreSnapshot`, or any MemoryRepository."""
+
+    def list_collections(self) -> list[CollectionInfo]: ...
+
+    def get_all(self, collection: str) -> list[MemoryEntry]: ...
 
 
 @dataclass(frozen=True)
@@ -150,7 +158,6 @@ class FileWrite:
     content: str
     placement: Placement
     old_type: str | None = None
-    entry: MemoryEntry | None = None
     area: str | None = None  # for records only
 
 
@@ -169,6 +176,18 @@ class MigrationPlan:
     def auto_classified(self) -> list[FileWrite]:
         return [write for write in self.writes + self.conflicts if write.placement.auto]
 
+    @property
+    def unclean_reasons(self) -> list[str]:
+        """Why records_v1 cannot be marked done after applying this plan; empty = clean."""
+        reasons = []
+        if self.unresolved:
+            reasons.append(f"{len(self.unresolved)} collections without a directory")
+        if self.unsafe:
+            reasons.append(f"{len(self.unsafe)} ids that cannot be filenames")
+        if self.conflicts:
+            reasons.append(f"{len(self.conflicts)} conflicts")
+        return reasons
+
 
 def _resolve_root(db_path: Path, collection: str, overrides: dict[str, Path], discovered: dict[str, Path]) -> Path | None:
     if collection in overrides:
@@ -186,7 +205,7 @@ def _record_content(entry: MemoryEntry, record_type: str, area: str) -> str:
     return adr_markdown.serialize(entry.id, record_type, entry.text, metadata)
 
 
-def build_plan(repo: MemoryRepository, db_path: Path, scan_roots: list[Path],
+def build_plan(source: EntrySource, db_path: Path, scan_roots: list[Path],
                overrides: dict[str, Path] | None = None) -> MigrationPlan:
     overrides = overrides or {}
     walked = list(_walk_dirs(scan_roots))  # one walk, shared by root discovery and name matching
@@ -194,9 +213,9 @@ def build_plan(repo: MemoryRepository, db_path: Path, scan_roots: list[Path],
     directories = [directory for directory, _ in walked]
     plan = MigrationPlan()
 
-    for col_info in repo.list_collections():
+    for col_info in source.list_collections():
         collection = col_info.name
-        entries = repo.get_all(collection)
+        entries = source.get_all(collection)
         if not entries:
             continue
         root = _resolve_root(db_path, collection, overrides, discovered)
@@ -229,7 +248,7 @@ def build_plan(repo: MemoryRepository, db_path: Path, scan_roots: list[Path],
                     area = DEFAULT_AREA
                 path = records_dir / area / KIND_BY_TYPE[placement.type] / f"{entry.id}.md"
                 content = _record_content(entry, placement.type, area)
-            write = FileWrite(collection, entry.id, path, content, placement, entry.metadata.get("type"), entry, area)
+            write = FileWrite(collection, entry.id, path, content, placement, entry.metadata.get("type"), area)
             # An entry already filed somewhere else -- another area/kind, or records vs. docs/reference
             # (e.g. sorted by hand before the migration) -- is not duplicated.
             elsewhere = []
@@ -250,21 +269,28 @@ def build_plan(repo: MemoryRepository, db_path: Path, scan_roots: list[Path],
     return plan
 
 
-def apply_plan(plan: MigrationPlan, repo: MemoryRepository, db_path: Path) -> Path | None:
-    """Back up the store, write the planned files, refresh INDEX.md files, align Chroma types.
+def _special_files(directory: str, names: list[str]) -> set[str]:
+    # A Chroma install with the warm daemon running has daemon.sock in the store; copytree
+    # cannot copy a socket and would abort the whole migration.
+    return {name for name in names
+            if not (os.path.isfile(os.path.join(directory, name)) or os.path.isdir(os.path.join(directory, name)))}
+
+
+def apply_plan(plan: MigrationPlan, db_path: Path) -> Path | None:
+    """Back up the store, write the planned files, refresh INDEX.md files, record the roots.
 
     Returns the backup directory (None when one already existed from an earlier run).
     """
     backup = db_path.with_name(db_path.name + BACKUP_SUFFIX)
     created_backup = None
     if db_path.is_dir() and not backup.exists():
-        shutil.copytree(db_path, backup)
+        shutil.copytree(db_path, backup, ignore=_special_files)
         created_backup = backup
 
     touched_dirs: set[Path] = set()
     for write in plan.writes:
         write_atomic(write.path, write.content)
-        if write.placement.kind == "record":
+        if write.placement.kind in ("record", "focus"):
             touched_dirs.add(records_dir_for_root(plan.roots[write.collection]))
 
     for records_dir in sorted(touched_dirs):
@@ -274,15 +300,6 @@ def apply_plan(plan: MigrationPlan, repo: MemoryRepository, db_path: Path) -> Pa
         if not has_no_repo_root(collection):
             record_collection_root(db_path, collection, root)
 
-    # Keep the still-running stack consistent with the files: an entry whose stored type is not
-    # a record type would otherwise lose its new file on the next mem_add (MarkdownAdrRepository
-    # removes files of non-record entries). Metadata only -- nothing is deleted.
-    for write in plan.writes + plan.conflicts:
-        if write.placement.kind == "record" and write.entry is not None:
-            meta = write.entry.metadata
-            if meta.get("type") != write.placement.type or (meta.get("area") or DEFAULT_AREA) != write.area:
-                write.entry.metadata = {**meta, "type": write.placement.type, "area": write.area}
-                repo.upsert(write.collection, [write.entry])
     return created_backup
 
 

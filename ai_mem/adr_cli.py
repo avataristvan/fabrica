@@ -1,9 +1,11 @@
-"""mem-adr-sync CLI -- export/import round trip between ChromaDB and ADR Markdown files.
+"""mem-adr-sync CLI -- the records_v1 migration, INDEX.md rebuilds, and the Chroma round trip.
 
-Both subcommands operate on a bare ChromaMemoryRepository, never the
-MarkdownAdrRepository decorator (a later chunk): export is a pure read, and import
-needs to control the correction upsert (see _cmd_import) itself rather than have a
-decorator re-serialize the very files it's reading.
+`migrate` and `reindex` need no chromadb: the migration reads the store read-only through
+`chroma_sqlite_reader`. Only `export`/`import` (Chroma rollback, needs the `chroma` extra)
+import ChromaMemoryRepository, lazily. Both operate on a bare ChromaMemoryRepository, never
+the MarkdownAdrRepository decorator: export is a pure read, and import needs to control the
+correction upsert (see _cmd_import) itself rather than have a decorator re-serialize the
+very files it's reading.
 """
 from __future__ import annotations
 
@@ -11,6 +13,7 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge
@@ -29,7 +32,10 @@ from ai_mem.infrastructure.adr_paths import (
     iter_record_files,
     plain_file_content,
 )
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+from ai_mem.upgrade_guard import CHROMA_SQLITE, mark_records_v1_done
+
+if TYPE_CHECKING:
+    from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
 
 _DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local/share/ai-mem"))
 
@@ -85,6 +91,8 @@ def _export_collection(repo: ChromaMemoryRepository, db_path: Path, collection: 
 
 
 def _cmd_export(args: argparse.Namespace) -> int:
+    from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+
     db_path = Path(args.db_path) if args.db_path else _DB_PATH
     repo = ChromaMemoryRepository(db_path)
 
@@ -98,6 +106,8 @@ def _cmd_export(args: argparse.Namespace) -> int:
 
 
 def _cmd_import(args: argparse.Namespace) -> int:
+    from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+
     db_path = Path(args.db_path) if args.db_path else _DB_PATH
     repo = ChromaMemoryRepository(db_path)
     add_memory = AddMemoryUseCase(repo)
@@ -177,12 +187,18 @@ def _cmd_reindex(args: argparse.Namespace) -> int:
     return 0
 
 
+_STOP = "Stop and ask a human before going on (UPGRADING.md)."
+
+
 def _cmd_migrate(args: argparse.Namespace) -> int:
+    import sqlite3
+
     from ai_mem.infrastructure import records_migration
+    from ai_mem.infrastructure.chroma_sqlite_reader import ChromaSchemaError, read_chroma_store
 
     db_path = Path(args.db_path) if args.db_path else _DB_PATH
-    if not db_path.is_dir():
-        print(f"no ai-mem store at {db_path} -- nothing to migrate")
+    if not (db_path / CHROMA_SQLITE).is_file():
+        print(f"no ChromaDB store at {db_path} -- nothing to migrate")
         return 0
     overrides: dict[str, Path] = {}
     for spec in args.root or []:
@@ -196,20 +212,31 @@ def _cmd_migrate(args: argparse.Namespace) -> int:
     if not scan_roots and workspace_root:
         scan_roots = [Path(workspace_root).expanduser()]
 
-    repo = ChromaMemoryRepository(db_path)
-    plan = records_migration.build_plan(repo, db_path, scan_roots, overrides)
+    try:
+        snapshot = read_chroma_store(db_path)
+    except (ChromaSchemaError, sqlite3.Error, FileNotFoundError) as exc:
+        print(f"cannot read the ChromaDB store at {db_path}: {exc}. Nothing was written. {_STOP}", file=sys.stderr)
+        return 1
+    plan = records_migration.build_plan(snapshot, db_path, scan_roots, overrides)
+    unclean = "; ".join(plan.unclean_reasons)
     report_path = db_path / records_migration.REPORT_FILENAME
     if not args.apply:
         print(records_migration.render_summary(plan))
+        if unclean:
+            print(f"NOT CLEAN ({unclean}): --apply would exit 1 and not mark records_v1 done.")
         print("Dry run -- nothing written. Re-run with --apply to write the files.")
         return 0
 
-    backup = records_migration.apply_plan(plan, repo, db_path)
+    backup = records_migration.apply_plan(plan, db_path)
     report_path.write_text(records_migration.render_report(plan))
     print(records_migration.render_summary(plan))
     if backup is not None:
         print(f"Backup of the store: {backup}")
     print(f"Report: {report_path}")
+    if unclean:
+        print(f"records_v1 NOT marked done ({unclean}); see the report. {_STOP}", file=sys.stderr)
+        return 1
+    print(f"records_v1 marked done: {mark_records_v1_done(db_path)}")
     return 0
 
 

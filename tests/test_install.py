@@ -159,6 +159,25 @@ def test_records_migration_failed_apply_leaves_no_sentinel(tmp_path):
     assert not sentinel.exists()
 
 
+def test_records_migration_apply_exit_1_after_clean_dry_run_leaves_no_sentinel(tmp_path):
+    """`migrate --apply` exits 1 for an unclean plan (unplaced/conflicts); install.py must not mark it done."""
+    db_path = tmp_path / "db"
+    db_path.mkdir()
+    dry = type("Completed", (), {"returncode": 0, "stdout": "1 files to write", "stderr": ""})
+    applied = type("Completed", (), {"returncode": 1, "stdout": "Report: x", "stderr": "records_v1 NOT marked done"})
+    with (
+        patch.object(install, "DB_PATH", db_path),
+        patch.object(install, "MIGRATIONS_DIR", db_path / ".migrations"),
+        patch.object(install, "python_exe", return_value="python3"),
+        patch.object(install.subprocess, "run", side_effect=[dry, applied]) as run,
+        patch("builtins.input", side_effect=["n", "y"]),
+    ):
+        install.run_records_migration(str(tmp_path / "ws"))
+
+    assert run.call_count == 2 and run.call_args.args[0][-1] == "--apply"
+    assert not (db_path / ".migrations" / "records_v1.done").exists()
+
+
 def test_records_migration_without_store_only_marks_done(tmp_path):
     run, sentinel = _run_records_migration(tmp_path, [], db_exists=False)
     run.assert_not_called()

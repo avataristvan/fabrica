@@ -4,6 +4,9 @@ From 2026-10-04 on, ai-mem keeps memory as git-native Markdown files in each pro
 instead of in ChromaDB (`domain_records_model_replaces_chroma_2026_10_04`). An existing
 installation is migrated once.
 
+An agent that updates ai-mem unattended follows [`UPGRADING.md`](../UPGRADING.md) instead of
+this page: it lists the exact commands and the conditions under which to stop and ask.
+
 ## The short way
 
 ```bash
@@ -52,9 +55,17 @@ with `--root`. `global`, `workspace` and `subagent.*` go to
 
 ## Safety
 
-- ChromaDB is copied to `~/.local/share/ai-mem.bak-records-v1` first and is never deleted
-  from. Only the `type`/`area` metadata of auto-classified entries is aligned with their new
-  files, so a later `mem_add` keeps the file.
+- The store is read read-only with Python's own `sqlite3` (no chromadb needed) and is never
+  written or deleted from; it is copied to `~/.local/share/ai-mem.bak-records-v1` first.
+- `--apply` marks the migration done (`~/.local/share/ai-mem/.migrations/records_v1.done`)
+  only when nothing was left over: no collection without a directory, no conflict, no id
+  that cannot be a filename. Otherwise it writes what it can, says why, and exits 1; place
+  the rest with `--root` and run it again. Until it is marked done, SessionStart prints an
+  "ai-mem upgrade pending" line.
+- Some leftovers cannot be fixed by a re-run: an id that cannot be a filename stays in the
+  store (which the migration never writes), and a collection may belong to a project that no
+  longer exists. After reading those sections of the report, a human (never an unattended
+  agent) may accept them as skipped: `touch ~/.local/share/ai-mem/.migrations/records_v1.done`.
 - Existing files are never overwritten. A different file at the target, or the same id
   filed in another folder, is reported as a conflict and left alone.
 - The run is idempotent: a second run writes nothing new.

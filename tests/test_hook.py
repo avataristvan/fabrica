@@ -653,3 +653,58 @@ def test_repo_construction_failure_in_verbose_mode_falls_back_to_routing(tmp_pat
         chroma_cls=MagicMock(side_effect=RuntimeError("chroma db locked")),
     )
     assert 'Active collection: "repo.x"' in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+
+
+# ---------------------------------------------------------------------------
+# Upgrade guard: Chroma store without records_v1.done
+# ---------------------------------------------------------------------------
+
+def _chroma_store(db_path: Path, sentinel: bool) -> Path:
+    db_path.mkdir(parents=True, exist_ok=True)
+    (db_path / "chroma.sqlite3").write_bytes(b"")
+    if sentinel:
+        (db_path / ".migrations").mkdir()
+        (db_path / ".migrations" / "records_v1.done").touch()
+    return db_path
+
+
+def test_guard_line_comes_first_when_migration_pending(tmp_path: Path) -> None:
+    db = _chroma_store(tmp_path / "db", sentinel=False)
+    out = _run_main(db, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    lines = ctx.splitlines()
+    assert lines[0] == "[ai-mem]" and lines[1] == hook.GUARD_MESSAGE
+    assert 'Active collection: "repo.x"' in ctx
+
+
+def test_no_guard_line_once_migrated(tmp_path: Path) -> None:
+    db = _chroma_store(tmp_path / "db", sentinel=True)
+    out = _run_main(db, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    assert "upgrade pending" not in out
+
+
+def test_guard_line_alone_outside_any_project(tmp_path: Path) -> None:
+    db = _chroma_store(tmp_path / "db", sentinel=False)
+    out = _run_main(db, has_claude_md=False, verbose=False)
+    assert json.loads(out)["hookSpecificOutput"]["additionalContext"] == "[ai-mem]\n" + hook.GUARD_MESSAGE
+
+
+def test_guard_check_failure_never_raises(tmp_path: Path) -> None:
+    with patch.object(hook, "migration_pending", side_effect=OSError("boom")):
+        out = _run_main(tmp_path, repo_collection="repo.x", has_claude_md=True, verbose=False)
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    assert 'Active collection: "repo.x"' in ctx and "upgrade pending" not in ctx
+
+
+def test_hook_process_prints_guard_line_for_a_store_without_sentinel(tmp_path: Path) -> None:
+    """End to end in a fresh process: no mocks, a store without records_v1.done."""
+    import subprocess
+
+    db = _chroma_store(tmp_path / "db", sentinel=False)
+    repo_root = Path(__file__).resolve().parent.parent
+    result = subprocess.run(
+        [sys.executable, "-m", "ai_mem.hook"], input="{}", capture_output=True, text=True, cwd=tmp_path,
+        env={"AI_MEM_PATH": str(db), "HOME": str(tmp_path), "PATH": "/usr/bin:/bin", "PYTHONPATH": str(repo_root)},
+    )
+    assert result.returncode == 0 and result.stderr == ""
+    assert hook.GUARD_MESSAGE in json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
