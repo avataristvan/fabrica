@@ -6,7 +6,8 @@ History and rationale live in `docs/records/` (start with `INDEX.md`, or ask the
 ## Map
 
 - `ai_mem/domain/` contracts (`MemoryRepository`) → `ai_mem/application/` one use case per file → `ai_mem/infrastructure/` storage. `server.py` (MCP tools), `hook.py` (SessionStart), `dream_cli.py`, `adr_cli.py` (`mem-adr-sync`) are adapters.
-- Storage is the record files only: `FileMemoryRepository`, chosen in `infrastructure/repository_factory.py`. No database is opened. `AI_MEM_BACKEND=chroma` is the rollback — its facts are in `docs/reference/chroma_rollback_backend.md`.
+- Storage is the record files only: `FileMemoryRepository`, chosen in `infrastructure/repository_factory.py`. No database is opened. `AI_MEM_BACKEND=chroma` is the rollback (needs the `[chroma]` extra) — its facts are in `docs/reference/chroma_rollback_backend.md`.
+- Areas: `infrastructure/areas.py` resolves the nearest ancestor with `docs/records/`; cross-area edges are `<relative-area-path>:<id>` (`docs/adr-format.md`). `FileMemoryRepository(records_dir_for=...)` is area mode; without it, collection mode (the MCP server) is unchanged.
 - Sources vs. deployed copies: `skills/examples/reflect.md` and `install.py`'s `_MEM_INIT_CONTENT` are installed to `~/.claude/commands/` (sync: `install.py --sync-commands`); `examples/agents/librarian.md` is symlinked to `~/.claude/agents/`.
 
 ## Dev Commands
@@ -38,6 +39,7 @@ python3 install.py               # interactive — the user runs it, not the age
 - SessionStart pushes no content: routing line(s) plus one `Records:` pointer. Only that hook is registered; the PreToolUse/UserPromptSubmit/PostToolUse modules exist but are unwired.
 - `detect_repo_context()` names collections from the CLAUDE.md path relative to `AI_MEM_WORKSPACE_ROOT`, before the git fallback; worktrees map to their main checkout. Hook subprocesses don't inherit the MCP server's env, so `install.py` prefixes the hook command with `AI_MEM_WORKSPACE_ROOT=`. Subagents get no SessionStart output — `mem_context(cwd)` tells them their collection.
 - `mem_move` bypasses `AddMemoryUseCase` (its merge would reset metadata across collections); a differing id at the target is a `MoveConflict`, and incoming edges to a moved entry go dangling.
+- `migrate` and `reindex` need no chromadb: the store is read via `infrastructure/chroma_sqlite_reader.py`, opened read-only, never written. `migrate --apply` writes `.migrations/records_v1.done` only on a clean plan (else exit 1); while a `chroma.sqlite3` exists without it, SessionStart prints one guard line pointing to `UPGRADING.md`.
 - `mem_dream` calls the `claude` CLI with bare model aliases (`sonnet`, `haiku`), never versioned tags, and surfaces the CLI's stderr on failure.
 - Never edit `~/.claude/commands/*.md` copies that have a repo source — edit the source and sync. Global-only files (`chunk-plan.md`, `dev-team.md`) are edited in place.
 
