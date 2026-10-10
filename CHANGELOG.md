@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added: upgrade path for auto-updating installations (`UPGRADING.md`)
+
+- `UPGRADING.md` walks an unattended agent through each breaking step with exact commands and
+  explicit STOP conditions (a diverged `git pull --ff-only` is never merged or reset).
+- SessionStart prints one `ai-mem upgrade pending` line first while a ChromaDB store exists
+  without `.migrations/records_v1.done` (`ai_mem/upgrade_guard.py`, stdlib only).
+- `mem-adr-sync migrate` reads the store read-only with stdlib `sqlite3`
+  (`chroma_sqlite_reader.py`) and never writes it; an unknown schema or unapplied queued writes
+  stop it with exit 1. `--apply` writes `records_v1.done` only for a plan without unplaced
+  entries or conflicts, else exits 1. It no longer aligns Chroma metadata of auto-classified
+  entries, and its store backup skips sockets (a running daemon's `daemon.sock` aborted it).
+- **Breaking (packaging):** `chromadb` moved to the optional `chroma` extra, needed only for the
+  `AI_MEM_BACKEND=chroma` rollback and `mem-adr-sync export`/`import`. `.[dev]` includes it.
+
 ### Added: `supersedes` edge — flag overtaken entries instead of deleting them
 
 `mem_link(source_id=<new>, target_id=<old>, edge_type="supersedes")` marks `<old>` with

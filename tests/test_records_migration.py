@@ -98,7 +98,7 @@ def test_dry_plan_writes_nothing(store):
 
 def test_apply_writes_records_focus_reference_and_reports_the_rest(store):
     plan = build_plan(store.repo, store.db_path, [store.ws])
-    backup = apply_plan(plan, store.repo, store.db_path)
+    backup = apply_plan(plan, store.db_path)
     records = store.ws / "alpha" / "docs" / "records"
 
     assert (records / "FOCUS.md").read_text() == "Fokus A\n"
@@ -118,12 +118,22 @@ def test_apply_writes_records_focus_reference_and_reports_the_rest(store):
 
     assert backup == store.db_path.with_name(store.db_path.name + BACKUP_SUFFIX) and backup.is_dir()
     assert read_mapping(store.db_path)["repo.alpha"] == str(store.ws / "alpha")
-    [aligned] = store.repo.get_by_ids("repo.alpha", ["fb_y"])
-    assert aligned.metadata["type"] == "pattern" and aligned.metadata["cue"] == "before Y"
+    [untouched] = store.repo.get_by_ids("repo.alpha", ["fb_y"])
+    assert untouched.metadata["type"] == "feedback"  # the store is never written
+
+
+def test_focus_only_collection_gets_an_index_like_reindex_would_write(store, tmp_path):
+    (store.ws / "solo").mkdir()
+    (store.ws / "solo" / "CLAUDE.md").write_text("# solo\n")
+    AddMemoryUseCase(store.repo).execute("repo.solo", ["Fokus S"], ["current_focus"], metadatas=[{"type": "project"}])
+
+    apply_plan(build_plan(store.repo, store.db_path, [store.ws]), store.db_path)
+
+    assert (store.ws / "solo" / "docs" / "records" / "INDEX.md").is_file()
 
 
 def test_second_run_is_idempotent(store):
-    apply_plan(build_plan(store.repo, store.db_path, [store.ws]), store.repo, store.db_path)
+    apply_plan(build_plan(store.repo, store.db_path, [store.ws]), store.db_path)
 
     again = build_plan(store.repo, store.db_path, [store.ws])
 
@@ -136,7 +146,7 @@ def test_existing_different_file_is_a_conflict_and_left_untouched(store):
     focus.write_text("hand-written\n")
 
     plan = build_plan(store.repo, store.db_path, [store.ws])
-    apply_plan(plan, store.repo, store.db_path)
+    apply_plan(plan, store.db_path)
 
     assert focus.read_text() == "hand-written\n"
     assert [w.entry_id for w in plan.conflicts] == ["current_focus"]

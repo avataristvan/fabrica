@@ -2,6 +2,8 @@ Chroma rollback backend and dormant modules -- facts that only matter with AI_ME
 
 ## Chroma rollback stack (AI_MEM_BACKEND=chroma)
 
+- Needs the optional extra: `pip install -e '.[chroma]'` (chromadb is no longer a default dependency; `.[dev]` includes it for the test suite). `mem-adr-sync export`/`import` need it too; `migrate` and `reindex` do not.
+- The records_v1 migration no longer aligns the stored `type`/`area` of auto-classified entries with their new files (it never writes the store). So on this stack a `mem_add` to such an entry with its old stored type (e.g. `feedback`) removes its record file -- retype it first.
 - Built by `repository_factory.build_repository()`: `ChromaMemoryRepository` -> `MarkdownAdrRepository` (unless `AI_MEM_ADR_DISABLED=1`) -> `BM25MemoryRepository` (when `rank_bm25` is installed). `server.py` and `dream_cli.py` share it, so `mem-dream --auto_*` never desyncs a file from its entry.
 - `mem_delete` with no `ids` drops the entire collection; the repo signals this by returning `-1`. Files are never touched by a whole-collection delete.
 - Cosine similarity from ChromaDB distance: `cos_sim = 1 - dist/2` (collections use l2/squared-L2 space, verified via `col.configuration_json`). The older `1 - dist` formula was wrong.

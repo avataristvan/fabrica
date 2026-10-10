@@ -19,6 +19,7 @@ try:
     from ai_mem.infrastructure.repository_factory import build_repository
     from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION, detect_repo_context
     from ai_mem.session_stats import record_injection
+    from ai_mem.upgrade_guard import GUARD_MESSAGE, migration_pending
 except ImportError:
     _CONFIG_PATH = None  # type: ignore[assignment]
     _load_settings = None  # type: ignore[assignment]
@@ -33,6 +34,8 @@ except ImportError:
     WORKSPACE_COLLECTION = "workspace"
     detect_repo_context = None  # type: ignore[assignment]
     record_injection = None  # type: ignore[assignment]
+    GUARD_MESSAGE = ""
+    migration_pending = None  # type: ignore[assignment]
 
 FOCUS_ID = "current_focus"
 # Pull-based by default (2026-09-16): SessionStart only announces the active collection
@@ -192,6 +195,14 @@ def main():
         ctx = detect_repo_context()
 
         parts = []
+
+        # A Chroma store without records_v1 means this code runs on data it cannot read yet:
+        # say so first, as one routing line (still no content).
+        try:
+            if migration_pending is not None and migration_pending(DB_PATH):
+                parts.append(GUARD_MESSAGE)
+        except Exception:
+            pass
 
         # Minimal, always-on routing info: which collection this session writes to.
         # No memory content is pushed here — the agent pulls content itself via mem_query.
