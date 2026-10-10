@@ -257,3 +257,151 @@ def test_action_ids_in_markdown_backticks_are_parsed_without_them():
 
     assert _parse_link_proposals(synthesis) == [("new_id", "old_id", "confirms"), ("plain_a", "plain_b", "related")]
     assert _parse_supersede_proposals(synthesis) == [("succ", "pred")]
+
+
+# ── area mode: what is read, the prompt, neighbourhood, CLI dry-run ───────────
+
+import json as _json
+import sys as _sys
+from unittest.mock import patch as _patch
+
+import pytest as _pytest
+
+from ai_mem.application.add_memory import AddMemoryUseCase as _Add
+from ai_mem.application.dream_memory import DreamMemoryUseCase as _Dream, select_neighbourhood
+from ai_mem.infrastructure.areas import AreaRefResolver as _Resolver, area_records_dir as _rd
+from ai_mem.infrastructure.file_repository import FileMemoryRepository as _Repo
+
+
+def _mk_area(root):
+    (root / "docs" / "records").mkdir(parents=True)
+    return str(root.resolve())
+
+
+def _seed_area(repo, key, ids, edges=None):
+    for entry_id in ids:
+        meta = {"type": "learning"}
+        if edges and entry_id in edges:
+            meta["edges"] = _json.dumps([{"target_id": t, "edge_type": "related"} for t in edges[entry_id]])
+        _Add(repo).execute(collection=key, documents=[f"Body {entry_id}"], ids=[entry_id], metadatas=[meta])
+
+
+@_pytest.fixture
+def area_setup(tmp_path):
+    repo = _Repo(tmp_path / "db", records_dir_for=_rd)
+    here = _mk_area(tmp_path / "ws" / "here")
+    other = _mk_area(tmp_path / "ws" / "other")
+    _seed_area(repo, here, ["learning_a", "learning_b", "learning_c", "learning_d"],
+               edges={"learning_a": ["learning_b"], "learning_c": ["learning_a"], "learning_d": ["../other:learning_x"]})
+    _seed_area(repo, other, ["learning_x"])
+    return repo, here, other, tmp_path
+
+
+class TestAreaMode:
+    def test_reads_only_the_named_area_and_uses_the_area_prompt(self, area_setup):
+        repo, here, _, _ = area_setup
+        prompts = []
+        with _patch("ai_mem.application.dream_memory._call", side_effect=lambda m, p: prompts.append(p) or "ok"):
+            _Dream(repo, area_refs=_Resolver()).execute(here, "single-haiku")
+        prompt = prompts[0]
+        assert "[learning_a]" in prompt and "[learning_x]" not in prompt
+        assert "the area of its topic" in prompt
+        assert "[target=<area-path>]" in prompt
+        assert "workspace" not in prompt.split("MEMORIES:")[0].replace("workspace/global", "")
+        assert "COLLECTION HIERARCHY" not in prompt
+
+    def test_collection_mode_prompt_is_unchanged(self, area_setup):
+        repo, here, _, _ = area_setup
+        prompts = []
+        with _patch("ai_mem.application.dream_memory._call", side_effect=lambda m, p: prompts.append(p) or "ok"):
+            _Dream(repo).execute(here, "single-haiku")
+        assert "COLLECTION HIERARCHY" in prompts[0] and "[target=<collection>]" in prompts[0]
+
+    def test_neighbourhood_is_the_named_ids_plus_one_hop(self, area_setup):
+        repo, here, _, _ = area_setup
+        entries = repo.get_all(here)
+        ids = {entry.id for entry in select_neighbourhood(entries, ["learning_a"])}
+        assert ids == {"learning_a", "learning_b", "learning_c"}
+
+    def test_neighbourhood_does_not_follow_qualified_edges(self, area_setup):
+        repo, here, _, _ = area_setup
+        ids = {entry.id for entry in select_neighbourhood(repo.get_all(here), ["learning_d"])}
+        assert ids == {"learning_d"}
+
+    @_pytest.mark.parametrize("bad", ["../other:learning_x", "learning_missing", "../x", "a*", ""])
+    def test_neighbourhood_refuses_hostile_or_unknown_ids(self, area_setup, bad):
+        repo, here, _, _ = area_setup
+        with _pytest.raises(ValueError):
+            select_neighbourhood(repo.get_all(here), [bad])
+
+    def test_neighbourhood_limits_the_prompt(self, area_setup):
+        repo, here, _, _ = area_setup
+        prompts = []
+        with _patch("ai_mem.application.dream_memory._call", side_effect=lambda m, p: prompts.append(p) or "ok"):
+            _Dream(repo, area_refs=_Resolver()).execute(here, "single-haiku", neighbourhood=["learning_d"])
+        assert "[learning_d]" in prompts[0] and "[learning_a]" not in prompts[0]
+
+    def test_neighbourhood_outside_area_mode_is_an_error(self, area_setup):
+        repo, here, _, _ = area_setup
+        with _pytest.raises(ValueError):
+            _Dream(repo).execute(here, "single-haiku", neighbourhood=["learning_a"])
+
+
+class TestDreamCliArea:
+    def _run(self, argv, tmp_path, monkeypatch):
+        import ai_mem.dream_cli as cli
+        monkeypatch.setattr(cli, "_DB_PATH", tmp_path / "db")
+        monkeypatch.setattr(_sys, "argv", ["mem-dream", *argv])
+        cli.main()
+
+    def test_dry_run_lists_what_it_would_read_without_calling_claude(self, area_setup, monkeypatch, capsys):
+        _, here, _, tmp = area_setup
+        with _patch("ai_mem.application.dream_memory._call", side_effect=AssertionError("API call")):
+            self._run(["--area", str(tmp / "ws" / "here" / "docs"), "--dry-run"], tmp, monkeypatch)
+        out = capsys.readouterr().out
+        assert f"area {here}: 4 entries" in out and "learning_a" in out and "learning_x" not in out
+
+    def test_dry_run_with_neighbourhood(self, area_setup, monkeypatch, capsys):
+        _, here, _, tmp = area_setup
+        self._run(["--area", here, "--neighbourhood", "learning_d", "--dry-run"], tmp, monkeypatch)
+        assert f"area {here}: 1 entries" in capsys.readouterr().out
+
+    def test_unknown_neighbourhood_id_exits_1(self, area_setup, monkeypatch):
+        _, here, _, tmp = area_setup
+        with _pytest.raises(SystemExit) as exc:
+            self._run(["--area", here, "--neighbourhood", "nope", "--dry-run"], tmp, monkeypatch)
+        assert exc.value.code == 1
+
+    def test_path_without_area_exits_1(self, area_setup, monkeypatch):
+        _, _, _, tmp = area_setup
+        with _pytest.raises(SystemExit) as exc:
+            self._run(["--area", str(tmp / "db"), "--dry-run"], tmp, monkeypatch)
+        assert exc.value.code == 1
+
+    def test_area_excludes_collection_and_expert(self, area_setup, monkeypatch):
+        _, here, _, tmp = area_setup
+        for extra in (["--collection", "x"], ["--expert"]):
+            with _pytest.raises(SystemExit) as exc:
+                self._run(["--area", here, *extra], tmp, monkeypatch)
+            assert exc.value.code == 2
+
+    def test_neighbourhood_needs_area(self, area_setup, monkeypatch):
+        _, _, _, tmp = area_setup
+        with _pytest.raises(SystemExit) as exc:
+            self._run(["--neighbourhood", "x"], tmp, monkeypatch)
+        assert exc.value.code == 2
+
+    def test_run_prints_report_and_no_save(self, area_setup, monkeypatch, capsys):
+        _, here, _, tmp = area_setup
+        with _patch("ai_mem.application.dream_memory._call", return_value="synthesis ok"):
+            self._run(["--area", here, "--mode", "single-haiku", "--no-save"], tmp, monkeypatch)
+        assert "synthesis ok" in capsys.readouterr().out
+
+
+def test_call_uses_bare_model_alias_and_surfaces_stderr():
+    from ai_mem.application.dream_memory import _call
+    done = type("R", (), {"returncode": 1, "stdout": "", "stderr": "boom"})()
+    with _patch("ai_mem.application.dream_memory.subprocess.run", return_value=done) as run:
+        with _pytest.raises(RuntimeError, match="boom"):
+            _call("haiku", "p")
+    assert run.call_args.args[0] == ["claude", "--print", "--model", "haiku"]

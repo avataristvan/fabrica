@@ -334,3 +334,129 @@ class TestDreamExecuteAutoSupersede:
 
         assert _meta(tmp_repo, "col", "old")["superseded_by"] == "new"
         assert "Applied `new -> old`" in report and "unknown id 'ghost'" in report
+
+
+# ── area mode: qualified edges across areas (real FileMemoryRepository, fake claude runner) ──
+
+import pytest
+
+from ai_mem.application.dream_memory import _area_add_targets
+from ai_mem.infrastructure.areas import AreaRefResolver, area_records_dir
+from ai_mem.infrastructure.file_repository import FileMemoryRepository
+from ai_mem.upgrade_guard import MigrationPending
+
+
+def _area(root):
+    (root / "docs" / "records").mkdir(parents=True)
+    return str(root.resolve())
+
+
+def _put(repo, key: str, entry_id: str, entry_type: str = "learning") -> None:
+    AddMemoryUseCase(repo).execute(
+        collection=key, documents=[f"Text of {entry_id}"], ids=[entry_id], metadatas=[{"type": entry_type}],
+    )
+
+
+@pytest.fixture
+def two_areas(tmp_path):
+    repo = FileMemoryRepository(tmp_path / "db", records_dir_for=area_records_dir)
+    here = _area(tmp_path / "ws" / "here")
+    other = _area(tmp_path / "ws" / "other")
+    _put(repo, here, "learning_a")
+    _put(repo, here, "learning_b")
+    _put(repo, other, "learning_x")
+    return repo, here, other, tmp_path
+
+
+def _area_dream(repo, key, synthesis, **flags):
+    with patch("ai_mem.application.dream_memory._call", return_value=synthesis):
+        return DreamMemoryUseCase(repo, area_refs=AreaRefResolver()).execute(key, "single-haiku", **flags)
+
+
+def _edges(repo, key, entry_id) -> list[tuple[str, str]]:
+    return [(e.target_id, e.edge_type) for e in repo.get_edges(key, entry_id)]
+
+
+class TestAreaEdges:
+    def test_cross_area_link_becomes_a_qualified_edge_on_the_source(self, two_areas):
+        repo, here, other, _ = two_areas
+        report = _area_dream(repo, here, "- LINK learning_a -> ../other:learning_x [type=related]: same topic",
+                             auto_link=True)
+        assert "Applied" in report
+        assert _edges(repo, here, "learning_a") == [("../other:learning_x", "related")]
+        assert repo.get_by_ids(other, ["learning_x"])[0].metadata.get("edges", "[]") in ("", "[]")
+
+    def test_same_area_link_stays_bare(self, two_areas):
+        repo, here, _, _ = two_areas
+        _area_dream(repo, here, "- LINK learning_a -> learning_b [type=related]: r", auto_link=True)
+        assert _edges(repo, here, "learning_a") == [("learning_b", "related")]
+
+    def test_cross_area_supersede_is_rejected_and_reported(self, two_areas):
+        repo, here, other, _ = two_areas
+        report = _area_dream(repo, here, "- SUPERSEDE learning_a -> ../other:learning_x: replaced",
+                             auto_supersede=True)
+        assert "Skipped Supersessions" in report and "across areas is refused" in report
+        assert _edges(repo, here, "learning_a") == []
+        assert not repo.get_by_ids(other, ["learning_x"])[0].metadata.get("superseded_by")
+
+    @pytest.mark.parametrize("target", [
+        "/etc:learning_x", "~/x:learning_x", "../../../..:learning_x", "../other:*", "../other:../learning_x",
+        "../nonexistent:learning_x", "../other:learning_missing", "other:learning_x",
+    ])
+    def test_hostile_or_unresolvable_link_targets_are_skipped(self, two_areas, target):
+        repo, here, _, tmp = two_areas
+        report = _area_dream(repo, here, f"- LINK learning_a -> {target} [type=related]: x", auto_link=True)
+        assert "Skipped Links" in report
+        assert _edges(repo, here, "learning_a") == []
+
+    def test_qualified_source_id_is_unknown(self, two_areas):
+        repo, here, _, _ = two_areas
+        report = _area_dream(repo, here, "- LINK ../other:learning_x -> learning_a [type=related]: x",
+                             auto_link=True)
+        assert "unknown id" in report
+
+    def test_collection_mode_still_refuses_qualified_targets(self, tmp_path):
+        from ai_mem.infrastructure.file_repository import FileMemoryRepository as Repo
+        key = _area(tmp_path / "solo")
+        repo = Repo(tmp_path / "db", records_dir_for=area_records_dir)
+        _put(repo, key, "learning_a")
+        with patch("ai_mem.application.dream_memory._call", return_value="- LINK learning_a -> ../o:x [type=related]: r"):
+            report = DreamMemoryUseCase(repo).execute(key, mode="single-haiku", auto_link=True)
+        assert "Skipped Links" in report
+
+    def test_migration_guard_runs_before_any_write(self, two_areas):
+        repo, here, _, _ = two_areas
+
+        def refuse():
+            raise MigrationPending()
+
+        with patch("ai_mem.application.dream_memory._call", return_value="- LINK learning_a -> learning_b [type=related]: r"):
+            use_case = DreamMemoryUseCase(repo, area_refs=AreaRefResolver(), before_write=refuse)
+            with pytest.raises(MigrationPending):
+                use_case.execute(here, "single-haiku", auto_link=True)
+            use_case.execute(here, "single-haiku")  # report only: no write, no guard
+        assert _edges(repo, here, "learning_a") == []
+
+
+class TestAreaAddTargets:
+    def test_other_area_is_a_propagation_candidate_own_area_is_not(self, two_areas):
+        _, here, other, _ = two_areas
+        text = "- ADD new_one [target=../other]: s\n- ADD mine [target=.]: s"
+        accepted, rejected = _area_add_targets(text, here, AreaRefResolver())
+        assert accepted == [("new_one", "../other", other)]
+        assert rejected == []
+
+    @pytest.mark.parametrize("target", ["/tmp", "~", "~/x", "../..", "../nope", "other", "../other/..", "../o*", "../other/../../etc"])
+    def test_hostile_targets_are_rejected(self, two_areas, target):
+        _, here, _, _ = two_areas
+        accepted, rejected = _area_add_targets(f"- ADD x [target={target}]: s", here, AreaRefResolver())
+        assert accepted == []
+        assert rejected == [("x", target)]
+
+    def test_report_lists_candidates_and_rejections_and_writes_nothing(self, two_areas):
+        repo, here, other, tmp = two_areas
+        before = sorted(p for p in tmp.rglob("*") if p.is_file())
+        report = _area_dream(repo, here, "- ADD n1 [target=../other]: s\n- ADD n2 [target=/etc]: s")
+        assert "## Propagation Candidates" in report and "`n1`" in report
+        assert "## Rejected ADD Targets" in report and "`n2`" in report
+        assert sorted(p for p in tmp.rglob("*") if p.is_file()) == before

@@ -1,4 +1,12 @@
-"""DreamMemoryUseCase — consolidate memories via Claude models."""
+"""DreamMemoryUseCase — consolidate memories via Claude models.
+
+Two scopes. Collection mode (`--collection`, `--expert`): `collection` names are ai-mem collections.
+Area mode (`--area`, `area_refs` given): the one collection passed in is an area key; proposals may
+name qualified ids (`<rel-area-path>:<id>`) and ADD `target=` area paths. Model output is hostile
+input: area-mode ids and paths are validated through `AreaRefs` before anything is written, edges
+across areas are stored on the source record only, `supersedes` across areas is refused, and other
+areas only ever receive new files (ADD proposals are reported, never applied).
+"""
 from __future__ import annotations
 
 import json
@@ -6,10 +14,10 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import get_args
+from typing import Callable, get_args
 
 from ai_mem.application.add_edge import AddEdgeUseCase
-from ai_mem.domain.memory import EdgeType, MemoryEntry, MemoryRepository
+from ai_mem.domain.memory import AreaRefs, EdgeType, MemoryEntry, MemoryRepository, is_area_qualified
 
 # An id as the model writes it, with or without Markdown code backticks around it.
 _ID = r"`?([^\s`]+)`?"
@@ -60,7 +68,7 @@ instead of leaving it implicit. Prefer LINK over MERGE when the entries have dif
 already share an edge.
 - When an entry has been overtaken by a newer entry that exists on its own (a decision reversed, a \
 fact replaced), propose SUPERSEDE <new-id> -> <old-id> instead of DELETE or MERGE: the old entry \
-stays readable as history and is flagged. Both entries must be in the same collection.
+stays readable as history and is flagged. Both entries must be in the same {scope}.
 - Exception: a 'supersedes' edge marks its target as overtaken (shown as superseded_by=<id> on the \
 target). The edge does not protect that target from DELETE. Propose DELETE only if \
 the successor already carries the full rationale; otherwise leave it as history, or propose an \
@@ -78,6 +86,14 @@ COLLECTION HIERARCHY (lower → higher scope):
 
 A pattern documented in a repo collection that recurs across multiple projects belongs \
 in a higher-level collection. Use the target= field on ADD proposals to express this."""
+
+_AREA_CONTEXT = """\
+AREA UNDER REVIEW: {area}
+
+Knowledge is addressed by the area (the folder holding docs/records/), not by collection. An \
+entry that recurs across projects belongs in the area of its topic. Use the target= field on ADD \
+proposals to express this. Other areas are named by their path relative to the area under review \
+(e.g. ../other-area); a record there is written <relative-area-path>:<id>."""
 
 _ACTION_FORMAT = f"""\
 Format each action as:
@@ -100,6 +116,27 @@ contradicting a pattern, a fix addressing a cause). Source and target must be in
 
 For SUPERSEDE: <new-id> replaces <old-id>; use it when the old entry is overtaken but its \
 reasoning is still worth reading. Both ids must be in the same collection."""
+
+_AREA_ACTION_FORMAT = f"""\
+Format each action as:
+- UPDATE <id>: <what to change>
+- MERGE <id1> + <id2>: <into what>
+- DELETE <id>: <reason>
+- ADD <suggested-id> [target=<area-path>]: <content summary>
+- SPLIT <id>: <list the sub-concept titles to split into>
+- LINK <source-id> -> <target-id> [type=<edge_type>]: <reason>
+  (edge_type: {" | ".join(_LINK_EDGE_TYPES)})
+- SUPERSEDE <new-id> -> <old-id>: <reason>
+
+For ADD, set target= to the area of the entry's topic, as a path relative to the area under \
+review: "." if it belongs here, otherwise e.g. ../other-area. Anything outside this area is a \
+propagation candidate and is written there only as a new file.
+
+For LINK: use when two entries are related but must stay separate. <source-id> is an entry of \
+this area; <target-id> may be an entry of another area, written <relative-area-path>:<id>.
+
+For SUPERSEDE: <new-id> replaces <old-id>; both must be in this area. Never propose a SUPERSEDE \
+across areas; use LINK [type=related] instead."""
 
 _P_SINGLE = """\
 You are a memory consolidation agent. The memories below come from AI assistant sessions \
@@ -373,6 +410,58 @@ def _split_candidates(synthesis: str, all_entries: list[MemoryEntry]) -> str:
     )
 
 
+def select_neighbourhood(entries: list[MemoryEntry], ids: list[str]) -> list[MemoryEntry]:
+    """The named entries plus the same-area entries they link to or are linked from (one hop).
+
+    Ids are plain ids of the area: a qualified id (`:`) or an id that is not loaded is refused,
+    so a hostile `--neighbourhood` value never reaches a path. Qualified edge targets lead into
+    other areas and are not followed.
+    """
+    by_id = {entry.id: entry for entry in entries}
+    for entry_id in ids:
+        if is_area_qualified(entry_id):
+            raise ValueError(f"--neighbourhood takes plain ids of the area, got {entry_id!r}")
+        if entry_id not in by_id:
+            raise ValueError(f"--neighbourhood id {entry_id!r} is not a record of this area")
+    seeds = set(ids)
+    wanted = set(seeds)
+    for entry in entries:
+        for edge in _edge_targets(entry):
+            if entry.id in seeds and edge in by_id:
+                wanted.add(edge)
+            if edge in seeds:
+                wanted.add(entry.id)
+    return [entry for entry in entries if entry.id in wanted]
+
+
+def _edge_targets(entry: MemoryEntry) -> list[str]:
+    try:
+        return [edge["target_id"] for edge in json.loads(entry.metadata.get("edges") or "[]")]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return []
+
+
+# Any valid id works: only the area part of an ADD target is looked at.
+_PROBE_ID = "probe"
+
+
+def _area_add_targets(
+    synthesis: str, area_key: str, area_refs: AreaRefs,
+) -> tuple[list[tuple[str, str, str]], list[tuple[str, str]]]:
+    """Split ADD proposals into (id, target as written, resolved area key) for other existing areas
+    and (id, target as written) for targets that are invalid or not an area. The own area is dropped."""
+    accepted: list[tuple[str, str, str]] = []
+    rejected: list[tuple[str, str]] = []
+    for match in _ADD_TARGET_RE.finditer(synthesis):
+        entry_id, target = match.group(1), match.group(2).strip()
+        resolved = area_refs.resolve(area_key, f"{target}:{_PROBE_ID}")
+        if resolved is None:
+            rejected.append((entry_id, target))
+        elif resolved[0] != area_key:
+            accepted.append((entry_id, target, resolved[0]))
+    return accepted, rejected
+
+
 def _propagation_candidates(synthesis: str, source_collections: set[str]) -> list[tuple[str, str]]:
     """Return (entry_id, target_collection) pairs where target differs from all source collections."""
     candidates = []
@@ -384,9 +473,19 @@ def _propagation_candidates(synthesis: str, source_collections: set[str]) -> lis
 
 
 class DreamMemoryUseCase:
-    def __init__(self, repo: MemoryRepository, injection_log_path: Path | None = None) -> None:
+    def __init__(
+        self,
+        repo: MemoryRepository,
+        injection_log_path: Path | None = None,
+        area_refs: AreaRefs | None = None,
+        before_write: Callable[[], None] | None = None,
+    ) -> None:
+        """`area_refs` switches on area mode; `before_write` runs once before any proposal is
+        applied (the migration guard) and may raise to refuse."""
         self._repo = repo
         self._injection_log_path = injection_log_path
+        self._area_refs = area_refs
+        self._before_write = before_write
 
     def execute(
         self,
@@ -397,9 +496,15 @@ class DreamMemoryUseCase:
         collections_filter: list[str] | None = None,
         auto_link: bool = False,
         auto_supersede: bool = False,
+        neighbourhood: list[str] | None = None,
     ) -> str:
         if mode not in MODES:
             raise ValueError(f"mode must be one of {MODES}")
+        area_mode = self._area_refs is not None
+        if area_mode and not collection:
+            raise ValueError("area mode needs the area key as `collection`")
+        if neighbourhood is not None and not area_mode:
+            raise ValueError("neighbourhood is an area-mode option")
 
         if collections_filter is not None:
             collections = collections_filter
@@ -415,24 +520,31 @@ class DreamMemoryUseCase:
                 entry.metadata["_collection"] = col
             all_entries.extend(entries)
 
+        if neighbourhood:
+            all_entries = select_neighbourhood(all_entries, neighbourhood)
+
         if not all_entries:
             return "No memories found."
 
-        preamble_parts = [_TYPE_RULES]
+        type_rules = _TYPE_RULES.format(scope="area" if area_mode else "collection")
+        preamble_parts = [type_rules]
         if focus_hint:
             preamble_parts.append(f"FOCUS:\n{focus_hint}")
         memories = "\n\n".join(preamble_parts) + "\n\n---\n\n" + _format_entries(all_entries)
-        col_ctx = _collection_context(collections)
+        col_ctx = _AREA_CONTEXT.format(area=collections[0]) if area_mode else _collection_context(collections)
+        action_format = _AREA_ACTION_FORMAT if area_mode else _ACTION_FORMAT
         ts = datetime.now().strftime("%Y-%m-%d %H:%M")
 
         if mode in ("single-haiku", "single-sonnet"):
-            synthesis, report = self._run_single(mode.split("-", 1)[1], ts, memories, col_ctx)
+            synthesis, report = self._run_single(mode.split("-", 1)[1], ts, memories, col_ctx, action_format)
         elif mode == "hier":
-            synthesis, report = self._run_hier(ts, memories, col_ctx)
+            synthesis, report = self._run_hier(ts, memories, col_ctx, action_format)
         else:
-            synthesis, report = self._run_team(ts, memories, col_ctx)
+            synthesis, report = self._run_team(ts, memories, col_ctx, action_format)
 
-        propagation = _propagation_candidates(synthesis, set(collections))
+        if area_mode:
+            report += self._area_propagation_report(synthesis, collections[0])
+        propagation = [] if area_mode else _propagation_candidates(synthesis, set(collections))
         if propagation:
             lines = "\n".join(f"- `{eid}` → **{target}**" for eid, target in propagation)
             report += (
@@ -454,6 +566,9 @@ class DreamMemoryUseCase:
         if conflicts:
             report += "\n\n---\n\n## ⚠ Merge Conflicts\n\n" + "\n".join(conflicts)
 
+        if (auto_link or auto_supersede or auto_delete) and self._before_write is not None:
+            self._before_write()
+
         if auto_link:
             proposals = _parse_link_proposals(synthesis)
             report += self._edge_report("Links", "LINK", proposals, all_entries, allowed_types=_LINK_EDGE_TYPES)
@@ -473,16 +588,36 @@ class DreamMemoryUseCase:
 
         return report
 
-    def _run_single(self, model_key: str, ts: str, memories: str, col_ctx: str) -> tuple[str, str]:
+    def _area_propagation_report(self, synthesis: str, area_key: str) -> str:
+        accepted, rejected = _area_add_targets(synthesis, area_key, self._area_refs)
+        report = ""
+        if accepted:
+            lines = "\n".join(f"- `{eid}` → **{target}** (`{key}`)" for eid, target, key in accepted)
+            report += (
+                "\n\n---\n\n## Propagation Candidates\n\n"
+                "These ADD proposals target another area (not applied: write each as a new file "
+                "there, e.g. with `mem add`, if confirmed):\n\n" + lines
+            )
+        if rejected:
+            lines = "\n".join(f"- `{eid}` [target={target}]" for eid, target in rejected)
+            report += (
+                "\n\n---\n\n## Rejected ADD Targets\n\n"
+                "These targets are not an existing area path relative to the area under review:\n\n" + lines
+            )
+        return report
+
+    def _run_single(self, model_key: str, ts: str, memories: str, col_ctx: str,
+                    action_format: str = _ACTION_FORMAT) -> tuple[str, str]:
         result = _call(model_key, _P_SINGLE.format(
-            memories=memories, collection_context=col_ctx, action_format=_ACTION_FORMAT,
+            memories=memories, collection_context=col_ctx, action_format=action_format,
         ))
         return result, f"# Dream Log — {ts} — single:{model_key}\n\n{result}"
 
-    def _run_hier(self, ts: str, memories: str, col_ctx: str) -> tuple[str, str]:
+    def _run_hier(self, ts: str, memories: str, col_ctx: str,
+                  action_format: str = _ACTION_FORMAT) -> tuple[str, str]:
         haiku_pass = _call("haiku", _P_HAIKU.format(memories=memories, collection_context=col_ctx))
         sonnet_synthesis = _call("sonnet", _P_SONNET_HIER.format(
-            memories=memories, collection_context=col_ctx, action_format=_ACTION_FORMAT, haiku_pass=haiku_pass,
+            memories=memories, collection_context=col_ctx, action_format=action_format, haiku_pass=haiku_pass,
         ))
         report = (
             f"# Dream Log — {ts} — hier\n\n"
@@ -491,14 +626,15 @@ class DreamMemoryUseCase:
         )
         return sonnet_synthesis, report
 
-    def _run_team(self, ts: str, memories: str, col_ctx: str) -> tuple[str, str]:
+    def _run_team(self, ts: str, memories: str, col_ctx: str,
+                  action_format: str = _ACTION_FORMAT) -> tuple[str, str]:
         haiku_analysis = _call("haiku", _P_HAIKU.format(memories=memories, collection_context=col_ctx))
         sonnet_critique = _call("sonnet", _P_SONNET_CRITIQUE.format(
             memories=memories, collection_context=col_ctx, haiku_analysis=haiku_analysis,
         ))
         haiku_rebuttal = _call("haiku", _P_HAIKU_REBUTTAL.format(haiku_analysis=haiku_analysis, sonnet_critique=sonnet_critique))
         sonnet_final = _call("sonnet", _P_SONNET_FINAL.format(
-            collection_context=col_ctx, action_format=_ACTION_FORMAT,
+            collection_context=col_ctx, action_format=action_format,
             haiku_analysis=haiku_analysis, sonnet_critique=sonnet_critique, haiku_rebuttal=haiku_rebuttal,
         ))
         report = (
@@ -528,12 +664,17 @@ class DreamMemoryUseCase:
             if allowed_types is not None and edge_type not in allowed_types:
                 skipped.append(f"- {label}: invalid edge type (expected one of {', '.join(allowed_types)})")
                 continue
-            collection, reason = _shared_collection(id_to_cols, source_id, target_id)
+            if self._area_refs is not None and is_area_qualified(target_id) and source_id in id_to_cols:
+                # Area mode: a qualified target lives in another area; AddEdgeUseCase validates and
+                # resolves it (and refuses 'supersedes'), the edge is stored on the source only.
+                collection, reason = next(iter(id_to_cols[source_id])), ""
+            else:
+                collection, reason = _shared_collection(id_to_cols, source_id, target_id)
             if collection is None:
                 skipped.append(f"- {label}: {reason}")
                 continue
             try:
-                AddEdgeUseCase(self._repo).execute(collection, source_id, target_id, edge_type)
+                AddEdgeUseCase(self._repo, area_refs=self._area_refs).execute(collection, source_id, target_id, edge_type)
             except Exception as exc:  # ValueError from the use case, or a repository failure
                 skipped.append(f"- {label}: {exc}")
                 continue
