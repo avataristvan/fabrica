@@ -19,6 +19,7 @@ python3 -m ai_mem.hook           # SessionStart hook by hand (pipe a JSON payloa
 python3 -m ai_mem.server         # MCP server by hand
 mem-adr-sync reindex --collection <c>   # rebuild docs/records/INDEX.md
 mem-adr-sync migrate             # records_v1 dry run, ChromaDB -> files (--apply writes; install.py offers it once)
+mem add|link|delete|context ...   # write record files in the nearest area (docs/records/); exit 3 while a migration is pending
 mem-dream --dry-run              # preview what mem-dream would read, no API calls
 python3 install.py               # interactive — the user runs it, not the agent
 ```

@@ -51,6 +51,21 @@ python3 install.py
 | `mem_link` | Create a typed causal edge between two entries (`contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`). |
 | `mem_edges` | List all outgoing edges for an entry. |
 
+## `mem` CLI
+
+`mem` writes record files directly, without the MCP server: stdlib only, one line per action (`--json` for agents). The area is the nearest ancestor of the cwd with `docs/records/` (`--area PATH` overrides).
+
+```bash
+mem add --id ID --type learning --topic tools --text "..."   # or --file F, or - for stdin
+mem add --id ID --cue "situation in which this helps"        # existing record: only the given fields change
+mem add --id current_focus --text "..."                      # writes FOCUS.md
+mem link SOURCE TARGET --type related [--to-area PATH]       # TARGET bare, or <rel-area-path>:<id>
+mem delete ID...
+mem context [PATH] [--json]                                  # area root, records dir, INDEX/FOCUS paths
+```
+
+Ids are plain file stems (no `:`, separators or glob characters). Exit codes: 0 ok, 1 conflict or not found, 2 usage or invalid input, 3 migration pending (see `UPGRADING.md`; nothing is written). `mem lint` and `mem doctor` are reserved and print "not implemented yet" (exit 2).
+
 ## Memory Scoping
 
 Collections are auto-detected from the working directory:

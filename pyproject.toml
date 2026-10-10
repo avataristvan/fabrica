@@ -35,6 +35,7 @@ config = [
 ]
 
 [project.scripts]
+mem = "ai_mem.mem_cli:main"
 mem-dream = "ai_mem.dream_cli:main"
 mem-view = "ai_mem.view_cli:main"
 mem-adr-sync = "ai_mem.adr_cli:main"
