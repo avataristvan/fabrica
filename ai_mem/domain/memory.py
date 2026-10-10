@@ -93,6 +93,17 @@ class MemoryRepository(Protocol):
         ...
 
 
+def is_area_qualified(target_id: str) -> bool:
+    """An edge target `<rel-area-path>:<id>` points into another area; a bare id stays in the same one."""
+    return ":" in target_id
+
+
+class AreaRefs(Protocol):
+    def resolve(self, source: str, target_id: str) -> tuple[str, str] | None:
+        """`(collection, id)` an area-qualified target points at, seen from collection `source`; None if it does not resolve."""
+        ...
+
+
 _MAX_TITLE_LEN = 80
 
 

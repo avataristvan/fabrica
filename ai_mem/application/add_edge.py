@@ -3,12 +3,13 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from ai_mem.domain.memory import EdgeType, MemoryEdge, MemoryRepository
+from ai_mem.domain.memory import AreaRefs, EdgeType, MemoryEdge, MemoryRepository, is_area_qualified
 
 
 class AddEdgeUseCase:
-    def __init__(self, repo: MemoryRepository) -> None:
+    def __init__(self, repo: MemoryRepository, area_refs: AreaRefs | None = None) -> None:
         self._repo = repo
+        self._area_refs = area_refs
 
     def execute(
         self,
@@ -33,7 +34,15 @@ class AddEdgeUseCase:
 
         A 'derived_from' edge (source is the decision, target the learning it is based on) only
         stores the edge; the same self-link rule applies.
+
+        An area-qualified target (`<rel-area-path>:<id>`) must resolve through `area_refs` to an
+        existing entry in that area. The edge is stored as given, on the source only; the other
+        area is never written, so 'supersedes' across areas is refused (it would flag the target).
         """
+        if is_area_qualified(target_id):
+            self._add_cross_area_edge(collection, source_id, target_id, edge_type)
+            return
+
         # Checked before the fetch: get_by_ids([x, x]) makes ChromaDB raise DuplicateIDError.
         if edge_type == "supersedes" and source_id == target_id:
             raise ValueError(f"An entry cannot supersede itself: '{source_id}'")
@@ -59,3 +68,21 @@ class AddEdgeUseCase:
             target.metadata["superseded_by"] = source_id
             target.metadata["valid_until"] = datetime.now(tz=timezone.utc).timestamp()
             self._repo.upsert(collection, [target])
+
+    def _add_cross_area_edge(self, collection: str, source_id: str, target_id: str, edge_type: EdgeType) -> None:
+        if edge_type == "supersedes":
+            raise ValueError(
+                f"'supersedes' across areas is refused ({target_id!r}): it would write into the other area. "
+                f"Use 'related' or 'derived_from', and supersede inside the target area itself."
+            )
+        resolved = self._area_refs.resolve(collection, target_id) if self._area_refs is not None else None
+        if resolved is None:
+            raise ValueError(f"Area-qualified target {target_id!r} does not resolve to an area from '{collection}'")
+        target_collection, bare_target = resolved
+        if edge_type in ("confirms", "derived_from") and (target_collection, bare_target) == (collection, source_id):
+            raise ValueError(f"'{source_id}' cannot point a '{edge_type}' edge at itself ({target_id!r})")
+        if not self._repo.get_by_ids(collection, [source_id]):
+            raise ValueError(f"Entry ID(s) not found in '{collection}': {[source_id]}")
+        if not self._repo.get_by_ids(target_collection, [bare_target]):
+            raise ValueError(f"Entry ID {bare_target!r} not found in area '{target_collection}'")
+        self._repo.add_edge(collection, source_id, MemoryEdge(target_id=target_id, edge_type=edge_type))
