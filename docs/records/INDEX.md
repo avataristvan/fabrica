@@ -154,6 +154,7 @@
 | pattern_error_hint_checks_error_concerns_argument_2026_10_11 | plugin | pattern | Rule: A hint attached to a use-case error must first check that the error concer | active |
 | pattern_eval_artifacts_outside_agent_readable_corpus | evaluation | pattern | Rule: Eval cases, gold IDs and discriminators are not stored where the tested ag | active |
 | pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13 | records | pattern | Rule: Before making a history public, every ref that is pushed must be clean, no | active |
+| pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13 | architecture | pattern | Rule: Separate two levels of work in an ai-mem session. Building ai-mem (the plu | active |
 | pattern_gap_test_evaluation | evaluation | pattern | # Gap test: objective evaluation of whether ai-mem helps the agent | active |
 | pattern_generic_core_selective_agent_activation | architecture | pattern | Rule: ai-mem's own source must stay agent-agnostic. Per-agent behavior is opt-in | active |
 | pattern_handoff_is_overwritten_not_appended_2026_10_12 | workflow | pattern | Rule: Overwrite the handoff with the current state each time; never only append. | active |
