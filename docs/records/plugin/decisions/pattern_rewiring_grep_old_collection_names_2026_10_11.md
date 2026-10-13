@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: the-coder
 created: 1791745727.636475
-edges: [{"target_id": "todo_persona_skill_area_paths_are_guesses_2026_10_11", "edge_type": "related"}, {"target_id": "../ai-architecture:pattern_retirement_leaves_stale_consumers", "edge_type": "confirms"}]
+edges: [{"target_id": "../ai-architecture:pattern_retirement_leaves_stale_consumers", "edge_type": "confirms"}]
 cue: I am rewiring agents or skills from memory writes to record candidates
 ---
 

@@ -55,6 +55,7 @@
 | domain_mem_delete_names_dangling_edges_2026_10_13 | records | domain | Decision: `mem delete` prints `dangling: REF --TYPE--> ID` for every same-area e | active |
 | domain_mem_unlink_removes_edges_2026_10_13 | records | domain | Decision: `mem unlink SOURCE TARGET [--type T]` (RemoveEdgeUseCase, ai_mem/appli | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
+| domain_records_home_stays_for_migration_2026_10_13 | architecture | domain | Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r | active |
 | domain_records_model_replaces_chroma_2026_10_04 | records | domain | Decision: ChromaDB is replaced. The source of truth is git-native files in four  | active |
 | domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 | records | domain | Decision: Going public. Internal working material (raw eval transcripts, the chu | active |
 | domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12 | plugin | domain | Decision: The default retro roles of the SubagentStop hook retro_check are only  | active |
@@ -225,7 +226,6 @@
 | todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
 | todo_mem_link_and_find_resolve_source_slugs_2026_10_12 | records | todo | TODO: Make `mem link` and `mem find` resolve source slugs (docs/sources/<slug>.m | active |
 | todo_persona_finding_records_not_found_2026_10_11 | plugin | todo | TODO: The Mara/Rin/Clara `*-finding` entries that the persona skills reference w | active |
-| todo_persona_skill_area_paths_are_guesses_2026_10_11 | plugin | todo | TODO: The area paths in the persona skills (a business area of another project,  | active |
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
