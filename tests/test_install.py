@@ -142,7 +142,7 @@ LEGACY_SETTINGS = {"hooks": {
 def _legacy_home(home):
     (home / ".claude" / "commands").mkdir(parents=True)
     (home / ".claude" / "settings.json").write_text(json.dumps(LEGACY_SETTINGS))
-    (home / ".claude" / "commands" / "reflect.md").write_text("ai-mem /reflect: hand candidates to the archivist")
+    (home / ".claude" / "commands" / "reflect.md").write_text("Lightweight standup.\n\n## [retro] convention for subagents\n")
     (home / ".claude" / "commands" / "mem-init.md").write_text("Initialize or update the ai-mem memory for the current project scope.\n\n1. Detect the active scope")
 
 
@@ -156,6 +156,15 @@ def test_plugin_switch_removes_leftovers_on_yes_and_keeps_user_hooks(home, capsy
     assert not any((home / ".claude" / "commands").iterdir())
     out = capsys.readouterr().out
     assert "SessionStart hook in settings.json" in out and "command mem-init.md" in out
+
+
+def test_plugin_switch_keeps_a_reflect_command_the_user_wrote(home):
+    _legacy_home(home)
+    own = home / ".claude" / "commands" / "reflect.md"
+    own.write_text("My own /reflect: ask the ai-mem archivist, then mem_add the result.")
+    with patch("builtins.input", return_value="y"):
+        install.offer_plugin_switch()
+    assert own.exists() and not (home / ".claude" / "commands" / "mem-init.md").exists()
 
 
 def test_plugin_switch_flag_runs_only_the_offer(home):

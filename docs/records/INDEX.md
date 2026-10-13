@@ -32,6 +32,7 @@
 | design_three_tier_pull_the_coder_2026_09_12 | workflow | domain | Status addendum (2026-09-29): The premise of the global tier ('SessionStart's [a | active |
 | domain_acceptance_checksum_skips_hook_written_paths_2026_10_13 | plugin | domain | Decision: scripts/upgrade_acceptance/run.sh skips reminded/, retro_log.jsonl, do | active |
 | domain_agents_learn_environment_never_edit_external_2026_10_11 | architecture | domain | Decision: ai-mem never edits externally installed agents/skills/plugins (e.g. th | active |
+| domain_archivist_acceptance_closed_fail_use_carries_2026_10_13 | evaluation | domain | Decision: The archivist acceptance (scripts/eval_archivist/; pass rule >= 80% of | active |
 | domain_archivist_mechanism_mem_and_mem_dream_2026_10_11 | architecture | domain | Decision: `mem` and `mem-dream` are the archivist's tools, and it calls mem-drea | active |
 | domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13 | architecture | domain | Decision: DreamMemoryUseCase works on areas only (area_refs required; collection | active |
 | domain_chunk_plan_carries_all_boundary_anchors_2026_10_12 | workflow | domain | Decision: Chunk-plan entries carry every anchor that draws a boundary for the ch | active |
@@ -205,7 +206,8 @@
 | todo_adr_migration_2026_09_25 | general | learning | RESULT (completed 2026-09-25): Switch to ADRs -- domain/pattern/anti-pattern ent | active |
 | todo_after_confidence_drop_cleanup_2026_09_26 | general | learning | Cleanup after the confidence removal (b5e5d38), completed 2026-09-26 after the f | active |
 | todo_ai_mem_violates_link_type | architecture | todo | TODO: In an ai-mem session, propose a new link type 'violates' (anti-pattern → p | active |
-| todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: The archivist report names the areas it searched. This is a lever from an  | active |
+| todo_archivist_flag_cross_area_duplicates_2026_10_13 | architecture | todo | TODO: The archivist does not look for duplicates of a candidate in other areas.  | active |
+| todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: Make the archivist's search of the records home (ai-mem-records/global, wo | active |
 | todo_bibliothekar_haiku_retrieval_agent_2026_09_25 | general | learning | RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09- | active |
 | todo_chunk4c_retro_log_dedupe_and_doctor_constant_2026_10_11 | plugin | todo | TODO: (1) Deduplicate retro_log.jsonl by agent_id, since a blocked agent logs tw | active |
 | todo_confidence_decay_adsr_design | general | learning | Design and implement a confidence-decay mechanism modeled on an ADSR envelope (A | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
@@ -224,7 +226,7 @@
 | todo_frontmatter_value_injection | workflow | todo | TODO (push security review 2026-10-10): adr_markdown.serialize writes superseded | active |
 | todo_holistic_opus_review_adr_migration_2026_09_25 | workflow | learning | Observed: The holistic Opus review of the ADR migration (b7548a1, carried out 20 | active |
 | todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
-| todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Limit the librarian's search to docs/records, docs/reference and docs/sour | active |
+| todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
 | todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
 | todo_mem_link_and_find_resolve_source_slugs_2026_10_12 | records | todo | TODO: Make `mem link` and `mem find` resolve source slugs (docs/sources/<slug>.m | active |
 | todo_persona_finding_records_not_found_2026_10_11 | plugin | todo | TODO: The Mara/Rin/Clara `*-finding` entries that the persona skills reference w | active |

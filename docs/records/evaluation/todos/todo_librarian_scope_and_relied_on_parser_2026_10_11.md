@@ -7,4 +7,5 @@ edges: [{"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "e
 cue: I am about to re-run the librarian eval or score its answers
 ---
 
-TODO: Limit the librarian's search to docs/records, docs/reference and docs/sources. Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plus a rule for a missing `Relied on:` line. Needs a new eval run (budget).
+TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plus a rule for a missing `Relied on:` line. Needed only when the librarian eval is rerun (needs a new eval run, budget).
+Done: the scope part. agents/librarian.md "Scope your reads" limits it to docs/records, docs/reference and docs/sources; it held on 2026-10-13 (the librarian answered that the chunk plan was "not readable under my scope").

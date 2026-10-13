@@ -42,3 +42,13 @@ def test_backup_keeps_the_original_when_one_run_saves_settings_twice(tmp_path):
     uninstall.unregister_claude(tmp_path, dry_run=False)
     assert json.loads((settings.parent / "settings.json.ai-mem.bak").read_text()) == original
     assert json.loads(settings.read_text()) == {"permissions": {"allow": ["Read"]}, "hooks": {}}
+
+
+def test_remove_commands_removes_shipped_copies_and_keeps_a_users_own(tmp_path):
+    commands = tmp_path / ".claude" / "commands"
+    commands.mkdir(parents=True)
+    (commands / "reflect.md").write_text("Lightweight standup.\n\n## [retro] convention for subagents\n")
+    own = commands / "mem-init.md"
+    own.write_text("My own init: ask the ai-mem archivist.")
+    uninstall._remove_commands(tmp_path, dry_run=False)
+    assert not (commands / "reflect.md").exists() and own.exists()

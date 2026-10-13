@@ -113,9 +113,9 @@ def _points_into_checkout(link: Path) -> bool:
 
 
 # Commands older versions copied into ~/.claude/commands (/reflect is now /ai-mem:reflect, /mem-init /ai-mem:setup),
-# each with the markers that tell the copy from a command the user wrote. Every shipped mem-init began with its marker line.
+# each with a marker line every distinct shipped version carries, so a command the user wrote is never taken for one.
 AI_MEM_COMMANDS = {
-    "reflect.md": ("ai-mem", "archivist", "mem_add"),
+    "reflect.md": ("## [retro] convention for subagents",),
     "mem-init.md": ("Initialize or update the ai-mem memory for the current project scope.",),
 }
 
