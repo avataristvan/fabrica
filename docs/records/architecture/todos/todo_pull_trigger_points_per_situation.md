@@ -2,7 +2,7 @@ id: todo_pull_trigger_points_per_situation
 type: todo
 area: architecture
 created: 1791138592.545231
-edges: [{"target_id": "../fabrica:learning_pull_needs_situation_triggers_2026_10_04", "edge_type": "derived_from"}, {"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "../fabrica:domain_why_travels_with_chunk_spec_2026_10_10", "edge_type": "related"}, {"target_id": "todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12", "edge_type": "related"}, {"target_id": "learning_pull_needs_situation_triggers_2026_10_04", "edge_type": "derived_from"}, {"target_id": "domain_why_travels_with_chunk_spec_2026_10_10", "edge_type": "related"}]
 ---
 
 TODO: Define fixed pull trigger points per situation, one at a time, each tested like the reviewer template.

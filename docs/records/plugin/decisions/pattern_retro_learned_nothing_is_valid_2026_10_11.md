@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: agent
 created: 1791725661.852841
-edges: [{"target_id": "../fabrica:domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]
 cue: I am designing or checking the [retro] block rule, or a trivial subagent task has nothing to report as learned
 ---
 

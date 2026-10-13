@@ -3,7 +3,7 @@ type: pattern
 area: records
 perspective: user
 created: 1791756513.147468
-edges: [{"target_id": "../fabrica:domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "related"}]
 cue: The same record id exists in two areas after a move or redistribution and I am tempted to rename one
 ---
 

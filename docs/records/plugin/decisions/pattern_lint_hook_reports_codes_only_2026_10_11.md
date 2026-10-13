@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: the-coder
 created: 1791738296.180107
-edges: [{"target_id": "../fabrica:domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}, {"target_id": "..:pattern_hooks_must_not_raise", "edge_type": "related"}]
+edges: [{"target_id": "..:pattern_hooks_must_not_raise", "edge_type": "related"}, {"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]
 cue: I am letting a hook surface findings about record files to the model, or checking that a path stays inside docs/records
 ---
 

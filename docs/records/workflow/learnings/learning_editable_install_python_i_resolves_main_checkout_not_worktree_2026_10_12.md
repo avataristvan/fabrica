@@ -3,7 +3,7 @@ type: learning
 area: workflow
 perspective: the-coder
 created: 1791838321.935767
-edges: [{"target_id": "pattern_worktree_chunk_copies_git_ignored_files_explicitly_2026_10_12", "edge_type": "related"}, {"target_id": "anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12", "edge_type": "related"}]
 cue: I am testing code in a git worktree while the main checkout is pip-installed editable and a subprocess imports ai_mem
 ---
 

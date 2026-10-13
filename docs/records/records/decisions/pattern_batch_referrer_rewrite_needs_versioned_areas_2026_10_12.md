@@ -3,7 +3,7 @@ type: pattern
 area: records
 perspective: the-coder
 created: 1791756505.762109
-edges: [{"target_id": "pattern_batch_move_builds_destination_map_first_2026_10_12", "edge_type": "related"}, {"target_id": "../fabrica:domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "confirms"}]
+edges: [{"target_id": "pattern_batch_move_builds_destination_map_first_2026_10_12", "edge_type": "related"}, {"target_id": "domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "confirms"}]
 cue: I am moving records in a batch and the move would rewrite edges that point at them from other areas
 ---
 

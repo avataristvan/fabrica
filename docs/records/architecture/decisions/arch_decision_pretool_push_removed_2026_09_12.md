@@ -2,8 +2,8 @@ id: arch_decision_pretool_push_removed_2026_09_12
 type: domain
 area: architecture
 created: 1789228434.240356
-edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "learning_pretool_push_dominated_context_footprint_2026_09_12", "edge_type": "derived_from"}, {"target_id": "arch_redesign_sketch_pull_based_2026_07_31", "edge_type": "related"}, {"target_id": "domain_chunk_plan_carries_all_boundary_anchors_2026_10_12", "edge_type": "related"}]
-cue: Vorschlag, ai-mem wieder vor Datei-Edits (PreToolUse) etwas einspielen zu lassen
+edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "learning_pretool_push_dominated_context_footprint_2026_09_12", "edge_type": "derived_from"}, {"target_id": "arch_redesign_sketch_pull_based_2026_07_31", "edge_type": "related"}]
+cue: Someone proposes that ai-mem inject something again before file edits (PreToolUse)
 ---
 
 # PreToolUse push removed: return to pure pull for Edit/Write (2026-09-12)

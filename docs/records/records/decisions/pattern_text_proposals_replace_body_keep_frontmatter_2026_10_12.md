@@ -3,7 +3,7 @@ type: pattern
 area: records
 perspective: the-coder
 created: 1791756531.297117
-edges: [{"target_id": "../fabrica:domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}]
 cue: I am applying a pseudonymised or translated text proposal to a record file
 ---
 

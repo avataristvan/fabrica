@@ -4,7 +4,7 @@ area: architecture
 perspective: agent
 created: 1791758069.215956
 edges: [{"target_id": "arch_decision_pretool_push_removed_2026_09_12", "edge_type": "related"}, {"target_id": "arch_decision_userprompt_push_removed_2026_09_13", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "contradicts"}]
-cue: Vorschlag, SessionStart wieder den alten Push-Umfang (current_focus, [available], Git-Commits) liefern zu lassen
+cue: Someone proposes that SessionStart deliver the old push scope again (current_focus, [available], git commits)
 ---
 
 # SessionStart becomes pull-based by default (2026-09-16)

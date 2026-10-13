@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: agent
 created: 1791754873.605618
-edges: [{"target_id": "../fabrica:domain_archivist_who_what_how_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "derived_from"}]
 cue: when you need to know which tools the archivist writes and normalises records with
 ---
 

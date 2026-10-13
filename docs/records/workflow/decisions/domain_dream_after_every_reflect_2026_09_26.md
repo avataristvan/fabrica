@@ -2,7 +2,7 @@ id: domain_dream_after_every_reflect_2026_09_26
 type: domain
 area: workflow
 created: 1790440444.53689
-edges: [{"target_id": "todo_dream_trigger_candidates_not_count_2026_09_25", "edge_type": "supersedes"}, {"target_id": "feedback_install_py_user_only", "edge_type": "related"}, {"target_id": "../fabrica:domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "todo_dream_trigger_candidates_not_count_2026_09_25", "edge_type": "supersedes"}, {"target_id": "feedback_install_py_user_only", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}]
 ---
 
 Decision: mem_dream runs after every /reflect (step 6), limited to the active area, mode=hier (Haiku pre-pass, Sonnet synthesis), auto_link and auto_supersede on, auto_delete off. focus_hint names the IDs that were written, cited or linked in the session. DELETE and MERGE need a single collected follow-up question; mechanical UPDATE/SPLIT application goes to a Haiku subagent.

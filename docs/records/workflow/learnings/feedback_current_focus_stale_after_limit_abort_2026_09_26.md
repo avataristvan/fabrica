@@ -2,7 +2,7 @@ id: feedback_current_focus_stale_after_limit_abort_2026_09_26
 type: learning
 area: workflow
 created: 1790440075.46643
-edges: [{"target_id": "../fabrica:pattern_status_markers_rot_in_memory", "edge_type": "confirms"}]
+edges: [{"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "confirms"}]
 cue: A session starts with "continue" and current_focus reports uncommitted or still-running work.
 ---
 

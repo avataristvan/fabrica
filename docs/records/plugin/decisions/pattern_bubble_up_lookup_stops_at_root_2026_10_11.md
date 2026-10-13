@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: the-coder
 created: 1791745726.71139
-edges: [{"target_id": "../fabrica:domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}]
 cue: I am writing a lookup that walks up the ancestor folders (area lookup, config search)
 ---
 

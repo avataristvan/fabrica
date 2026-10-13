@@ -3,7 +3,7 @@ type: domain
 area: architecture
 created: 1789252235.413231
 edges: [{"target_id": "learning_autoinject_disable_never_took_effect_2026_09_13", "edge_type": "derived_from"}, {"target_id": "arch_redesign_sketch_pull_based_2026_07_31", "edge_type": "related"}]
-cue: Vorschlag, ai-mem wieder bei jedem Prompt (UserPromptSubmit) Kontext einspielen zu lassen
+cue: Someone proposes that ai-mem inject context again on every prompt (UserPromptSubmit)
 ---
 
 # UserPromptSubmit push removed (2026-09-13)

@@ -3,7 +3,7 @@ type: learning
 area: plugin
 perspective: the-coder
 created: 1791738289.748743
-edges: [{"target_id": "../fabrica:domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]
 cue: I am designing a role check or retro check that must hold across subagent spawn levels (a subagent spawning subagents)
 ---
 

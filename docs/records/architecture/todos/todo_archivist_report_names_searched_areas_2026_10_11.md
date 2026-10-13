@@ -3,7 +3,7 @@ type: todo
 area: architecture
 perspective: user
 created: 1791745728.959503
-edges: [{"target_id": "../fabrica:domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "domain_archivist_acceptance_closed_fail_use_carries_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_archivist_acceptance_closed_fail_use_carries_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}]
 cue: I am changing agents/archivist.md or judging whether an archivist report searched the records home and other areas.
 ---
 
