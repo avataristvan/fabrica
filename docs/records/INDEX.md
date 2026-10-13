@@ -225,7 +225,6 @@
 | todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
 | todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
 | todo_mem_link_and_find_resolve_source_slugs_2026_10_12 | records | todo | TODO: Make `mem link` and `mem find` resolve source slugs (docs/sources/<slug>.m | active |
-| todo_persona_finding_records_not_found_2026_10_11 | plugin | todo | TODO: The Mara/Rin/Clara `*-finding` entries that the persona skills reference w | active |
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
