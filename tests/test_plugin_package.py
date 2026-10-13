@@ -32,7 +32,9 @@ def test_manifest_and_marketplace_name_the_same_plugin() -> None:
 
 
 def test_no_mcp_json_in_the_plugin() -> None:
-    assert not (ROOT / ".mcp.json").exists()
+    # The plugin is what git tracks; a developer's ignored local .mcp.json (IDE servers) never ships.
+    tracked = subprocess.run(["git", "ls-files", ".mcp.json"], cwd=ROOT, capture_output=True, text=True, check=True)
+    assert tracked.stdout.strip() == ""
 
 
 def test_hooks_json_runs_every_enforcing_module_through_the_runner() -> None:
@@ -81,7 +83,7 @@ def test_runner_session_start_prints_the_area_line(tmp_path: Path) -> None:
 
 
 def test_runner_retro_check_blocks_once(tmp_path: Path) -> None:
-    event = {"agent_type": "the-coder", "agent_id": "a1", "session_id": "s1", "last_assistant_message": "no retro"}
+    event = {"agent_type": "ai-mem:anchor-lint", "agent_id": "a1", "session_id": "s1", "last_assistant_message": "no retro"}
     result = _run_hook(tmp_path, "ai_mem.hooks.retro_check", json.dumps(event), tmp_path)
     assert result.returncode == 0 and result.stderr == ""
     assert json.loads(result.stdout)["decision"] == "block"

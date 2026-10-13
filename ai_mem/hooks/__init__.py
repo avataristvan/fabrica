@@ -2,7 +2,7 @@
 
 Every hook module is a `python -m ai_mem.hooks.<name>` entry point that exits 0 with nothing on stderr,
 whatever its stdin holds (pattern_hooks_must_not_raise). Stdlib only, so a hook runs on an installation
-without chromadb or mcp.
+without any third-party package.
 """
 from __future__ import annotations
 

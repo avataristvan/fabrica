@@ -48,8 +48,10 @@ python scripts/upgrade_acceptance/equivalence.py <store-copy> [--scan-root DIR] 
   no merge/rebase in progress, local commit intact, nothing migrated.
 - **Real data:** sha256 of every file in `~/.local/share/ai-mem`, `STORE_SRC`,
   `WORKSPACE/*/docs/records` and `WORKSPACE/ai-mem-records`, before and after. A difference
-  fails the run; check `real-diff.txt` -- other Claude sessions running at the same time
-  write `session_start.txt` and `adr_collection_roots.json` in the real store.
+  fails the run; check `real-diff.txt`. Excluded, because other Claude sessions running at
+  the same time write them: `reminded/`, `retro_log.jsonl`, `doctor_last_run` and (older
+  sessions) `session_start.txt` in the real store. `adr_collection_roots.json` stays
+  checked: only the migration writes it.
 
 `equivalence.py` compares the stdlib reader with the chromadb path on a store copy (each
 reads its own temporary copy): collections, ids, documents, metadata in order, and the

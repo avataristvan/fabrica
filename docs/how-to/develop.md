@@ -10,9 +10,7 @@ python -m pytest tests/ -q          # all tests
 python -m pytest tests/test_doctor.py -q   # one file
 ```
 
-Fixtures are in `tests/conftest.py`: it points `AI_MEM_PATH` at a temp dir, sets `AI_MEM_ADR_DISABLED=1` and unsets `AI_MEM_RECORDS_HOME` and `AI_MEM_WORKSPACE_ROOT`. Infrastructure tests for the default backend use `FileMemoryRepository` on temp dirs (`tests/infrastructure/test_file_repository.py`). Run the count yourself rather than trusting a number in a doc: `python -m pytest tests/ -q | tail -1`.
-
-Run `tests/test_daemon.py` alone before suspecting a change when it fails: it fails sporadically (see `CLAUDE.md`, "Known noise").
+Fixtures are in `tests/conftest.py`: it points `AI_MEM_PATH` at a temp dir, and unsets `AI_MEM_RECORDS_HOME` and `AI_MEM_WORKSPACE_ROOT`. Infrastructure tests use `FileMemoryRepository` on temp dirs (`tests/infrastructure/test_file_repository.py`); use-case tests use the in-memory repository in `conftest.py`. The migration tests build real stores of the earlier database through `tests/chroma_store.py` and skip when the client library from the `dev` extra is not installed. Run the count yourself rather than trusting a number in a doc: `python -m pytest tests/ -q | tail -1`.
 
 Install and uninstall tests run `install.py`/`uninstall.py` against a temp `HOME`, never the real `~/.claude`.
 
@@ -57,5 +55,5 @@ Documentation is organised by [Diátaxis](https://diataxis.fr/): `docs/tutorial/
 ## Conventions
 
 - Timestamps in records are numbers (`created`, `valid_until`); the format is in the [record format](../reference/record-format.md).
-- A delete without ids is refused; whole-collection deletes belong to the rollback stack only.
+- A delete without ids is refused.
 - No ranking step exists: reading is by the librarian's judgment, so do not add scores.

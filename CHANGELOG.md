@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Removed: the MCP server, the daemon and the Chroma backend (cutover to the plugin)
+
+- **Breaking:** `ai_mem/server.py` (`mem_*` MCP tools), the query daemon, `repository_factory.py` with the Chroma/BM25/Markdown-projection repositories (`AI_MEM_BACKEND=chroma`), the PreToolUse/UserPromptSubmit/PostToolUse push modules, `agent_context.py`, `session_stats.py`, `injection_log.py`, the use cases only the server called, `mem-adr-sync export`/`import`, `mem-dream --collection`/`--expert`, `agents.yaml` handling and `scripts/eval_pull/replay.py`. The last commit that has them is the tag `v0-last-mcp`.
+- `pyproject.toml`: `dependencies = []`; the only extra is `dev` (`pytest`, plus `chromadb` for the migration test fixtures). The `chroma`, `hybrid` and `config` extras are gone.
+- SessionStart prints `Area:`, `Records:` and the upgrade/doctor pointers; the `Active collection:` and `Expert collection:` lines and the verbose mode are gone.
+- The records_v1 migration (`mem-adr-sync migrate`, stdlib sqlite reader, no extra) and `mem-adr-sync reindex` stay. The ChromaDB store on disk is never touched.
+- `install.py` no longer registers an MCP server for Claude Code, Gemini CLI or Cursor; `install.py --plugin-switch` offers to remove the old registration, the `mcp__ai-mem__*` permissions and the retired push hooks. `UPGRADING.md` has part 2 of "MCP server -> plugin".
+
 ### Added: Claude Code plugin package (`ai-mem@ai-mem`)
 
 - `.claude-plugin/plugin.json` and `marketplace.json`; `agents/` (`librarian`, `archivist`, `anchor-lint`, moved from `examples/agents/`), `skills/reflect/SKILL.md` (was `skills/examples/reflect.md`), `skills/handoff-protocol/`, `hooks/hooks.json` (all four hooks through `hooks/run.py`), `bin/mem` and `bin/mem-dream` (sh shims, system `python3`, no `pip install`). Names are namespaced: `ai-mem:librarian`, `/ai-mem:reflect`.

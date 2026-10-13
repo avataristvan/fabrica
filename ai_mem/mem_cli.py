@@ -21,9 +21,9 @@ from ai_mem import doctor, records_lint, upgrade_guard
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.delete_memory import DeleteMemoryUseCase
-from ai_mem.application.experience_index import normalize_cue
 from ai_mem.application.move_memory import AreaMovePlan, MoveRow, MoveToAreaUseCase, OpKind
-from ai_mem.domain.memory import EdgeType, MemoryRepository, is_area_qualified, parse_edges
+from ai_mem.application.remove_edge import RemoveEdgeUseCase
+from ai_mem.domain.memory import EdgeType, MemoryRepository, is_area_qualified, normalize_cue, parse_edges
 from ai_mem.infrastructure.adr_index import index_is_current
 from ai_mem.infrastructure.adr_paths import (
     FOCUS_ID,
@@ -235,6 +235,21 @@ def _link(args: argparse.Namespace) -> int:
     return OK
 
 
+def _unlink(args: argparse.Namespace) -> int:
+    _guard_writes()
+    source = _bare_id(args.source)
+    area = _area(args.area)
+    _refuse_hand_kept_index(area)
+    repo, key = _repository(), str(area.root)
+    try:
+        removed = RemoveEdgeUseCase(repo).execute(key, source, args.target, args.type)
+    except ValueError as exc:
+        raise CliError(str(exc), CONFLICT) from exc
+    _emit(args, {"action": "unlinked", "source": source, "target": args.target, "types": removed, "area": key},
+          f"unlinked {source} --{','.join(removed)}--> {args.target}")
+    return OK
+
+
 def _found_at_hint(home: Area, target: str) -> str:
     """For a bare link target: where else the id exists. Never auto-qualifies; the caller decides."""
     if ":" in target:
@@ -255,12 +270,16 @@ def _delete(args: argparse.Namespace) -> int:
         _refuse_hand_kept_index(area)
     repo, key = _repository(), str(area.root)
     present = {entry.id for entry in repo.get_by_ids(key, ids)}
+    dangling = []
     if present:
-        DeleteMemoryUseCase(repo).execute(key, [entry_id for entry_id in ids if entry_id in present])
+        dangling = DeleteMemoryUseCase(repo).execute(key, [entry_id for entry_id in ids if entry_id in present])
     missing = [entry_id for entry_id in ids if entry_id not in present]
     for entry_id in ids:
         action = "deleted" if entry_id in present else "not_found"
         _emit(args, {"action": action, "id": entry_id, "area": key}, f"{action.replace('_', ' ')} {entry_id}")
+    for edge in dangling:
+        _emit(args, {"action": "dangling", "source": edge.referrer, "target": edge.target, "type": edge.edge_type, "area": key},
+              f"dangling: {edge.referrer} --{edge.edge_type}--> {edge.target}")
     return CONFLICT if missing else OK
 
 
@@ -524,6 +543,12 @@ def _build_parser() -> argparse.ArgumentParser:
     link.add_argument("--type", required=True, choices=get_args(EdgeType))
     link.add_argument("--to-area", metavar="PATH", help="area of TARGET; the qualified reference is built from it")
     link.set_defaults(handler=_link)
+
+    unlink = sub.add_parser("unlink", parents=[common], help="remove the edges from SOURCE to TARGET")
+    unlink.add_argument("source")
+    unlink.add_argument("target", help="the target as stored in SOURCE's edges (bare id or <rel-area-path>:<id>)")
+    unlink.add_argument("--type", choices=get_args(EdgeType), help="only the edge of this type (default: every type)")
+    unlink.set_defaults(handler=_unlink)
 
     delete = sub.add_parser("delete", parents=[common], help="delete records by id")
     delete.add_argument("ids", nargs="+", metavar="ID")

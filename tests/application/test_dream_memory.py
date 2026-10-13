@@ -1,4 +1,4 @@
-"""Tests for dream_memory propagation candidate parsing and entry formatting."""
+"""Tests for dream_memory ADD target parsing, entry formatting and area mode."""
 from __future__ import annotations
 
 import json
@@ -8,15 +8,11 @@ from ai_mem.application.dream_memory import (
     _ADD_TARGET_RE,
     _TYPE_RULES,
     _format_entries,
-    _propagation_candidates,
-    _pull_through_report,
 )
 from ai_mem.domain.memory import MemoryEntry
-from ai_mem.injection_log import record_pushed
 
 
 def _entry(id: str, text: str, **meta) -> MemoryEntry:
-    meta["_collection"] = meta.pop("collection", "repo.test")
     return MemoryEntry(id=id, text=text, metadata=meta)
 
 
@@ -38,7 +34,7 @@ class TestFormatEntries:
         stale = _entry("old", "old rule", superseded_by="new")
         revived = _entry("undone", "revived rule", superseded_by="")
         out = _format_entries([stale, revived])
-        assert "[old] (collection: repo.test) [superseded_by=new]" in out
+        assert "[old] [superseded_by=new]" in out
         assert "superseded_by" not in out.split("---")[1]
 
     def test_type_rules_exempt_supersedes_target_from_edge_protection(self):
@@ -109,6 +105,11 @@ class TestAddTargetRe:
         assert m is not None
         assert m.group(2).strip() == "repo.my-app"
 
+    def test_id_in_markdown_backticks_is_parsed_without_them(self):
+        # Sonnet formats ids as `code`; the id must come out bare.
+        m = _ADD_TARGET_RE.search("- ADD `my_entry` [target=../other]: some content")
+        assert m is not None and m.group(1) == "my_entry"
+
     def test_case_insensitive(self):
         text = "- add my_entry [target=global]: some content"
         assert _ADD_TARGET_RE.search(text) is not None
@@ -131,132 +132,6 @@ class TestAddTargetRe:
         assert len(matches) == 2
         assert ("entry_a", "global") in matches
         assert ("entry_b", "workspace") in matches
-
-
-# ── _propagation_candidates ───────────────────────────────────────────────────
-
-class TestPropagationCandidates:
-    def test_returns_candidates_with_foreign_target(self):
-        synthesis = "- ADD new_pattern [target=global]: a broadly useful pattern"
-        result = _propagation_candidates(synthesis, {"repo.my-app"})
-        assert result == [("new_pattern", "global")]
-
-    def test_excludes_candidates_in_source_collections(self):
-        synthesis = "- ADD same_col_entry [target=repo.my-app]: stays local"
-        result = _propagation_candidates(synthesis, {"repo.my-app"})
-        assert result == []
-
-    def test_empty_synthesis_returns_empty(self):
-        assert _propagation_candidates("", {"repo.ai-mem"}) == []
-
-    def test_no_add_with_target_returns_empty(self):
-        synthesis = "- DELETE old_entry: stale\n- UPDATE some_id: improve wording"
-        assert _propagation_candidates(synthesis, {"repo.ai-mem"}) == []
-
-    def test_mixed_targets_only_returns_foreign(self):
-        synthesis = (
-            "- ADD local_tip [target=repo.my-app]: project-specific\n"
-            "- ADD global_pattern [target=global]: universal\n"
-            "- ADD workspace_tip [target=workspace]: cross-project\n"
-        )
-        result = _propagation_candidates(synthesis, {"repo.my-app"})
-        assert ("local_tip", "global") not in result
-        assert ("global_pattern", "global") in result
-        assert ("workspace_tip", "workspace") in result
-        assert len(result) == 2
-
-    def test_multiple_source_collections(self):
-        synthesis = (
-            "- ADD entry_a [target=repo.my-app]: already a source\n"
-            "- ADD entry_b [target=global]: propagate this\n"
-        )
-        result = _propagation_candidates(synthesis, {"repo.my-app", "repo.ai-mem"})
-        assert result == [("entry_b", "global")]
-
-    def test_whitespace_in_target_is_stripped(self):
-        synthesis = "- ADD entry_x [target=  global  ]: content"
-        result = _propagation_candidates(synthesis, {"repo.ai-mem"})
-        assert result == [("entry_x", "global")]
-
-
-# ── _pull_through_report ────────────────────────────────────────────────────────
-
-class TestPullThroughReport:
-    def test_empty_when_no_log_file(self, tmp_path):
-        entries = [_entry("e1", "text", collection="repo.x")]
-        assert _pull_through_report(entries, tmp_path / "injection_log.json") == ""
-
-    def test_empty_when_log_has_no_events_for_entries_collections(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "other.collection", ["e1"])
-        entries = [_entry("e1", "text", collection="repo.x")]
-        assert _pull_through_report(entries, log) == ""
-
-    def test_pulled_when_last_accessed_after_push(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["e1"])
-        entries = [_entry("e1", "text", collection="repo.x", last_accessed_at=time.time() + 100)]
-
-        out = _pull_through_report(entries, log)
-        assert "`repo.x`: 1/1 pushed ids later pulled (100.0%)" in out
-
-    def test_not_pulled_when_never_accessed(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["e1"])
-        entries = [_entry("e1", "text", collection="repo.x")]
-
-        out = _pull_through_report(entries, log)
-        assert "`repo.x`: 0/1 pushed ids later pulled (0.0%)" in out
-
-    def test_not_pulled_when_last_accessed_before_push(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["e1"])
-        entries = [_entry("e1", "text", collection="repo.x", last_accessed_at=time.time() - 1000)]
-
-        out = _pull_through_report(entries, log)
-        assert "`repo.x`: 0/1 pushed ids later pulled (0.0%)" in out
-
-    def test_deleted_entry_not_counted_but_does_not_crash(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["gone"])
-        entries = [_entry("e1", "text", collection="repo.x")]
-
-        assert _pull_through_report(entries, log) == ""
-
-    def test_collections_reported_independently(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["e1"])
-        record_pushed(log, "global", ["g1"])
-        entries = [
-            _entry("e1", "text", collection="repo.x", last_accessed_at=time.time() + 100),
-            _entry("g1", "text", collection="global"),
-        ]
-
-        out = _pull_through_report(entries, log)
-        assert "`repo.x`: 1/1 pushed ids later pulled (100.0%)" in out
-        assert "`global`: 0/1 pushed ids later pulled (0.0%)" in out
-
-    def test_report_header_present(self, tmp_path):
-        log = tmp_path / "injection_log.json"
-        record_pushed(log, "repo.x", ["e1"])
-        entries = [_entry("e1", "text", collection="repo.x")]
-
-        out = _pull_through_report(entries, log)
-        assert "## Pull-Through Report" in out
-
-
-def test_action_ids_in_markdown_backticks_are_parsed_without_them():
-    # Sonnet formats ids as `code`; every auto-apply failed with "unknown id '`x`'" before.
-    from ai_mem.application.dream_memory import _parse_link_proposals, _parse_supersede_proposals
-
-    synthesis = (
-        "- LINK `new_id` -> `old_id` [type=confirms]: same claim held up\n"
-        "- LINK plain_a -> plain_b [type=related]: no backticks\n"
-        "- SUPERSEDE `succ` -> `pred`: overtaken\n"
-    )
-
-    assert _parse_link_proposals(synthesis) == [("new_id", "old_id", "confirms"), ("plain_a", "plain_b", "related")]
-    assert _parse_supersede_proposals(synthesis) == [("succ", "pred")]
 
 
 # ── area mode: what is read, the prompt, neighbourhood, CLI dry-run ───────────
@@ -310,13 +185,6 @@ class TestAreaMode:
         assert "workspace" not in prompt.split("MEMORIES:")[0].replace("workspace/global", "")
         assert "COLLECTION HIERARCHY" not in prompt
 
-    def test_collection_mode_prompt_is_unchanged(self, area_setup):
-        repo, here, _, _ = area_setup
-        prompts = []
-        with _patch("ai_mem.application.dream_memory._call", side_effect=lambda m, p: prompts.append(p) or "ok"):
-            _Dream(repo).execute(here, "single-haiku")
-        assert "COLLECTION HIERARCHY" in prompts[0] and "[target=<collection>]" in prompts[0]
-
     def test_neighbourhood_is_the_named_ids_plus_one_hop(self, area_setup):
         repo, here, _, _ = area_setup
         entries = repo.get_all(here)
@@ -340,11 +208,6 @@ class TestAreaMode:
         with _patch("ai_mem.application.dream_memory._call", side_effect=lambda m, p: prompts.append(p) or "ok"):
             _Dream(repo, area_refs=_Resolver()).execute(here, "single-haiku", neighbourhood=["learning_d"])
         assert "[learning_d]" in prompts[0] and "[learning_a]" not in prompts[0]
-
-    def test_neighbourhood_outside_area_mode_is_an_error(self, area_setup):
-        repo, here, _, _ = area_setup
-        with _pytest.raises(ValueError):
-            _Dream(repo).execute(here, "single-haiku", neighbourhood=["learning_a"])
 
 
 class TestDreamCliArea:

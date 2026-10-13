@@ -1,25 +1,13 @@
-> Retired system, kept as rollback only until chunk 7 removes it.
+---
+status: historical
+---
+> **Historical.** The Chroma backend, the MCP server and the query daemon no longer exist in the code. This page only says where they went.
 
-Chroma rollback backend and dormant modules -- facts that only matter with AI_MEM_BACKEND=chroma or when touching code that is no longer wired. Moved out of CLAUDE.md on 2026-10-04 when the record files became the only store (domain_file_backend_replaces_chroma_2026_10_04); removal is tracked in todo_drop_chromadb_dependency.
+# Chroma rollback backend (removed)
 
-## Chroma rollback stack (AI_MEM_BACKEND=chroma)
+Until the plugin cutover ai-mem could run on ChromaDB (`AI_MEM_BACKEND=chroma`) with a Markdown projection and a BM25 hybrid ranker, served by an MCP server and a warm query daemon. The record files became the only store on 2026-10-04 (`domain_file_backend_replaces_chroma_2026_10_04`); the rest was removed with the MCP server (`domain_drop_mcp_server_for_cli_plugin_2026_10_10`).
 
-- Needs the optional extra: `pip install -e '.[chroma]'` (chromadb is no longer a default dependency; `.[dev]` includes it for the test suite). `mem-adr-sync export`/`import` need it too; `migrate` and `reindex` do not.
-- The records_v1 migration no longer aligns the stored `type`/`area` of auto-classified entries with their new files (it never writes the store). So on this stack a `mem_add` to such an entry with its old stored type (e.g. `feedback`) removes its record file -- retype it first.
-- Built by `repository_factory.build_repository()`: `ChromaMemoryRepository` -> `MarkdownAdrRepository` (unless `AI_MEM_ADR_DISABLED=1`) -> `BM25MemoryRepository` (when `rank_bm25` is installed). `server.py` and `dream_cli.py` share it, so `mem-dream --auto_*` never desyncs a file from its entry.
-- `mem_delete` with no `ids` drops the entire collection; the repo signals this by returning `-1`. Files are never touched by a whole-collection delete.
-- Cosine similarity from ChromaDB distance: `cos_sim = 1 - dist/2` (collections use l2/squared-L2 space, verified via `col.configuration_json`). The older `1 - dist` formula was wrong.
-- Tests that call `upsert` on Chroma directly must pass non-empty metadata (ChromaDB rejects empty dicts); `AddMemoryUseCase` always injects timestamps.
-- `MarkdownAdrRepository` projects every record type in `KIND_BY_TYPE` to `docs/records/<area>/<kind>/<id>.md` and `current_focus` to `FOCUS.md`. Volatile fields (`boost_count`, `last_accessed_at`, legacy `confidence`/`access_count`) never reach the file, so a plain `mem_boost` produces no diff; a `cue` change does. INDEX.md is regenerated (full rescan, atomic replace) when a record file is created, removed or moved or an INDEX row changes -- never on a boost-only upsert. Re-typing or re-areaing removes the old file; re-typing to a non-record type deletes it.
-- `last_accessed_at` meant deliberate use (a `mem_get`, a `mem_boost`, or a query with `min_score_for_tracking`), never passive surfacing.
-- `confidence` and `access_count` were dropped 2026-09-26 in favour of evidence edges; old values stay untouched in stored metadata -- never migrate them away.
-- The daemon (`daemon.py`, `daemon_client.py`) keeps one warm `ChromaMemoryRepository` for hook calls: thread-per-connection, a locked `record_access()` write path, and a per-text embedding cache with per-key locking. `_hook_deps._build_query_uc()` only tries it on the Chroma backend.
-- The ML ranker (`TorchMicroRanker`, `RankerRegistry`) was removed in 2026-06; no `[ml]` extra or torch dependency remains.
-
-## Dormant modules (present, not wired)
-
-- Hooks `posttool_hook.py`, `pretool_hook.py`, `userprompt_hook.py`: unregistered by `install.py`, which removes them from existing installs via `_remove_hook_command`. `posttool_hook.py` imports `GLOBAL_COLLECTION` and `detect_repo_context` at module level so tests can `patch.object` them -- check test-side patch targets before removing an import that looks dead.
-- `experience_index.py`: no production caller since the librarian replaced the pushed index; only `normalize_cue` is used (by `mem_boost`).
-- `injection_log.py`: no live writer since 2026-09-13; `mem-dream`'s pull-through report only covers pushes logged before that.
-- `session_stats.py`: `record_injection()` runs only in the opt-in verbose SessionStart path; `injection_rate()` has no production caller.
-- `memory_index.py`: MEMORY.md auto-demotion (180 -> 160 lines), built but no trigger wired.
+- **The last commit that still has all of it is the tag `v0-last-mcp`.** `git checkout v0-last-mcp` in a clone gives the server, the daemon, `repository_factory.py` with `ChromaMemoryRepository`/`MarkdownAdrRepository`/`BM25MemoryRepository`, `mem-adr-sync export`/`import`, the push hooks, `agent_context.py`, `session_stats.py`, `injection_log.py`; that version needs `pip install -e . chromadb` (and `rank_bm25` for the hybrid ranker).
+- **The ChromaDB store on disk is never deleted or written by ai-mem.** The records_v1 migration (`mem-adr-sync migrate`) reads it read-only with Python's own `sqlite3` and needs no extra package ([how-to](../how-to/migrate-to-records.md)); `$STORE.bak-*` backups stay where they are.
+- Facts about the removed stack (cosine from l2 distance, the daemon's locking, what `MarkdownAdrRepository` kept out of the files) are in the tag's copy of this page and in the records of the area (`docs/records/`), not repeated here.
+- `memory_index.py` (MEMORY.md auto-demotion, never wired to a trigger) and `mem-view` were removed after the cutover; both are in the tag too.

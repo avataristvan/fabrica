@@ -55,15 +55,5 @@ def test_hook_modules_import_nothing_beyond_the_stdlib() -> None:
         "import ai_mem.hooks.retro_check, ai_mem.hooks.lint_after_write, ai_mem.hooks.reflect_reminder; "
         "bad = [m for m in ('chromadb', 'mcp') if m in sys.modules]; assert not bad, bad"
     ) % str(Path(__file__).parents[2])
-    result = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, timeout=20)
-    assert result.returncode == 0, result.stderr.decode()
-
-
-def test_session_start_hook_keeps_its_guarded_imports_without_chromadb_or_mcp() -> None:
-    code = (
-        "import sys; sys.path.insert(0, %r); import ai_mem.hook as h; "
-        "assert h.find_area is not None and h.migration_pending is not None and h.detect_repo_context is not None; "
-        "bad = [m for m in ('chromadb', 'mcp') if m in sys.modules]; assert not bad, bad"
-    ) % str(Path(__file__).parents[2])
-    result = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, timeout=20)
+    result = subprocess.run([sys.executable, "-I", "-S", "-c", code], capture_output=True, timeout=20)
     assert result.returncode == 0, result.stderr.decode()

@@ -70,32 +70,15 @@ def test_guard_message_is_one_line_naming_upgrading_md():
     assert "\n" not in GUARD_MESSAGE and "UPGRADING.md" in GUARD_MESSAGE
 
 
-_NO_CHROMA_IMPORT = """
-import sys
-sys.modules['chromadb'] = None  # any import of chromadb now raises ImportError
-sys.modules['mcp'] = None
-sys.path.insert(0, {root!r})
-import ai_mem.upgrade_guard, ai_mem.adr_cli, ai_mem.hook
-assert ai_mem.hook.build_repository is not None
-assert ai_mem.hook.detect_repo_context is not None
-assert ai_mem.hook.migration_pending is not None
-loaded = sorted(m for m in sys.modules if m.split('.')[0] in ('chromadb', 'mcp') and sys.modules[m] is not None)
-assert not loaded, loaded
-"""
-
-
-def test_guard_cli_and_hook_import_without_chromadb_or_mcp():
-    result = subprocess.run([sys.executable, "-I", "-c", _NO_CHROMA_IMPORT.format(root=str(REPO_ROOT))],
-                            capture_output=True, text=True)
-
-    assert result.returncode == 0, result.stderr
-
-
-def test_server_imports_without_chromadb(tmp_path):
-    shim = (f"import sys; sys.modules['chromadb'] = None; sys.path.insert(0, {str(REPO_ROOT)!r}); "
-            "import ai_mem.server")
-    result = subprocess.run([sys.executable, "-I", "-c", shim], capture_output=True, text=True, cwd=tmp_path,
-                            env={"AI_MEM_PATH": str(tmp_path / "db"), "AI_MEM_ADR_DISABLED": "1",
-                                 "HOME": str(tmp_path), "PATH": "/usr/bin:/bin"})
+def test_every_runtime_module_imports_with_the_stdlib_only():
+    """dependencies = [] is a promise: with site-packages disabled (-S) every ai_mem module still imports."""
+    code = (
+        "import importlib, pkgutil, sys; sys.path.insert(0, %r); import ai_mem; "
+        "names = [m.name for m in pkgutil.walk_packages(ai_mem.__path__, 'ai_mem.')]; "
+        "[importlib.import_module(n) for n in names]; "
+        "import ai_mem.hook as h; assert h.find_area is not None and h.migration_pending is not None; "
+        "assert len(names) > 20, names"
+    ) % str(REPO_ROOT)
+    result = subprocess.run([sys.executable, "-I", "-S", "-c", code], capture_output=True, text=True)
 
     assert result.returncode == 0, result.stderr

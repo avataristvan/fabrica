@@ -112,6 +112,13 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      write it and `mem link <new> <old> --type contradicts`. Different perspectives
      disagreeing is a contradiction, not an error.
    - **drop**: it is already said, or carries nothing beyond the session.
+   - **close a todo** (a candidate says "todo `<id>` is done in `<sha>`"): after step 8 has
+     written the result (when it carries a decision or lesson), `mem delete --area <area> <todo id>`,
+     subject to the versioned-area rule above. For each `dangling: <ref> --<type>--> <todo id>`
+     line it prints, in the same step: repoint to the result (`mem link --area <area> <ref>
+     <result> --type <type>`, then `mem unlink --area <area> <ref> <todo id>`) or drop it
+     (`mem unlink ...` only). Report each in the edges line, an unlink as `<ref> -x-> <todo id>`.
+     References from other areas are not printed; `mem doctor` finds them.
    `confirms` and `contradicts` are not weakened to `related` when they hold.
    **Choose the area by topic:** the record goes to the area its subject belongs to, never
    to the area of the party that learned it; inside it, choose the topic folder (`--topic`).

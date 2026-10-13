@@ -116,6 +116,7 @@ class AreaRefs(Protocol):
         ...
 
 
+MAX_CUE_CHARS = 140
 _MAX_TITLE_LEN = 80
 
 
@@ -126,3 +127,14 @@ def title_of(text: str, max_len: int = _MAX_TITLE_LEN) -> str:
         if stripped:
             return stripped[:max_len]
     return ""
+
+
+def normalize_cue(cue: str) -> str:
+    """Collapse whitespace to one line; an empty result clears the cue. Raises when too long."""
+    text = " ".join(cue.split())
+    if len(text) > MAX_CUE_CHARS:
+        raise ValueError(
+            f"cue is {len(text)} chars (max {MAX_CUE_CHARS}) -- name the moment in one sentence, "
+            "the rule itself belongs in the entry"
+        )
+    return text

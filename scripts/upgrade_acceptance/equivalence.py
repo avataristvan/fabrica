@@ -18,8 +18,26 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from ai_mem.domain.memory import CollectionInfo, MemoryEntry  # noqa: E402
 from ai_mem.infrastructure.chroma_sqlite_reader import read_chroma_store  # noqa: E402
 from ai_mem.infrastructure.records_migration import build_plan  # noqa: E402
+
+
+class _ChromaDbSource:
+    """The chromadb path: what the removed ChromaMemoryRepository returned for list_collections/get_all."""
+
+    def __init__(self, path: Path) -> None:
+        import chromadb
+
+        self._client = chromadb.PersistentClient(path=str(path))
+
+    def list_collections(self) -> list[CollectionInfo]:
+        return [CollectionInfo(name=c.name, count=c.count()) for c in self._client.list_collections()]
+
+    def get_all(self, collection: str) -> list[MemoryEntry]:
+        result = self._client.get_collection(collection).get()
+        return [MemoryEntry(id=i, text=d, metadata=m or {})
+                for i, d, m in zip(result["ids"], result["documents"], result["metadatas"])]
 
 
 def _dump(source) -> list[tuple]:
@@ -45,15 +63,13 @@ def main() -> int:
     store = Path(args.store).resolve()
     scan_roots = [Path(p) for p in args.scan_root]
 
-    from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
-
     with tempfile.TemporaryDirectory(dir=store.parent) as tmp:
         via_reader, via_chroma = Path(tmp) / "reader", Path(tmp) / "chroma"
         shutil.copytree(store, via_reader, symlinks=True, ignore_dangling_symlinks=True,
                         ignore=lambda d, names: [n for n in names if n.endswith(".sock")])
         shutil.copytree(via_reader, via_chroma)
         snapshot = read_chroma_store(via_reader)
-        repo = ChromaMemoryRepository(via_chroma)
+        repo = _ChromaDbSource(via_chroma)
 
         data_reader, data_chroma = _dump(snapshot), _dump(repo)
         failures = []

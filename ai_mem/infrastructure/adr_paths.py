@@ -1,8 +1,7 @@
 """Filesystem paths and small file helpers for the record files.
 
-No ChromaDB, no MemoryRepository imports. Every function
-takes `db_path` explicitly rather than reading server.py's AI_MEM_PATH itself,
-to avoid a circular import between infrastructure and the MCP server entry point.
+No ChromaDB, no MemoryRepository imports. Every function takes `db_path` explicitly
+rather than reading AI_MEM_PATH itself.
 """
 from __future__ import annotations
 

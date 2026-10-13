@@ -166,6 +166,68 @@ def test_link_conflicts_exit_1(env):
     assert main(["link", "learning_a", "pattern_t", "--type", "supersedes", "--to-area", str(other.root)]) == 1
 
 
+def _edges_of(area, entry_id):
+    line = next((l for l in _record(area, entry_id).read_text().splitlines() if l.startswith("edges: ")), None)
+    return json.loads(line[len("edges: "):]) if line else []
+
+
+def test_unlink_removes_only_the_named_edge(env, capsys):
+    _, _, proj, _ = env
+    for entry_id in ("learning_a", "learning_b", "learning_c"):
+        _add("--id", entry_id, "--type", "learning", "--text", entry_id)
+    main(["link", "learning_a", "learning_b", "--type", "related"])
+    main(["link", "learning_a", "learning_b", "--type", "causes"])
+    main(["link", "learning_a", "learning_c", "--type", "related"])
+    capsys.readouterr()
+
+    assert main(["unlink", "learning_a", "learning_b", "--type", "causes"]) == 0
+
+    assert capsys.readouterr().out == "unlinked learning_a --causes--> learning_b\n"
+    assert _edges_of(proj, "learning_a") == [
+        {"target_id": "learning_b", "edge_type": "related"}, {"target_id": "learning_c", "edge_type": "related"},
+    ]
+    assert main(["unlink", "learning_a", "learning_c"]) == 0
+    assert main(["unlink", "learning_a", "learning_b"]) == 0
+    assert "edges:" not in _record(proj, "learning_a").read_text()
+
+
+def test_unlink_supersedes_clears_both_flags_on_the_target(env):
+    _, _, proj, _ = env
+    _add("--id", "learning_old", "--type", "learning", "--text", "old")
+    _add("--id", "learning_new", "--type", "learning", "--text", "new")
+    before = _record(proj, "learning_old").read_text()
+    main(["link", "learning_new", "learning_old", "--type", "supersedes"])
+    assert "superseded_by: learning_new" in _record(proj, "learning_old").read_text()
+
+    assert main(["unlink", "learning_new", "learning_old"]) == 0
+
+    assert _record(proj, "learning_old").read_text() == before
+    assert _edges_of(proj, "learning_new") == []
+
+
+def test_unlink_removes_an_edge_to_a_deleted_record(env):
+    _, _, proj, _ = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--id", "todo_gone", "--type", "todo", "--text", "T.")
+    main(["link", "learning_a", "todo_gone", "--type", "related"])
+    main(["delete", "todo_gone"])
+
+    assert main(["unlink", "learning_a", "todo_gone"]) == 0
+    assert _edges_of(proj, "learning_a") == []
+
+
+def test_unlink_conflicts_exit_1(env, capsys):
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--id", "learning_b", "--type", "learning", "--text", "B.")
+    main(["link", "learning_a", "learning_b", "--type", "related"])
+    capsys.readouterr()
+
+    assert main(["unlink", "missing", "learning_b"]) == 1
+    assert main(["unlink", "learning_a", "learning_b", "--type", "causes"]) == 1
+    assert "has no edge of type 'causes'" in capsys.readouterr().err
+    assert main(["unlink", "learning_b", "learning_a"]) == 1
+
+
 def test_delete_removes_and_reports_missing(env, capsys):
     _, _, proj, _ = env
     _add("--id", "learning_a", "--type", "learning", "--text", "A.")
@@ -175,6 +237,45 @@ def test_delete_removes_and_reports_missing(env, capsys):
 
     assert capsys.readouterr().out.splitlines() == ["deleted learning_a", "not found learning_gone"]
     assert not list(proj.records_dir.rglob("learning_a.md"))
+
+
+def test_delete_names_the_edges_it_leaves_dangling_and_unlink_clears_them(env, capsys):
+    _, _, proj, _ = env
+    for entry_id, entry_type in (("todo_x", "todo"), ("learning_a", "learning"), ("learning_b", "learning")):
+        _add("--id", entry_id, "--type", entry_type, "--text", entry_id)
+    main(["link", "learning_a", "todo_x", "--type", "related"])
+    main(["link", "learning_b", "learning_a", "--type", "related"])
+    capsys.readouterr()
+
+    assert main(["delete", "todo_x"]) == 0
+
+    assert capsys.readouterr().out.splitlines() == ["deleted todo_x", "dangling: learning_a --related--> todo_x"]
+    assert "todo_x" in _record(proj, "learning_a").read_text()  # reported, never removed by the delete
+    assert main(["unlink", "learning_a", "todo_x"]) == 0
+    assert main(["lint"]) == 0
+
+
+def test_delete_dangling_edges_in_json(env, capsys):
+    _add("--id", "todo_x", "--type", "todo", "--text", "x")
+    _add("--id", "learning_a", "--type", "learning", "--text", "a")
+    main(["link", "learning_a", "todo_x", "--type", "fixes"])
+    capsys.readouterr()
+
+    main(["delete", "--json", "todo_x"])
+
+    dangling = [json.loads(line) for line in capsys.readouterr().out.splitlines()][1]
+    assert (dangling["action"], dangling["source"], dangling["target"], dangling["type"]) == ("dangling", "learning_a", "todo_x", "fixes")
+
+
+def test_delete_of_records_pointing_at_each_other_leaves_nothing_dangling(env, capsys):
+    _add("--id", "todo_x", "--type", "todo", "--text", "x")
+    _add("--id", "todo_y", "--type", "todo", "--text", "y")
+    main(["link", "todo_x", "todo_y", "--type", "related"])
+    main(["link", "todo_y", "todo_x", "--type", "related"])
+    capsys.readouterr()
+
+    assert main(["delete", "todo_x", "todo_y"]) == 0
+    assert capsys.readouterr().out.splitlines() == ["deleted todo_x", "deleted todo_y"]
 
 
 def test_delete_requires_ids(env):

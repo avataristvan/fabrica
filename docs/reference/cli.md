@@ -16,8 +16,9 @@ mem add --id ID --cue "situation in which this helps"        # existing record: 
 mem add --id ID --perspective the-coder                      # whose knowledge it is
 mem add --id current_focus --text "..."                      # writes FOCUS.md
 mem link SOURCE TARGET --type related [--to-area PATH]       # TARGET bare, or <rel-area-path>:<id>
+mem unlink SOURCE TARGET [--type T]                          # TARGET as stored; every type unless --type
 mem find ID [--root DIR] [--json]                            # where an id exists (read-only); exit 1 when nowhere
-mem delete ID...
+mem delete ID...                                             # also prints `dangling: REF --TYPE--> ID` per edge left pointing at it
 mem context [PATH] [--json]                                  # area root, records dir, INDEX/FOCUS paths
 mem context --map [--root DIR] [--json]                      # areas below DIR and the edges between them
 mem move ID... --to-area PATH [--dry-run] [--scan-root DIR]  # move records into another area
@@ -26,7 +27,7 @@ mem lint [--fix] [--json]                                    # check (and normal
 mem doctor [--root DIR] [--days N] [--json]                  # diagnosis of the whole practice, changes nothing
 ```
 
-Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`, `derived_from`. The format of the files these commands write: [record format](record-format.md).
+Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`, `derived_from`. `mem delete` changes no other record: it names each edge in the area that pointed at a deleted record (`dangling:` lines; edges from other areas are left to `mem doctor`), to be repointed with `mem link` or dropped with `mem unlink`. `mem unlink` removes an edge, also one whose target no longer exists; removing a `supersedes` edge also clears `superseded_by` and `valid_until` on the target. The format of the files these commands write: [record format](record-format.md).
 
 ### `mem find`
 
@@ -40,7 +41,7 @@ Copies each record into the same topic/kind folder of the target area and delete
 
 ### Refusals
 
-`add`, `link`, `delete` and `move` refuse (exit 1, nothing written) while an affected area's INDEX.md exists and differs from the generated one: it is hand-kept, or merely stale because a record file was added by hand. Adopt the area with `mem lint --fix` from inside it (or with `--area`) first. `current_focus` is exempt; `move` checks source and target. `mem delete` without ids is a usage error (exit 2).
+`add`, `link`, `unlink`, `delete` and `move` refuse (exit 1, nothing written) while an affected area's INDEX.md exists and differs from the generated one: it is hand-kept, or merely stale because a record file was added by hand. Adopt the area with `mem lint --fix` from inside it (or with `--area`) first. `current_focus` is exempt; `move` checks source and target. `mem delete` without ids is a usage error (exit 2).
 
 ### `mem lint` and `mem doctor`
 
@@ -59,19 +60,13 @@ Modes: `--mode single-haiku | single-sonnet | hier | team` (default `hier`). It 
 
 ## `mem-adr-sync`
 
-`mem-adr-sync reindex` rebuilds `docs/records/INDEX.md`; `mem-adr-sync migrate [--apply]` is the one-time move from the earlier database store into record files ([how-to](../how-to/migrate-to-records.md)). `export` and `import` belong to the rollback stack and need the `[chroma]` extra ([facts](chroma_rollback_backend.md)).
-
-## `mem-view`
-
-Interactive terminal browser for records.
+`mem-adr-sync reindex` rebuilds `docs/records/INDEX.md`; `mem-adr-sync migrate [--apply]` is the one-time move from the earlier database store into record files ([how-to](../how-to/migrate-to-records.md)). The Chroma round trip (`export`, `import`) was removed with the Chroma backend; it lives in the tag `v0-last-mcp` ([facts](chroma_rollback_backend.md)).
 
 ## Environment
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `AI_MEM_PATH` | `~/.local/share/ai-mem` | runtime state: retro log, doctor timestamp, retro roles, migration markers |
-| `AI_MEM_WORKSPACE_ROOT` | unset | the directory that contains your areas; default root for `mem find`, and the base the SessionStart hook uses to name legacy collections |
+| `AI_MEM_WORKSPACE_ROOT` | unset | the directory that contains your areas; default root for `mem find` and the default scan root of `mem-adr-sync migrate` |
 | `AI_MEM_ADR_DIR` | `docs/records` | records directory relative to the area |
-| `AI_MEM_BACKEND` | unset | `chroma` selects the rollback stack |
 
-SessionStart tuning (`~/.config/ai-mem/agents.yaml`, needs `pyyaml`: `pip install ai-mem[config]`) is described in [hooks](hooks.md).

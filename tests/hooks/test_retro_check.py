@@ -25,7 +25,7 @@ def state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
-def _event(message: str | None, agent_type: str = "the-coder", **extra) -> dict:
+def _event(message: str | None, agent_type: str = "ai-mem:anchor-lint", **extra) -> dict:
     return {"session_id": "s1", "agent_id": "a1", "agent_type": agent_type, "last_assistant_message": message, **extra}
 
 

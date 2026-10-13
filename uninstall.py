@@ -1,58 +1,34 @@
 #!/usr/bin/env python3
-"""ai-mem uninstaller — removes MCP server, hooks, permissions, commands and links (the plugin is removed with `claude plugin uninstall`).
+"""ai-mem uninstaller — removes the old MCP registrations, hooks, permissions, commands and links (the plugin is removed with `claude plugin uninstall`).
 
 Intentionally does NOT remove:
-  ~/.local/share/ai-mem/   — ChromaDB memory data and ranker weights (user data)
-  ~/.config/ai-mem/        — user config (agents.yaml, settings)
+  ~/.local/share/ai-mem/   — the old ChromaDB store and runtime state (user data)
+  ~/.config/ai-mem/        — user config (the old agents.yaml, now unused)
 
 Run with --dry-run to preview what would be removed without changing anything.
 """
 import argparse
 import json
 import os
+import shutil
 import sys
 from contextlib import suppress
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.resolve()
 HOME = Path.home()
-SERVER_MODULE = "ai_mem.server"
 DB_PATH = Path(
     __import__("os").environ.get("AI_MEM_PATH", str(HOME / ".local" / "share" / "ai-mem"))
 )
-
-
-def stop_running_daemon(dry_run: bool) -> None:
-    """Stop the background query daemon (ai_mem/daemon.py) and remove its socket/pid files."""
-    print(f"\n  Background daemon ({DB_PATH})")
-    if dry_run:
-        print("    dry-run — skipping")
-        return
-    try:
-        from ai_mem.daemon import stop_daemon
-    except ImportError:
-        print("    package not importable — nothing to stop")
-        return
-    if stop_daemon(DB_PATH):
-        print("    stopped")
-    else:
-        print("    not running — nothing to remove")
 
 
 def python_exe() -> str:
     return sys.executable
 
 
-def _hook_commands() -> tuple[str, str, str]:
-    py = python_exe()
-    return (
-        f"{py} -m ai_mem.userprompt_hook 2>/dev/null || true",
-        f"{py} -m ai_mem.posttool_hook 2>/dev/null || true",
-        # pretool_hook is no longer registered by install.py (2026-09-12, push→pull migration)
-        # but is still removed here so pre-existing installations uninstall cleanly.
-        f"{py} -m ai_mem.pretool_hook 2>/dev/null || true",
-    )
-
+# Push hooks retired in 2026-09/10 (and the SessionStart/MCP-era commands), matched by module marker.
+RETIRED_HOOK_MARKERS = ("-m ai_mem.userprompt_hook", "-m ai_mem.posttool_hook", "-m ai_mem.pretool_hook")
+RETIRED_HOOK_EVENTS = ("UserPromptSubmit", "PostToolUse", "PreToolUse")
 
 # The plugin (hooks/hooks.json) now provides these; settings.json entries and links that older install.py
 # versions made are matched by module marker (the interpreter path and env prefix in the command may differ).
@@ -68,44 +44,67 @@ LINKED_PATHS = (
     Path(".claude") / "skills" / "handoff-protocol",
 )
 
-MCP_PERMISSIONS = [
-    "mcp__ai-mem__mem_add",
-    "mcp__ai-mem__mem_query",
-    "mcp__ai-mem__mem_list",
-    "mcp__ai-mem__mem_delete",
-    "mcp__ai-mem__mem_dream",
-    "mcp__ai-mem__mem_split",
-    "mcp__ai-mem__mem_cleanup",
-    "mcp__ai-mem__mem_train",
-    "Bash(mem-dream *)",
-]
+MCP_PERMISSION_PREFIX = "mcp__ai-mem__"
+OTHER_PERMISSIONS = ["Bash(mem-dream *)"]  # removed only by a full uninstall, not by the MCP removal
+MCP_CONFIGS = (
+    ("Claude Code", Path(".claude.json")),
+    ("Gemini CLI", Path(".gemini") / "settings.json"),
+    ("Cursor", Path(".cursor") / "mcp.json"),
+)
 
 
 def _load_json(path: Path) -> dict:
+    """The JSON object in `path`; {} when the file is missing, unreadable or not an object (see `_unreadable`)."""
     if not path.exists():
         return {}
     try:
-        return json.loads(path.read_text())
+        data = json.loads(path.read_text())
     except Exception:
         return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _unreadable(path: Path) -> bool:
+    """A file that exists but is not a JSON object: reported and left unchanged, never rewritten."""
+    if not path.exists():
+        return False
+    try:
+        return not isinstance(json.loads(path.read_text()), dict)
+    except Exception:
+        return True
+
+
+_backed_up: set[Path] = set()
 
 
 def _save_json(path: Path, data: dict, dry_run: bool) -> None:
+    """Atomic rewrite (temp file + replace); the content before this run is kept next to it as `<name>.ai-mem.bak`.
+
+    A run may save the same file twice (uninstall: MCP removal, then plugin hooks); only the first save
+    backs up, so the backup holds the original. `~/.claude.json` holds credentials: the temp file is created
+    owner-only and gets the original's mode (copy2 does the same for the backup), so permissions never widen.
+    """
     if dry_run:
         return
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    mode = 0o600
+    if path.exists():
+        mode = path.stat().st_mode & 0o777
+        if path not in _backed_up:
+            shutil.copy2(path, path.with_name(path.name + ".ai-mem.bak"))
+            _backed_up.add(path)
+    tmp = path.with_name(path.name + ".ai-mem.tmp")
+    with suppress(FileNotFoundError):
+        tmp.unlink()
+    with os.fdopen(os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), "w") as f:
+        f.write(json.dumps(data, indent=2) + "\n")
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
 
 
-def _remove_hook_entries(hook_list: list, commands: set[str]) -> tuple[list, int]:
-    """Remove hook entries whose command matches any of *commands*. Returns (filtered, removed_count)."""
-    kept, removed = [], 0
-    for entry in hook_list:
-        entry_cmds = {h.get("command") for h in entry.get("hooks", [])}
-        if entry_cmds & commands:
-            removed += 1
-        else:
-            kept.append(entry)
-    return kept, removed
+def _allow_list(data: dict) -> list:
+    permissions = data.get("permissions")
+    allow = permissions.get("allow") if isinstance(permissions, dict) else None
+    return allow if isinstance(allow, list) else []
 
 
 def _points_into_checkout(link: Path) -> bool:
@@ -130,9 +129,13 @@ def _is_ai_mem_command(command_file: Path) -> bool:
     return any(marker in text for marker in AI_MEM_COMMANDS[command_file.name])
 
 
-def _is_plugin_hook(hook: object) -> bool:
+def _hook_has_marker(hook: object, markers: tuple[str, ...]) -> bool:
     command = hook.get("command") if isinstance(hook, dict) else None
-    return isinstance(command, str) and any(marker in command for marker in PLUGIN_HOOK_MARKERS)
+    return isinstance(command, str) and any(marker in command for marker in markers)
+
+
+def _is_plugin_hook(hook: object) -> bool:
+    return _hook_has_marker(hook, PLUGIN_HOOK_MARKERS)
 
 
 def _event_hooks(hooks: object, event: str) -> list:
@@ -140,15 +143,15 @@ def _event_hooks(hooks: object, event: str) -> list:
     return entries if isinstance(entries, list) else []
 
 
-def _remove_plugin_hooks(hook_list: list) -> tuple[list, int]:
-    """Strip the hook objects the plugin now provides from every group, dropping groups left empty. Returns (filtered, removed_count)."""
+def _filter_hooks(hook_list: list, is_target) -> tuple[list, int]:
+    """Strip the matching hook objects from every group, dropping groups left empty. Returns (filtered, removed_count)."""
     kept, removed = [], 0
     for entry in hook_list:
         hooks_here = entry.get("hooks", []) if isinstance(entry, dict) else None
         if not isinstance(hooks_here, list):
             kept.append(entry)
             continue
-        remaining = [h for h in hooks_here if not _is_plugin_hook(h)]
+        remaining = [h for h in hooks_here if not is_target(h)]
         removed += len(hooks_here) - len(remaining)
         if remaining == hooks_here:
             kept.append(entry)
@@ -180,7 +183,7 @@ def plugin_leftovers(home: Path) -> list[str]:
     found = []
     hooks = _load_json(home / ".claude" / "settings.json").get("hooks")
     for event in PLUGIN_HOOK_EVENTS:
-        if _remove_plugin_hooks(_event_hooks(hooks, event))[1]:
+        if _filter_hooks(_event_hooks(hooks, event), _is_plugin_hook)[1]:
             found.append(f"{event} hook in settings.json")
     for name in AI_MEM_COMMANDS:
         if _is_ai_mem_command(home / ".claude" / "commands" / name):
@@ -194,17 +197,10 @@ def plugin_leftovers(home: Path) -> list[str]:
 
 def _strip_plugin_hooks(data: dict) -> bool:
     """Remove the plugin-provided hooks from loaded settings in place; returns whether anything changed."""
-    hooks = data.get("hooks")
-    changed = False
-    for event in PLUGIN_HOOK_EVENTS:
-        after, n = _remove_plugin_hooks(_event_hooks(hooks, event))
-        if n:
-            hooks[event] = after
-            if not after:
-                del hooks[event]
-            print(f"    removed {n} {event} hook(s)")
-            changed = True
-    return changed
+    n = _strip_hooks(data, PLUGIN_HOOK_EVENTS, _is_plugin_hook)
+    if n:
+        print(f"    removed {n} ai-mem hook(s)")
+    return bool(n)
 
 
 def _remove_commands(home: Path, dry_run: bool) -> None:
@@ -232,107 +228,102 @@ def remove_plugin_provided(home: Path, dry_run: bool) -> None:
     _remove_links(home, dry_run)
 
 
-# ── target: Claude Code ───────────────────────────────────────────────────────
+# ── the old MCP registration, retired push hooks and permissions ────────────────
 
-def unregister_claude(dry_run: bool) -> None:
-    hook_commands = set(_hook_commands())
+def _is_mcp_permission(perm: object) -> bool:
+    return isinstance(perm, str) and perm.startswith(MCP_PERMISSION_PREFIX)
 
-    # MCP server — ~/.claude.json
-    mcp_path = HOME / ".claude.json"
-    print(f"\n  Claude Code MCP ({mcp_path})")
-    data = _load_json(mcp_path)
-    if "ai-mem" in data.get("mcpServers", {}):
-        del data["mcpServers"]["ai-mem"]
-        _save_json(mcp_path, data, dry_run)
-        print("    removed mcpServers[\"ai-mem\"]")
-    else:
-        print("    not registered — nothing to remove")
 
-    # Hooks + permissions — ~/.claude/settings.json
-    settings_path = HOME / ".claude" / "settings.json"
+def _is_retired_hook(hook: object) -> bool:
+    return _hook_has_marker(hook, RETIRED_HOOK_MARKERS)
+
+
+def _mcp_servers(data: dict) -> dict:
+    servers = data.get("mcpServers")
+    return servers if isinstance(servers, dict) else {}
+
+
+def _strip_hooks(data: dict, events: tuple[str, ...], is_target) -> int:
+    """Remove the matching hooks from loaded settings in place; returns how many were removed."""
+    hooks = data.get("hooks")
+    total = 0
+    for event in events:
+        kept, removed = _filter_hooks(_event_hooks(hooks, event), is_target)
+        if removed:
+            hooks[event] = kept
+            if not kept:
+                del hooks[event]
+            total += removed
+    return total
+
+
+def mcp_leftovers(home: Path) -> list[str]:
+    """Where the removed MCP server is still registered in `home`: mcpServers entries, mcp__ai-mem__* permissions, retired push hooks."""
+    found = [f"mcpServers[\"ai-mem\"] in {home / rel}" for _, rel in MCP_CONFIGS if "ai-mem" in _mcp_servers(_load_json(home / rel))]
+    settings = _load_json(home / ".claude" / "settings.json")
+    if any(_is_mcp_permission(p) for p in _allow_list(settings)):
+        found.append("mcp__ai-mem__* permissions in settings.json")
+    if any(_filter_hooks(_event_hooks(settings.get("hooks"), e), _is_retired_hook)[1] for e in RETIRED_HOOK_EVENTS):
+        found.append("retired push hooks (userprompt/pretool/posttool) in settings.json")
+    return found
+
+
+def remove_mcp_registration(home: Path, dry_run: bool) -> None:
+    """Remove the MCP registrations, `mcp__ai-mem__*` permissions and retired push hooks; the plugin's hooks and other permissions stay."""
+    for label, rel in MCP_CONFIGS:
+        path = home / rel
+        print(f"\n  {label} MCP ({path})")
+        if _unreadable(path):
+            print("    not a readable JSON object — left unchanged")
+            continue
+        data = _load_json(path)
+        if "ai-mem" in _mcp_servers(data):
+            del data["mcpServers"]["ai-mem"]
+            _save_json(path, data, dry_run)
+            print("    removed mcpServers[\"ai-mem\"]")
+        else:
+            print("    not registered — nothing to remove")
+
+    settings_path = home / ".claude" / "settings.json"
     print(f"\n  Claude Code settings ({settings_path})")
+    if _unreadable(settings_path):
+        print("    not a readable JSON object — left unchanged")
+        return
     data = _load_json(settings_path)
     changed = False
-
-    hooks = data.get("hooks", {})
-    for event in ("UserPromptSubmit", "PostToolUse", "PreToolUse"):
-        before = hooks.get(event, [])
-        after, n = _remove_hook_entries(before, hook_commands)
-        if n:
-            hooks[event] = after
-            print(f"    removed {n} {event} hook(s)")
-            changed = True
-    changed |= _strip_plugin_hooks(data)
-
-    allow = data.get("permissions", {}).get("allow", [])
-    removed_perms = [p for p in MCP_PERMISSIONS if p in allow]
-    if removed_perms:
-        data["permissions"]["allow"] = [p for p in allow if p not in MCP_PERMISSIONS]
-        print(f"    removed {len(removed_perms)} permission(s)")
+    n = _strip_hooks(data, RETIRED_HOOK_EVENTS, _is_retired_hook)
+    if n:
+        print(f"    removed {n} retired push hook(s)")
         changed = True
-
+    allow = _allow_list(data)
+    mcp_perms = [p for p in allow if _is_mcp_permission(p)]
+    if mcp_perms:
+        data["permissions"]["allow"] = [p for p in allow if not _is_mcp_permission(p)]
+        print(f"    removed {len(mcp_perms)} mcp__ai-mem__* permission(s)")
+        changed = True
     if changed:
         _save_json(settings_path, data, dry_run)
     else:
         print("    nothing to remove")
 
-    _remove_commands(HOME, dry_run)
-    _remove_links(HOME, dry_run)
 
-
-# ── target: Gemini CLI ────────────────────────────────────────────────────────
-
-def unregister_gemini(dry_run: bool) -> None:
-    config_path = HOME / ".gemini" / "settings.json"
-    print(f"\n  Gemini CLI ({config_path})")
-    data = _load_json(config_path)
-    if "ai-mem" in data.get("mcpServers", {}):
-        del data["mcpServers"]["ai-mem"]
-        _save_json(config_path, data, dry_run)
-        print("    removed mcpServers[\"ai-mem\"]")
-    else:
-        print("    not registered — nothing to remove")
-
-
-# ── target: Cursor ────────────────────────────────────────────────────────────
-
-def unregister_cursor(dry_run: bool) -> None:
-    config_path = HOME / ".cursor" / "mcp.json"
-    print(f"\n  Cursor ({config_path})")
-    data = _load_json(config_path)
-    if "ai-mem" in data.get("mcpServers", {}):
-        del data["mcpServers"]["ai-mem"]
-        _save_json(config_path, data, dry_run)
-        print("    removed mcpServers[\"ai-mem\"]")
-    else:
-        print("    not registered — nothing to remove")
+def unregister_claude(home: Path, dry_run: bool) -> None:
+    remove_mcp_registration(home, dry_run)
+    settings_path = home / ".claude" / "settings.json"
+    data = _load_json(settings_path)
+    changed = _strip_plugin_hooks(data)
+    allow = _allow_list(data)
+    if any(p in OTHER_PERMISSIONS for p in allow):
+        data["permissions"]["allow"] = [p for p in allow if p not in OTHER_PERMISSIONS]
+        print("    removed Bash(mem-dream *) permission")
+        changed = True
+    if changed:
+        _save_json(settings_path, data, dry_run)
+    _remove_commands(home, dry_run)
+    _remove_links(home, dry_run)
 
 
 # ── UI ────────────────────────────────────────────────────────────────────────
-
-TARGETS = {
-    "1": ("Claude Code", unregister_claude),
-    "2": ("Gemini CLI",  unregister_gemini),
-    "3": ("Cursor",      unregister_cursor),
-}
-
-
-def prompt_targets() -> list:
-    print("\nSelect AI tools to unregister:")
-    for key, (label, _) in TARGETS.items():
-        print(f"  {key}) {label}")
-    print("  a) All  [default]")
-    choice = input("\nChoice [1/2/3/a]: ").strip().lower() or "a"
-    if choice == "a":
-        return list(TARGETS.values())
-    selected = []
-    for ch in choice:
-        if ch in TARGETS:
-            selected.append(TARGETS[ch])
-        else:
-            print(f"  Unknown option '{ch}', skipping.")
-    return selected
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Uninstall ai-mem integration artifacts.")
@@ -347,20 +338,15 @@ def main() -> None:
     print("=" * 50)
     print(
         "\n  Memory data is preserved:\n"
-        f"    {HOME / '.local' / 'share' / 'ai-mem'}  (ChromaDB + ranker weights)\n"
+        f"    {HOME / '.local' / 'share' / 'ai-mem'}  (the old ChromaDB store + runtime state)\n"
         f"    {HOME / '.config' / 'ai-mem'}           (user config)\n"
         "  Delete these manually if you want a full wipe."
     )
 
-    targets = prompt_targets()
-    for label, fn in targets:
-        print(f"\n── {label} ──")
-        try:
-            fn(args.dry_run)
-        except Exception as e:
-            print(f"  Error: {e}")
-
-    stop_running_daemon(args.dry_run)
+    try:
+        unregister_claude(HOME, args.dry_run)
+    except Exception as e:
+        print(f"  Error: {e}")
 
     pip_answer = input("\nRemove the ai-mem Python package? [y/N] ").strip().lower()
     if pip_answer == "y":

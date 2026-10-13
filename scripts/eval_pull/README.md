@@ -1,3 +1,5 @@
+> **Historical.** The harness measured the MCP-era `mem_query` pull; stage B left with the Chroma backend (tag `v0-last-mcp`). Stage A (agent runs) and `cases.json` stay as evidence.
+
 # Pull gap-test
 
 Question: when an agent gets a task-like question and is not told that memory exists, does the pull path
@@ -24,15 +26,9 @@ and the mem arm scores `ok`. Cases where nomem already answers correctly are not
 Measures: (1) did the agent call `mem_query` at all (trigger), (2) did its own query reach the gold
 entry (retrieval), (3) did it use the entry (judgment), (4) controls: does it say "not documented".
 
-## Stage B — replay (cheap, deterministic)
+## Stage B — replay (removed)
 
-```bash
-python3 scripts/eval_pull/replay.py                      # questions verbatim
-python3 scripts/eval_pull/replay.py --queries q.json     # + agent-written queries from stage A
-```
-
-`q.json`: `{"g1_pretool_numbers": ["query the agent actually wrote", ...]}`. Compares cosine vs the
-hybrid the server uses; shows the top-1 score on controls.
+`replay.py` compared cosine against the BM25 hybrid of the Chroma backend. Both are gone with the MCP server; the script is in the tag `v0-last-mcp` (`scripts/eval_pull/replay.py`).
 
 ## Caveats
 

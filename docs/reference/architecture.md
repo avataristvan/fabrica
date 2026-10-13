@@ -17,12 +17,11 @@ ai_mem/
   hooks/             enforcing hooks: retro_check, lint_after_write, reflect_reminder
   dream_cli.py       `mem-dream`: consolidates an area's records with the claude CLI
   adr_cli.py         `mem-adr-sync`: reindex, and one-time migration into record files
-  view_cli.py        `mem-view`: interactive terminal browser
   upgrade_guard.py   one SessionStart line while an upgrade step is pending
-  repo_context.py    legacy collection naming, kept only until the plugin cutover
+  repo_context.py    collection naming, kept for the records_v1 migration
 ```
 
-Retired modules that still sit in the tree until the cutover (the query server and its client side, the unwired prompt/tool hooks) are listed in `CLAUDE.md`; do not build on them.
+The tool server, the warm query process, the vector-store backend and the prompt/tool push hooks were removed at the plugin cutover; the last commit that has them is the tag `v0-last-mcp`.
 
 ## Domain (`ai_mem/domain/memory.py`)
 
@@ -41,14 +40,9 @@ One use case per file, each with a single public `execute()`.
 | File | Use case | Responsibility |
 |---|---|---|
 | `add_memory.py` | `AddMemoryUseCase` | upsert with timestamps; preserves `created` on re-add |
-| `get_memory.py` | `GetMemoryUseCase` | fetch by exact ids |
-| `query_memory.py` | `QueryMemoryUseCase` | keyword overlap over the record files, not semantic |
 | `delete_memory.py` | `DeleteMemoryUseCase` | delete by ids; a delete without ids is refused |
-| `list_entries.py`, `list_topics.py`, `list_collections.py` | listing use cases | id + title pairs, grouping by type |
-| `add_edge.py`, `get_edges.py` | edge use cases | validate both endpoints exist, dedup on (target_id, edge_type), persist |
-| `move_memory.py` | `MoveMemoryUseCase` | move records verbatim (bypasses `AddMemoryUseCase`'s merge) |
-| `split_memory.py` | `SplitMemoryUseCase` | break a coarse record into focused ones via a `claude` CLI call |
-| `detect_split_hints.py` | | flags records that have grown too coarse |
+| `add_edge.py` | `AddEdgeUseCase` | validate both endpoints exist, dedup on (target_id, edge_type), persist |
+| `move_memory.py` | `MoveToAreaUseCase` | move records between areas verbatim (`mem move`; bypasses `AddMemoryUseCase`'s merge) |
 | `dream_memory.py` | `DreamMemoryUseCase` | consolidate an area via a `claude` CLI call: contradictions, redundancy, stale records |
 
 ## Infrastructure (`ai_mem/infrastructure/`)
@@ -56,13 +50,11 @@ One use case per file, each with a single public `execute()`.
 | File | Role |
 |---|---|
 | `file_repository.py` | `FileMemoryRepository`: the store. Records are the files; area mode (`records_dir_for=`) resolves each area by folder |
-| `repository_factory.py` | `build_repository()`: chooses the repository |
 | `areas.py` | area resolution (nearest ancestor with `docs/records/`), area discovery, cross-area reference parsing |
 | `adr_markdown.py`, `adr_paths.py`, `adr_index.py` | record serialisation, path conventions, INDEX.md generation ([record format](record-format.md)) |
 | `chroma_sqlite_reader.py`, `records_migration.py` | read-only reader and planner for the one-time migration ([how-to](../how-to/migrate-to-records.md)) |
-| `chroma_repository.py`, `markdown_adr_repository.py`, `bm25_repository.py` | the rollback stack, only with `AI_MEM_BACKEND=chroma` ([facts](chroma_rollback_backend.md)) |
 
-Runtime code of the practice (`mem`, hooks, lint, doctor) uses the standard library only.
+There are no runtime dependencies (`dependencies = []`): everything uses the standard library. The `dev` extra holds `pytest` and the client library of the earlier database; the latter only builds real stores as fixtures for the migration tests, which skip without it.
 
 ## Doctor (`ai_mem/doctor.py`)
 

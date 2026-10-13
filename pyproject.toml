@@ -5,39 +5,25 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-mem"
 version = "0.1.0"
-description = "Semantic memory MCP server for AI agents — ChromaDB-backed, workspace-scoped."
+description = "Memory for AI agents as record files in the repo: a stdlib CLI, hooks and a Claude Code plugin."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
   {name = "Istvan Lovas"}
 ]
-dependencies = [
-  "mcp>=1.0.0"
-]
+dependencies = []
 
 [project.optional-dependencies]
+# chromadb only builds real Chroma stores as fixtures for the records_v1 migration tests (they skip without it).
 dev = [
   "pytest>=7.0",
-  "rank_bm25>=0.2",
   "chromadb>=0.5.0",
-]
-# Only for the AI_MEM_BACKEND=chroma rollback (and mem-adr-sync export/import). The records_v1
-# migration reads the store without it.
-chroma = [
-  "chromadb>=0.5.0",
-]
-hybrid = [
-  "rank_bm25>=0.2",
-]
-config = [
-  "pyyaml>=6.0",
 ]
 
 [project.scripts]
 mem = "ai_mem.mem_cli:main"
 mem-dream = "ai_mem.dream_cli:main"
-mem-view = "ai_mem.view_cli:main"
 mem-adr-sync = "ai_mem.adr_cli:main"
 
 [tool.setuptools.packages.find]

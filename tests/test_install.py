@@ -49,22 +49,6 @@ def test_existing_workspace_root_empty_when_settings_file_missing(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# stop_running_daemon
-# ---------------------------------------------------------------------------
-
-def test_stop_running_daemon_calls_stop_daemon_with_db_path():
-    with patch("ai_mem.daemon.stop_daemon", return_value=True) as stop_daemon:
-        install.stop_running_daemon()
-    stop_daemon.assert_called_once_with(install.DB_PATH)
-
-
-def test_stop_running_daemon_silent_when_package_not_yet_installed():
-    """A fresh machine has no ai_mem.daemon to import yet — must not raise."""
-    with patch.dict("sys.modules", {"ai_mem.daemon": None}):
-        install.stop_running_daemon()  # must not raise
-
-
-# ---------------------------------------------------------------------------
 # run_records_migration (records_v1)
 # ---------------------------------------------------------------------------
 
@@ -144,11 +128,8 @@ def test_sync_commands_is_gone_and_does_not_fall_through_to_the_interactive_inst
     assert not (home / ".claude").exists()
 
 
-def test_register_claude_no_longer_deploys_hooks_or_commands(home):
-    install.register_claude()
-    settings = json.loads((home / ".claude" / "settings.json").read_text())
-    assert "SessionStart" not in settings.get("hooks", {})
-    assert not (home / ".claude" / "commands").exists()
+def test_install_no_longer_registers_an_mcp_server(home):
+    assert not hasattr(install, "register_claude") and not hasattr(install, "stop_running_daemon")
 
 
 LEGACY_SETTINGS = {"hooks": {
@@ -230,3 +211,68 @@ def test_unreadable_store_apply_failure_says_nothing_was_written(tmp_path, capsy
         install.run_records_migration(str(tmp_path / "ws"))
     out = capsys.readouterr().out
     assert "nothing was marked done" in out and "applied" not in out
+
+
+MCP_HOME_CLAUDE_JSON = {"mcpServers": {"ai-mem": {"command": "py", "args": ["-m", "ai_mem.server"]}, "other": {"command": "x"}}}
+MCP_HOME_SETTINGS = {
+    "permissions": {"allow": ["mcp__ai-mem__mem_add", "mcp__ai-mem__mem_query", "Bash(git status)", "Bash(mem-dream *)"]},
+    "hooks": {"PreToolUse": [{"hooks": [{"type": "command", "command": "py -m ai_mem.pretool_hook 2>/dev/null || true"},
+                                         {"type": "command", "command": "my-own-hook"}]}]},
+}
+
+
+def _mcp_home(home):
+    (home / ".claude").mkdir(parents=True)
+    (home / ".claude.json").write_text(json.dumps(MCP_HOME_CLAUDE_JSON))
+    (home / ".claude" / "settings.json").write_text(json.dumps(MCP_HOME_SETTINGS))
+
+
+def test_mcp_removal_on_yes_keeps_other_servers_permissions_and_hooks(home, capsys):
+    _mcp_home(home)
+    with patch("builtins.input", return_value="y"):
+        install.offer_mcp_removal()
+    claude_json = json.loads((home / ".claude.json").read_text())
+    assert list(claude_json["mcpServers"]) == ["other"]
+    settings = json.loads((home / ".claude" / "settings.json").read_text())
+    assert settings["permissions"]["allow"] == ["Bash(git status)", "Bash(mem-dream *)"]
+    assert [h["command"] for g in settings["hooks"]["PreToolUse"] for h in g["hooks"]] == ["my-own-hook"]
+    assert "mcp__ai-mem__* permissions" in capsys.readouterr().out
+
+
+def test_mcp_removal_declined_or_absent_changes_nothing(home):
+    _mcp_home(home)
+    before = (home / ".claude.json").read_text(), (home / ".claude" / "settings.json").read_text()
+    with patch("builtins.input", return_value="n"):
+        install.offer_mcp_removal()
+    assert ((home / ".claude.json").read_text(), (home / ".claude" / "settings.json").read_text()) == before
+    for path in (home / ".claude.json", home / ".claude" / "settings.json"):
+        path.unlink()
+    with patch("builtins.input", side_effect=AssertionError("must not ask")):
+        install.offer_mcp_removal()
+
+
+def test_plugin_switch_flag_also_offers_mcp_removal(home):
+    _mcp_home(home)
+    with patch("sys.argv", ["install.py", "--plugin-switch"]), patch("builtins.input", return_value="y"):
+        install.main()
+    assert "ai-mem" not in json.loads((home / ".claude.json").read_text())["mcpServers"]
+
+
+@pytest.mark.parametrize("settings", ['{"permissions": []}', '{"permissions": null}', '["x"]', '"x"', "{not json"])
+def test_mcp_removal_survives_odd_settings_and_leaves_them_unchanged(home, settings, capsys):
+    (home / ".claude").mkdir()
+    (home / ".claude" / "settings.json").write_text(settings)
+    (home / ".claude.json").write_text(json.dumps(MCP_HOME_CLAUDE_JSON))
+
+    uninstall.mcp_leftovers(home)
+    uninstall.remove_mcp_registration(home, dry_run=False)
+
+    assert (home / ".claude" / "settings.json").read_text() == settings
+    assert list(json.loads((home / ".claude.json").read_text())["mcpServers"]) == ["other"]
+
+
+def test_mcp_removal_keeps_a_backup_of_claude_json(home):
+    _mcp_home(home)
+    original = (home / ".claude.json").read_text()
+    uninstall.remove_mcp_registration(home, dry_run=False)
+    assert (home / ".claude.json.ai-mem.bak").read_text() == original

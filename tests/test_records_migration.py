@@ -10,7 +10,7 @@ from ai_mem.adr_cli import _cmd_migrate
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_paths import read_mapping
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+from tests.chroma_store import ChromaStore
 from ai_mem.infrastructure.records_migration import (
     BACKUP_SUFFIX,
     REPORT_FILENAME,
@@ -76,7 +76,7 @@ def test_match_by_name_unique_and_ambiguous(workspace):
 @pytest.fixture
 def store(tmp_path, workspace):
     db_path = tmp_path / "db"
-    repo = ChromaMemoryRepository(db_path)
+    repo = ChromaStore(db_path)
     add = AddMemoryUseCase(repo)
     add.execute("repo.alpha", ["Fokus A"], ["current_focus"], metadatas=[{"type": "project"}])
     add.execute("repo.alpha", ["Decision: keep X"], ["domain_x"], metadatas=[{"type": "domain", "area": "arch"}])

@@ -128,7 +128,7 @@ def discover_roots(scan_roots: list[Path]) -> dict[str, Path]:
     """collection -> directory, for every CLAUDE.md directory below `scan_roots`.
 
     The collection name comes from `detect_repo_context`, i.e. exactly the name the hooks and
-    the MCP server derive for a session started in that directory. Agent worktrees map to their
+    the MCP server (both gone since the plugin switch) derived for a session started in that directory. Agent worktrees map to their
     main checkout there, so they never produce a separate collection here either.
     """
     return _roots_from(list(_walk_dirs(scan_roots)))
@@ -334,7 +334,7 @@ def render_report(plan: MigrationPlan) -> str:
     if plan.auto_classified:
         out += ["", "## Auto-classified (check these)", "",
                 "Stored type -> record type by rule: feedback -> pattern; todo_*/TODO -> todo (RESULT -> learning); "
-                "everything else -> learning. Fix a wrong one by retyping it with mem_add.", "",
+                "everything else -> learning. Fix a wrong one by retyping it with `mem add`.", "",
                 "| collection | id | stored type | now |", "|---|---|---|---|"]
         for w in plan.auto_classified:
             out.append(f"| {w.collection} | {w.entry_id} | {w.old_type or '-'} | {w.placement.type} |")

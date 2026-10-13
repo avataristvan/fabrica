@@ -19,9 +19,7 @@ Area: <area folder>
 Records: <area>/docs/records (FOCUS.md = current focus, INDEX.md = catalogue of decisions, learnings, todos). Read them on demand; for "why is it like this / was this tried before?" ask the librarian agent.
 ```
 
-Until the plugin cutover the hook also prints the legacy collection routing line(s) next to these; they go away with the cutover. If no part is generated, the hook exits silently.
-
-The optional verbose mode (`session_start_verbose: true` in `~/.config/ai-mem/agents.yaml`, see `agents.yaml.example`) restores a larger session-start summary. It is a legacy switch and is not part of the practice.
+If no part is generated, the hook exits silently.
 
 ## Enforcing hooks (`ai_mem/hooks/`)
 
@@ -37,7 +35,7 @@ Hooks enforce THAT a ritual happens; roles decide HOW (`domain_hooks_enforce_tha
 
 ### Retro roles
 
-The roles come from the plugin option `retro_roles`, else `$AI_MEM_PATH/retro_roles.json` (a JSON list of agent types); both missing or malformed means the default `["the-coder", "pr-review-toolkit:code-reviewer", "ai-mem:anchor-lint"]`. Other agent types produce no output and no log line.
+The roles come from the plugin option `retro_roles`, else `$AI_MEM_PATH/retro_roles.json` (a JSON list of agent types); both missing or malformed means the default `["ai-mem:anchor-lint"]`: the plugin enforces only the agents it ships; your own teams (e.g. `the-coder`) are added through the option. Other agent types produce no output and no log line.
 
 ### Retro log (`$AI_MEM_PATH/retro_log.jsonl`)
 
@@ -60,4 +58,4 @@ The hooks of the plugin and the entries older `install.py` versions wrote into `
 
 ## Retired hooks
 
-Earlier versions also registered `UserPromptSubmit` and `PreToolUse` hooks that injected search results into the prompt, and a `PostToolUse` hook that counted accesses. They were retired in September and October 2026 because pushed content scaled with conversation length and edit count, not with relevance. Their measurements and reasoning: [sources/automation.md](../sources/automation.md), [sources/pull_through_measurement_impl_2026_07_31.md](../sources/pull_through_measurement_impl_2026_07_31.md), [sources/hook_routing_subagent.md](../sources/hook_routing_subagent.md). The modules still sit in the tree, unwired, until the cutover removes them; `install.py` removes their hook entries from existing installs on a re-run.
+Earlier versions also registered `UserPromptSubmit` and `PreToolUse` hooks that injected search results into the prompt, and a `PostToolUse` hook that counted accesses. They were retired in September and October 2026 because pushed content scaled with conversation length and edit count, not with relevance. Their measurements and reasoning: [sources/automation.md](../sources/automation.md), [sources/pull_through_measurement_impl_2026_07_31.md](../sources/pull_through_measurement_impl_2026_07_31.md), [sources/hook_routing_subagent.md](../sources/hook_routing_subagent.md). The modules were removed at the plugin cutover (tag `v0-last-mcp`); `python3 install.py --plugin-switch` removes their hook entries from existing installs.

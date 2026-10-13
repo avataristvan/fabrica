@@ -12,7 +12,7 @@ Breaking steps, oldest first:
 |---|---|---|
 | records_v1 | Memory moves out of ChromaDB into Markdown record files in each project | released |
 | Collections -> areas | Collection folders are redistributed into areas | not yet released |
-| MCP server -> plugin | The MCP server is replaced by a Claude Code plugin (part 1: install the plugin) | part 1 released, part 2 not yet |
+| MCP server -> plugin | The MCP server is replaced by a Claude Code plugin (part 1: install the plugin; part 2: remove the server) | released |
 
 ## Preconditions
 
@@ -70,8 +70,7 @@ Skip this section if `$STORE/chroma.sqlite3` does not exist, or if
    by a session that still ran the old server during the upgrade -- `migrate --apply` again
    picks it up.
 
-ChromaDB stays on disk as it is. `AI_MEM_BACKEND=chroma` (the rollback to the old store)
-needs the extra: `"$PY" -m pip install -e '.[chroma]'`.
+ChromaDB stays on disk as it is. The Chroma backend itself (`AI_MEM_BACKEND=chroma`, the MCP server, the daemon) no longer exists in the code; a human who needs it checks out the tag `v0-last-mcp` (the last commit that had it). The migration above stays and needs no extra package.
 
 ## Collections -> areas
 
@@ -85,7 +84,7 @@ The records that lived in collection folders (`ai-mem-records/<collection>/`) be
 
 ## MCP server -> plugin
 
-Two parts. Part 1 (this section) installs the plugin next to the still-registered MCP server. Part 2, removing the server, is not yet released -- stop after part 1.
+Two parts, in this order. Part 1 installs the plugin next to the still-registered MCP server. Part 2 removes the server's registration and permissions; the server's code is gone from this checkout once you have pulled.
 
 ### Part 1: install the plugin
 
@@ -109,4 +108,21 @@ What changed, for the record: hooks moved from `~/.claude/settings.json` into th
 
 ### Part 2: remove the server
 
-Not yet released -- stop here.
+The code no longer contains the MCP server (`ai_mem.server`), the query daemon, the Chroma/BM25 backend, the push hooks and the collection routing line. What is left to do is on the user's machine: the MCP registration in `~/.claude.json` (and `~/.gemini/settings.json`, `~/.cursor/mcp.json` if the user registered it there), the `mcp__ai-mem__*` permissions and old push hooks in `~/.claude/settings.json`. Those files belong to the user and to a running Claude Code, so an agent never edits them: `install.py` does it, with the user's consent, and only a human runs `install.py`.
+
+Run from the ai-mem checkout, after part 1 and records_v1 are done.
+
+1. Preconditions of this document hold (re-read this file after the pull in step 2: part 2 may have changed), `claude plugin list` shows `ai-mem@ai-mem` as enabled, and `$STORE/.migrations/records_v1.done` exists or `$STORE/chroma.sqlite3` does not. Otherwise: **STOP** (finish the earlier parts first).
+2. Update the code: `git pull --ff-only`. Non-zero exit, diverged branches, or a prompt: **STOP**.
+3. Reinstall the package: `"$PY" -m pip install -e .` (no extras; ai-mem has no runtime dependencies now). Non-zero exit: **STOP**.
+4. Check the commands the plugin uses: `(cd "$PWD" && "$PY" -m ai_mem.mem_cli context)` exits 0 (this checkout has a `docs/records/`), and `"$PY" -m ai_mem.adr_cli --help` exits 0. Otherwise: **STOP**.
+5. Look, do not touch: `grep -c 'mcp__ai-mem__' ~/.claude/settings.json` and `grep -c '"ai-mem"' ~/.claude.json` (a missing file counts as 0). Report both numbers to the human. They count lines, so they also match unrelated text and miss registrations in other scopes (`projects.<path>.mcpServers`, a project `.mcp.json`, `settings.local.json`, `~/.gemini`, `~/.cursor`): treat them as a hint. The real check is `claude mcp list` in step 7; do not run it earlier (it creates `.claude` state in the directory it runs in).
+6. **Hand over to a human** (do not do these yourself):
+   - Close all Claude Code sessions, then run `python3 install.py --plugin-switch`. It lists the leftovers of the MCP era (the `mcpServers["ai-mem"]` entries, the `mcp__ai-mem__*` permissions, retired push hooks) and removes them on `y`; the user's other servers, permissions and hooks stay. Closing the sessions first matters: a running Claude Code rewrites `~/.claude.json` when it exits.
+   - If `AI_MEM_BACKEND` or `AI_MEM_ADR_DISABLED` is set in a shell profile, remove it: nothing reads it any more.
+   - Restart Claude Code. The `mem_*` tools are gone; agents read through the librarian and write through the archivist (`/ai-mem:reflect`).
+7. **Verify only after the human has told you the hand-over is done.** Until then **STOP** here and report what you did and the step-5 numbers; do not run this step on your own. Afterwards: `claude mcp list` does not show `ai-mem`, and the step-5 numbers are 0 (or the human explains the remainder). The `Area:` line in a new session is for the human to confirm; you cannot open one. Otherwise: **STOP** and report which one failed.
+
+Rollback is the tag `v0-last-mcp`: a human checks it out in the checkout, installs that version's dependencies (`pip install -e . chromadb`) and re-registers the server with that version's `install.py`. The Chroma store on disk and `$STORE.bak-*` are never touched by any step here.
+
+What changed, for the record: `ai_mem/server.py`, `daemon*.py`, `_hook_deps.py`, the PreToolUse/UserPromptSubmit/PostToolUse push modules, `infrastructure/{chroma,bm25,markdown_adr}_repository.py`, `repository_factory.py`, `agent_context.py`, `session_stats.py`, `injection_log.py` and the use cases only the server called are gone; `mem-adr-sync export`/`import` (the Chroma round trip) and `mem-dream --collection`/`--expert` are gone (`mem-dream --area` stays); SessionStart prints `Area:` and `Records:` lines (and the upgrade/doctor pointers) instead of `Active collection:`; `pyproject.toml` has `dependencies = []` and one extra, `dev`.

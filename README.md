@@ -33,7 +33,7 @@ claude plugin install ai-mem@ai-mem
 
 Restart Claude Code. The plugin needs only `python3` on the PATH (no `pip install`); its options (`retro_roles`, `doctor_cadence_days`) are set with `/plugin configure ai-mem@ai-mem` and default sensibly while unset. To try it without installing: `claude --plugin-dir ./ai-mem`.
 
-Coming from the MCP-server version? `python3 install.py --plugin-switch` offers to remove the hooks, the `/reflect` and `/mem-init` commands and the links that version put into `~/.claude`; [UPGRADING.md](UPGRADING.md) has the steps.
+Coming from the MCP-server version? `python3 install.py --plugin-switch` offers to remove the MCP registration and `mcp__ai-mem__*` permissions, the hooks, the `/reflect` and `/mem-init` commands and the links that version put into `~/.claude`; [UPGRADING.md](UPGRADING.md) has the steps. The last version with the server is the tag `v0-last-mcp`.
 
 Requires Python 3.10+. The runtime of the practice (`mem`, hooks, lint, doctor) uses only the standard library. Works with Claude Code; the record files can be read by any tool.
 
@@ -61,7 +61,7 @@ Organised by [Diátaxis](https://diataxis.fr/).
 |---|---|
 | **Tutorial** | [Your first records](docs/tutorial/first-records.md) |
 | **How-to** | [Set up your teams and CLAUDE.md](docs/how-to/set-up.md) · [Manage records](docs/how-to/manage-records.md) · [Wire skills and agents](docs/how-to/wire-skills-and-agents.md) · [Develop ai-mem](docs/how-to/develop.md) · [Migrate an old installation](docs/how-to/migrate-to-records.md) |
-| **Reference** | [Command-line reference](docs/reference/cli.md) · [Record format](docs/reference/record-format.md) · [Hooks](docs/reference/hooks.md) · [Architecture](docs/reference/architecture.md) · [Rollback stack facts](docs/reference/chroma_rollback_backend.md) (retired, kept until removal) |
+| **Reference** | [Command-line reference](docs/reference/cli.md) · [Record format](docs/reference/record-format.md) · [Hooks](docs/reference/hooks.md) · [Architecture](docs/reference/architecture.md) · [The removed Chroma stack](docs/reference/chroma_rollback_backend.md) (historical) |
 | **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [The epistemology framework](docs/epistemology-framework.md) |
 | **Evidence and history** | [`docs/sources/`](docs/sources/) (dated, frozen evidence: measurements, past designs, retired systems) · [CHANGELOG](CHANGELOG.md) · [UPGRADING](UPGRADING.md) |
 | **For agents** | [`CLAUDE.md`](CLAUDE.md) (what is true now) · [`skills/handoff-protocol/SKILL.md`](skills/handoff-protocol/SKILL.md) (the boundary contract) · [`agents/`](agents/) · [`examples/agents/`](examples/agents/README.md) · [`reference/navigating_records.md`](reference/navigating_records.md) |
@@ -74,7 +74,7 @@ Earlier versions kept memory in a vector database behind an MCP tool server and 
 
 ```bash
 claude plugin uninstall ai-mem  # the plugin
-python3 uninstall.py            # interactive: removes the legacy tool registration, old hooks, commands and links into this checkout
+python3 uninstall.py            # interactive: removes the old MCP registration, permissions, hooks, commands and links into this checkout
 python3 uninstall.py --dry-run  # preview without changes
 cd ai-mem && git pull           # update the checkout; the plugin picks it up after `claude plugin update ai-mem@ai-mem`
 ```

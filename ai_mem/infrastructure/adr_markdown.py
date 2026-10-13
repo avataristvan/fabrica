@@ -1,7 +1,6 @@
 """Serialize/parse ADR-style Markdown files for domain/pattern/anti-pattern/learning entries.
 
-Pure text transform: no filesystem I/O here (see `markdown_adr_repository.py`,
-a later chunk, for the repository decorator that writes these to disk).
+Pure text transform: no filesystem I/O here (`file_repository.py` writes these to disk).
 """
 from __future__ import annotations
 
@@ -92,7 +91,7 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     for key, value in (metadata.get(EXTRA_FRONTMATTER) or {}).items():
         lines.append(f"{key}: {value}" if value else f"{key}:")
 
-    # normalize_cue() already collapses a cue to one line; re-collapse defensively, since a
+    # normalize_cue (domain) already collapses a cue to one line; re-collapse defensively, since a
     # newline here would break the line-based frontmatter.
     cue = " ".join(str(metadata.get("cue") or "").split())
     if cue:

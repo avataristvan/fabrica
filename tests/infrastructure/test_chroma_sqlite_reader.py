@@ -10,7 +10,7 @@ import pytest
 
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge
-from ai_mem.infrastructure.chroma_repository import ChromaMemoryRepository
+from tests.chroma_store import ChromaStore
 from ai_mem.infrastructure.chroma_sqlite_reader import ChromaSchemaError, read_chroma_store
 
 
@@ -22,7 +22,7 @@ def _tree_digest(root: Path) -> dict[str, str]:
 @pytest.fixture
 def chroma_store(tmp_path):
     db_path = tmp_path / "db"
-    repo = ChromaMemoryRepository(db_path)
+    repo = ChromaStore(db_path)
     add = AddMemoryUseCase(repo)
     add.execute("repo.alpha", ["Decision: keep X"], ["domain_x"],
                 metadatas=[{"type": "domain", "area": "arch", "cue": "before X"}])

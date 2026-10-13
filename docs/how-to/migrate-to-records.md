@@ -40,6 +40,7 @@ Which directory a collection belongs to is derived exactly as the old runtime di
 - The store is opened read-only with Python's own `sqlite3` (no extra package needed) and is never written or deleted from; it is copied to `~/.local/share/ai-mem.bak-records-v1` first.
 - `--apply` marks the migration done (`~/.local/share/ai-mem/.migrations/records_v1.done`) only when nothing was left over: no collection without a directory, no conflict, no id that cannot be a filename. Otherwise it writes what it can, says why, and exits 1; place the rest with `--root` and run it again. Until it is marked done, SessionStart prints an "ai-mem upgrade pending" line.
 - Some leftovers cannot be fixed by a re-run: an id that cannot be a filename stays in the store (which the migration never writes), and a collection may belong to a project that no longer exists. After reading those sections of the report, a human (never an unattended agent) may accept them as skipped: `touch ~/.local/share/ai-mem/.migrations/records_v1.done`.
+- The pre-plugin version of ai-mem (with the earlier backend, the tool server and `mem-adr-sync export`/`import`) is the tag `v0-last-mcp`; the migration itself needs nothing from it.
 - Existing files are never overwritten. A different file at the target, or the same id filed in another folder, is reported as a conflict and left alone.
 - The run is idempotent: a second run writes nothing new.
 

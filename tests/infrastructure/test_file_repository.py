@@ -7,7 +7,6 @@ import pytest
 
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
-from ai_mem.application.boost_confidence import BoostConfidenceUseCase
 from ai_mem.domain.memory import MemoryEdge, MemoryEntry
 from ai_mem.infrastructure import adr_markdown, adr_paths
 from ai_mem.infrastructure.areas import area_records_dir
@@ -127,7 +126,9 @@ def test_edges_supersede_and_cue_through_the_use_cases(repo, root):
 
     AddEdgeUseCase(repo).execute(COLLECTION, "d_new", "d_old", "supersedes")
     AddEdgeUseCase(repo).execute(COLLECTION, "d_new", "d_old", "supersedes")  # idempotent
-    BoostConfidenceUseCase(repo).execute(COLLECTION, ["d_new"], cue="when choosing")
+    [boosted] = repo.get_by_ids(COLLECTION, ["d_new"])
+    boosted.metadata["cue"] = "when choosing"
+    repo.upsert(COLLECTION, [boosted])
 
     assert repo.get_edges(COLLECTION, "d_new") == [MemoryEdge(target_id="d_old", edge_type="supersedes")]
     old = adr_markdown.parse((_records(root) / "general" / "decisions" / "d_old.md").read_text())

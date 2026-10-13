@@ -75,7 +75,7 @@ records_consulted: <ids that carried a decision or a finding, or "none">
 record_candidates: <plain text: what should become a record, or which record is touched or refuted, or "none">
 ```
 
-The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `records_consulted` and `record_candidates` for the roles in `retro_roles.json`. The orchestrator reads the blocks during `/reflect` (Step 1); `learned:` and `record_candidates:` become candidates for the archivist.
+The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `records_consulted` and `record_candidates` for the roles in the plugin option `retro_roles` (default only `ai-mem:anchor-lint`; add your own teams with `/plugin configure ai-mem@ai-mem`). The orchestrator reads the blocks during `/reflect` (Step 1); `learned:` and `record_candidates:` become candidates for the archivist.
 
 **Reference implementation (shipped with this repo):** `examples/agents/example-agent-with-memory.md` — copy it to `~/.claude/agents/<name>.md`, rename, and fill in the actual job.
 
@@ -83,7 +83,7 @@ The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `recor
 
 ## What install.py Sets Up
 
-The plugin (see the [README](../../README.md)) ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:setup`, `ai-mem:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks. `python3 install.py` only registers the MCP server (until the cutover).
+The plugin (see the [README](../../README.md)) ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:setup`, `ai-mem:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks. `python3 install.py` installs the package, runs the one-time records_v1 migration and offers to remove what older versions left (`--plugin-switch`); it registers nothing.
 
 It does **not** wire your skills or agents: those are local configuration that you own. `/ai-mem:setup` proposes the wiring and applies it on your approval. `examples/agents/` ships a starting point to copy, not a file installed automatically.
 

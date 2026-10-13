@@ -31,9 +31,14 @@ check() {  # check <name> <command...>
 log() { echo "---- $*"; }
 git_q() { git -c user.name=acceptance -c user.email=acceptance@localhost -c commit.gpgsign=false "$@"; }
 
+# Files that running sessions write into the real store (hooks, `mem doctor`, pre-plugin
+# SessionStart); they change during the run without the run touching them.
+# adr_collection_roots.json stays checked: only the migration writes it now.
 real_checksums() {
   {
-    find "$REAL_STORE" "$STORE_SRC" -type f -exec sha256sum {} + 2>/dev/null
+    find "$REAL_STORE" -type f ! -path "$REAL_STORE/reminded/*" ! -name retro_log.jsonl \
+      ! -name doctor_last_run ! -name session_start.txt -exec sha256sum {} + 2>/dev/null
+    find "$STORE_SRC" -type f -exec sha256sum {} + 2>/dev/null
     for d in "$WORKSPACE"/*/docs/records "$WORKSPACE/ai-mem-records"; do
       [ -d "$d" ] && find "$d" -type f -exec sha256sum {} +
     done

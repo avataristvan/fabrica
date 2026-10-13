@@ -17,11 +17,7 @@ from ai_mem.application.dream_memory import (
     DreamMemoryUseCase,
     _build_edge_index,
     _check_merge_conflicts,
-    _parse_link_proposals,
-    _parse_supersede_proposals,
-    _shared_collection,
 )
-from ai_mem.application.get_edges import GetEdgesUseCase
 from ai_mem.domain.memory import EdgeType, MemoryEntry
 
 
@@ -34,13 +30,11 @@ def _seed(repo, collection: str, docs: dict[str, str], metadatas: list[dict] | N
     )
 
 
-def _dream(repo, synthesis: str, **flags) -> str:
+def _dream(repo, synthesis: str) -> str:
+    # Plain ids never reach the resolver, so the in-memory repo can stand in for an area.
+    from ai_mem.infrastructure.areas import AreaRefResolver
     with patch("ai_mem.application.dream_memory._call", return_value=synthesis):
-        return DreamMemoryUseCase(repo).execute("col", mode="single-haiku", **flags)
-
-
-def _meta(repo, collection: str, entry_id: str) -> dict:
-    return repo.get_by_ids(collection, [entry_id])[0].metadata
+        return DreamMemoryUseCase(repo, area_refs=AreaRefResolver()).execute("col", mode="single-haiku")
 
 
 # ── edge types are derived, not hard-coded ───────────────────────────────────
@@ -133,59 +127,6 @@ class TestCheckMergeConflicts:
             assert "supersedes" in warnings[0] and "history" in warnings[0]
 
 
-# ── parsing ───────────────────────────────────────────────────────────────────
-
-class TestParseLinkProposals:
-    def test_bullet_styles(self):
-        assert _parse_link_proposals("- LINK src -> tgt [type=contradicts]: r") == [("src", "tgt", "contradicts")]
-        assert _parse_link_proposals("* LINK src -> tgt [type=fixes]: r") == [("src", "tgt", "fixes")]
-        assert _parse_link_proposals("• LINK src -> tgt [type=related]: r") == [("src", "tgt", "related")]
-
-    def test_case_insensitive_and_whitespace_in_type(self):
-        assert _parse_link_proposals("- link src -> tgt [type=causes]: r") == [("src", "tgt", "causes")]
-        assert _parse_link_proposals("- LINK a -> b [type=  related  ]: r") == [("a", "b", "related")]
-
-    def test_multiple_links(self):
-        synthesis = "- LINK a -> b [type=contradicts]: x\n- LINK c -> d [type=fixes]: y\n"
-        assert _parse_link_proposals(synthesis) == [("a", "b", "contradicts"), ("c", "d", "fixes")]
-
-    def test_missing_type_not_matched_and_empty_synthesis(self):
-        assert _parse_link_proposals("- LINK a -> b: no type here") == []
-        assert _parse_link_proposals("") == []
-
-
-class TestParseSupersedeProposals:
-    def test_parses_bullet_styles_and_case(self):
-        assert _parse_supersede_proposals("- SUPERSEDE new -> old: reason") == [("new", "old")]
-        assert _parse_supersede_proposals("* supersede n -> o: reason") == [("n", "o")]
-        assert _parse_supersede_proposals("• SUPERSEDE n -> o: reason") == [("n", "o")]
-
-    def test_multiple_and_none(self):
-        synthesis = "- SUPERSEDE a -> b: x\n- SUPERSEDE c -> d: y"
-        assert _parse_supersede_proposals(synthesis) == [("a", "b"), ("c", "d")]
-        assert _parse_supersede_proposals("- DELETE a: stale") == []
-
-    def test_link_lines_are_not_supersede_lines(self):
-        assert _parse_supersede_proposals("- LINK a -> b [type=related]: r") == []
-
-
-class TestSharedCollection:
-    def test_same_collection(self):
-        assert _shared_collection({"a": {"col"}, "b": {"col"}}, "a", "b") == ("col", "")
-
-    def test_unknown_ids(self):
-        assert _shared_collection({"b": {"col"}}, "a", "b")[1] == "unknown id 'a'"
-        assert _shared_collection({"a": {"col"}}, "a", "b")[1] == "unknown id 'b'"
-
-    def test_different_collections(self):
-        collection, reason = _shared_collection({"a": {"one"}, "b": {"two"}}, "a", "b")
-        assert collection is None and "different collections" in reason
-
-    def test_ambiguous_when_both_exist_in_several(self):
-        collection, reason = _shared_collection({"a": {"one", "two"}, "b": {"one", "two"}}, "a", "b")
-        assert collection is None and "ambiguous" in reason
-
-
 # ── execute(): merge guard ────────────────────────────────────────────────────
 
 class TestDreamExecuteMergeConflict:
@@ -218,124 +159,6 @@ class TestDreamExecuteMergeConflict:
         assert "## ⚠ Merge Conflicts" in report and "erase the history" in report
 
 
-# ── execute(): auto_link ──────────────────────────────────────────────────────
-
-class TestDreamExecuteAutoLink:
-    def test_creates_edge_and_reports_it(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "pattern text here", "e2": "anti-pattern text here"})
-
-        report = _dream(tmp_repo, "- LINK e1 -> e2 [type=related]: they are connected", auto_link=True)
-
-        assert "Auto-Applied Links" in report and "Applied `e1 -> e2` [related]" in report
-        assert any(e.target_id == "e2" and e.edge_type == "related" for e in GetEdgesUseCase(tmp_repo).execute("col", "e1"))
-
-    def test_not_applied_when_flag_false(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "text", "e2": "text"})
-
-        report = _dream(tmp_repo, "- LINK e1 -> e2 [type=related]: connected", auto_link=False)
-
-        assert "Auto-Applied Links" not in report
-        assert GetEdgesUseCase(tmp_repo).execute("col", "e1") == []
-
-    def test_unknown_source_is_reported_not_silently_dropped(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e2": "target text"})
-
-        report = _dream(tmp_repo, "- LINK ghost -> e2 [type=related]: ghost does not exist", auto_link=True)
-
-        assert "### Skipped Links" in report and "unknown id 'ghost'" in report
-
-    def test_invalid_edge_type_is_reported_with_the_valid_ones(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "text", "e2": "text"})
-
-        report = _dream(tmp_repo, "- LINK e1 -> e2 [type=invalid_type]: wrong", auto_link=True)
-
-        assert GetEdgesUseCase(tmp_repo).execute("col", "e1") == []
-        assert "invalid edge type" in report and "contradicts, fixes, causes, related" in report
-
-    def test_supersedes_is_not_accepted_as_a_link_type(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "text", "e2": "text"})
-
-        report = _dream(tmp_repo, "- LINK e1 -> e2 [type=supersedes]: overtaken", auto_link=True)
-
-        assert "invalid edge type" in report
-        assert not _meta(tmp_repo, "col", "e2").get("superseded_by")
-
-    def test_link_across_collections_is_skipped_with_reason(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "text one"})
-        _seed(tmp_repo, "other", {"e2": "text two"})
-        with patch("ai_mem.application.dream_memory._call", return_value="- LINK e1 -> e2 [type=related]: x"):
-            report = DreamMemoryUseCase(tmp_repo).execute(None, mode="single-haiku", auto_link=True)
-
-        assert "different collections" in report
-        assert GetEdgesUseCase(tmp_repo).execute("col", "e1") == []
-
-    def test_reports_when_no_link_actions_were_proposed(self, tmp_repo):
-        _seed(tmp_repo, "col", {"e1": "text"})
-        assert "None (no LINK actions found)" in _dream(tmp_repo, "- DELETE e1: stale", auto_link=True)
-
-
-# ── execute(): auto_supersede ─────────────────────────────────────────────────
-
-class TestDreamExecuteAutoSupersede:
-    def test_flags_old_entry_and_writes_the_edge(self, tmp_repo):
-        _seed(tmp_repo, "col", {"old": "the old decision", "new": "the new decision"})
-
-        report = _dream(tmp_repo, "- SUPERSEDE new -> old: the decision was reversed", auto_supersede=True)
-
-        assert "Auto-Applied Supersessions" in report and "Applied `new -> old` in `col`" in report
-        assert _meta(tmp_repo, "col", "old")["superseded_by"] == "new"
-        assert [(e.target_id, e.edge_type) for e in GetEdgesUseCase(tmp_repo).execute("col", "new")] == [("old", "supersedes")]
-        assert tmp_repo.get_by_ids("col", ["old"])[0].text == "the old decision"  # kept, not deleted
-
-    def test_not_applied_when_flag_false(self, tmp_repo):
-        _seed(tmp_repo, "col", {"old": "old", "new": "new"})
-
-        report = _dream(tmp_repo, "- SUPERSEDE new -> old: reversed", auto_supersede=False)
-
-        assert "Supersessions" not in report
-        assert not _meta(tmp_repo, "col", "old").get("superseded_by")
-
-    def test_does_not_apply_link_actions_and_vice_versa(self, tmp_repo):
-        _seed(tmp_repo, "col", {"old": "old", "new": "new"})
-
-        _dream(tmp_repo, "- SUPERSEDE new -> old: reversed", auto_link=True)
-
-        assert not _meta(tmp_repo, "col", "old").get("superseded_by")
-
-    def test_already_superseded_source_is_skipped_with_the_use_case_reason(self, tmp_repo):
-        _seed(tmp_repo, "col", {"a": "a", "b": "b", "c": "c"})
-        AddEdgeUseCase(tmp_repo).execute("col", "b", "a", "supersedes")  # a is superseded by b
-
-        report = _dream(tmp_repo, "- SUPERSEDE a -> c: a is newer", auto_supersede=True)
-
-        assert "### Skipped Supersessions" in report and "is itself superseded by 'b'" in report
-        assert not _meta(tmp_repo, "col", "c").get("superseded_by")
-
-    def test_self_supersede_and_unknown_id_are_skipped(self, tmp_repo):
-        _seed(tmp_repo, "col", {"a": "a"})
-
-        report = _dream(tmp_repo, "- SUPERSEDE a -> a: nonsense\n- SUPERSEDE ghost -> a: nothing", auto_supersede=True)
-
-        assert "cannot supersede itself" in report and "unknown id 'ghost'" in report
-
-    def test_supersede_across_collections_is_skipped(self, tmp_repo):
-        _seed(tmp_repo, "col", {"new": "new"})
-        _seed(tmp_repo, "other", {"old": "old"})
-        with patch("ai_mem.application.dream_memory._call", return_value="- SUPERSEDE new -> old: reversed"):
-            report = DreamMemoryUseCase(tmp_repo).execute(None, mode="single-haiku", auto_supersede=True)
-
-        assert "different collections" in report
-        assert not _meta(tmp_repo, "other", "old").get("superseded_by")
-
-    def test_mixed_proposals_apply_the_valid_ones(self, tmp_repo):
-        _seed(tmp_repo, "col", {"old": "old", "new": "new"})
-
-        report = _dream(tmp_repo, "- SUPERSEDE ghost -> old: x\n- SUPERSEDE new -> old: reversed", auto_supersede=True)
-
-        assert _meta(tmp_repo, "col", "old")["superseded_by"] == "new"
-        assert "Applied `new -> old`" in report and "unknown id 'ghost'" in report
-
-
 # ── area mode: qualified edges across areas (real FileMemoryRepository, fake claude runner) ──
 
 import pytest
@@ -343,7 +166,6 @@ import pytest
 from ai_mem.application.dream_memory import _area_add_targets
 from ai_mem.infrastructure.areas import AreaRefResolver, area_records_dir
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
-from ai_mem.upgrade_guard import MigrationPending
 
 
 def _area(root):
@@ -368,74 +190,9 @@ def two_areas(tmp_path):
     return repo, here, other, tmp_path
 
 
-def _area_dream(repo, key, synthesis, **flags):
+def _area_dream(repo, key, synthesis):
     with patch("ai_mem.application.dream_memory._call", return_value=synthesis):
-        return DreamMemoryUseCase(repo, area_refs=AreaRefResolver()).execute(key, "single-haiku", **flags)
-
-
-def _edges(repo, key, entry_id) -> list[tuple[str, str]]:
-    return [(e.target_id, e.edge_type) for e in repo.get_edges(key, entry_id)]
-
-
-class TestAreaEdges:
-    def test_cross_area_link_becomes_a_qualified_edge_on_the_source(self, two_areas):
-        repo, here, other, _ = two_areas
-        report = _area_dream(repo, here, "- LINK learning_a -> ../other:learning_x [type=related]: same topic",
-                             auto_link=True)
-        assert "Applied" in report
-        assert _edges(repo, here, "learning_a") == [("../other:learning_x", "related")]
-        assert repo.get_by_ids(other, ["learning_x"])[0].metadata.get("edges", "[]") in ("", "[]")
-
-    def test_same_area_link_stays_bare(self, two_areas):
-        repo, here, _, _ = two_areas
-        _area_dream(repo, here, "- LINK learning_a -> learning_b [type=related]: r", auto_link=True)
-        assert _edges(repo, here, "learning_a") == [("learning_b", "related")]
-
-    def test_cross_area_supersede_is_rejected_and_reported(self, two_areas):
-        repo, here, other, _ = two_areas
-        report = _area_dream(repo, here, "- SUPERSEDE learning_a -> ../other:learning_x: replaced",
-                             auto_supersede=True)
-        assert "Skipped Supersessions" in report and "across areas is refused" in report
-        assert _edges(repo, here, "learning_a") == []
-        assert not repo.get_by_ids(other, ["learning_x"])[0].metadata.get("superseded_by")
-
-    @pytest.mark.parametrize("target", [
-        "/etc:learning_x", "~/x:learning_x", "../../../..:learning_x", "../other:*", "../other:../learning_x",
-        "../nonexistent:learning_x", "../other:learning_missing", "other:learning_x",
-    ])
-    def test_hostile_or_unresolvable_link_targets_are_skipped(self, two_areas, target):
-        repo, here, _, tmp = two_areas
-        report = _area_dream(repo, here, f"- LINK learning_a -> {target} [type=related]: x", auto_link=True)
-        assert "Skipped Links" in report
-        assert _edges(repo, here, "learning_a") == []
-
-    def test_qualified_source_id_is_unknown(self, two_areas):
-        repo, here, _, _ = two_areas
-        report = _area_dream(repo, here, "- LINK ../other:learning_x -> learning_a [type=related]: x",
-                             auto_link=True)
-        assert "unknown id" in report
-
-    def test_collection_mode_still_refuses_qualified_targets(self, tmp_path):
-        from ai_mem.infrastructure.file_repository import FileMemoryRepository as Repo
-        key = _area(tmp_path / "solo")
-        repo = Repo(tmp_path / "db", records_dir_for=area_records_dir)
-        _put(repo, key, "learning_a")
-        with patch("ai_mem.application.dream_memory._call", return_value="- LINK learning_a -> ../o:x [type=related]: r"):
-            report = DreamMemoryUseCase(repo).execute(key, mode="single-haiku", auto_link=True)
-        assert "Skipped Links" in report
-
-    def test_migration_guard_runs_before_any_write(self, two_areas):
-        repo, here, _, _ = two_areas
-
-        def refuse():
-            raise MigrationPending()
-
-        with patch("ai_mem.application.dream_memory._call", return_value="- LINK learning_a -> learning_b [type=related]: r"):
-            use_case = DreamMemoryUseCase(repo, area_refs=AreaRefResolver(), before_write=refuse)
-            with pytest.raises(MigrationPending):
-                use_case.execute(here, "single-haiku", auto_link=True)
-            use_case.execute(here, "single-haiku")  # report only: no write, no guard
-        assert _edges(repo, here, "learning_a") == []
+        return DreamMemoryUseCase(repo, area_refs=AreaRefResolver()).execute(key, "single-haiku")
 
 
 class TestAreaAddTargets:
@@ -455,8 +212,12 @@ class TestAreaAddTargets:
 
     def test_report_lists_candidates_and_rejections_and_writes_nothing(self, two_areas):
         repo, here, other, tmp = two_areas
-        before = sorted(p for p in tmp.rglob("*") if p.is_file())
-        report = _area_dream(repo, here, "- ADD n1 [target=../other]: s\n- ADD n2 [target=/etc]: s")
+        before = {p: p.read_bytes() for p in tmp.rglob("*") if p.is_file()}
+        report = _area_dream(repo, here, (
+            "- ADD n1 [target=../other]: s\n- ADD n2 [target=/etc]: s\n"
+            "- LINK learning_a -> learning_b [type=related]: r\n"
+            "- SUPERSEDE learning_b -> learning_a: r\n- DELETE learning_b: stale\n"
+        ))
         assert "## Propagation Candidates" in report and "`n1`" in report
         assert "## Rejected ADD Targets" in report and "`n2`" in report
-        assert sorted(p for p in tmp.rglob("*") if p.is_file()) == before
+        assert {p: p.read_bytes() for p in tmp.rglob("*") if p.is_file()} == before  # proposals are never applied
