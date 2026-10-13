@@ -114,6 +114,7 @@
 | learning_plugin_from_local_marketplace_loads_in_place_2026_10_12 | plugin | learning | Observed: A plugin from a marketplace added from a local path with a relative so | active |
 | learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12 | plugin | learning | Observed: Claude Code plugin mechanics, verified on claude 2.1.296 while packagi | active |
 | learning_pretool_push_dominated_context_footprint_2026_09_12 | architecture | learning | Observed: Another Claude session (in another project) delivered a doctor scan ov | active |
+| learning_public_history_pushed_clean_2026_10_13 | records | learning | Observed: Going public is done. main (48fabdb) and the tag v0-last-mcp (60d85d8, | active |
 | learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12 | plugin | learning | Observed: Rerun the UPGRADING.md acceptance run after every edit to UPGRADING.md | active |
 | learning_review_design_converged_stepwise_2026_10_12 | workflow | learning | Observed: The review design converged in conversation in steps (own agent -> dec | active |
 | learning_safe_entry_id_misses_control_chars_2026_10_10 | workflow | learning | Observed: `is_safe_entry_id` only rejects path and glob metacharacters. Ids with | active |
@@ -134,12 +135,14 @@
 | mock-discriminate-multi-call-site-by-argument | general | pattern | When a test helper mocks a function with a flat return_value for ALL call sites, | active |
 | pattern_always_parse_agent_type_2026_10_04 | general | pattern | Rule: SessionStart must parse the transcript to detect agent type; never trust i | active |
 | pattern_attribute_records_by_created_timestamp_2026_10_12 | records | pattern | Rule: To attribute a the-coder record to its project when the text does not say, | active |
+| pattern_auto_mode_rewrite_as_new_branch_and_tag_user_runs_overwrite_2026_10_13 | workflow | pattern | Rule: Build the rewritten target as a new branch and a new tag (git commit-tree  | active |
 | pattern_batch_move_builds_destination_map_first_2026_10_12 | records | pattern | Rule: Build the destination map for all rows of a batch first, before planning a | active |
 | pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12 | records | pattern | Rule: A batch move rewrites referrers only in versioned source areas. Referrers  | active |
 | pattern_blindtest_methodik | evaluation | pattern | # Blind-test methodology for ai-mem evaluation | active |
 | pattern_bubble_up_lookup_stops_at_root_2026_10_11 | plugin | pattern | Rule: A bubble-up (ancestor-walk) search names its stop explicitly (the root) an | active |
 | pattern_bypass_gate_for_safety_signals | general | pattern | Rule: Safety/warning signals (anti-patterns, contradiction alerts) should bypass | active |
 | pattern_check_secondary_edges_before_public_move_2026_10_12 | records | pattern | Rule: Before a move into a public area, check the secondary edges (`related`, `d | active |
+| pattern_cite_file_or_test_not_unpushed_sha_before_squash_2026_10_13 | records | pattern | Rule: Before squashing, records cite the file or test instead of a commit SHA th | active |
 | pattern_confidence_lifecycle | architecture | pattern | Rule: Use confidence (float 0.0–1.0) as the primary lifecycle signal for memory  | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | pattern_delayed_outcome_needs_log_not_counter_2026_10_04 | general | pattern | Rule: A live rolling counter cannot measure a result whose outcome is still unkn | active |
 | pattern_deployed_artifact_source_classes | workflow | pattern | Rule: Before editing a deployed file (skill, command, agent), determine its sour | active |
@@ -148,6 +151,7 @@
 | pattern_english_output_strings | workflow | pattern | Rule: Keep all user-facing strings in ai-mem code in English. | active |
 | pattern_error_hint_checks_error_concerns_argument_2026_10_11 | plugin | pattern | Rule: A hint attached to a use-case error must first check that the error concer | active |
 | pattern_eval_artifacts_outside_agent_readable_corpus | evaluation | pattern | Rule: Eval cases, gold IDs and discriminators are not stored where the tested ag | active |
+| pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13 | records | pattern | Rule: Before making a history public, every ref that is pushed must be clean, no | active |
 | pattern_gap_test_evaluation | evaluation | pattern | # Gap test: objective evaluation of whether ai-mem helps the agent | active |
 | pattern_generic_core_selective_agent_activation | architecture | pattern | Rule: ai-mem's own source must stay agent-agnostic. Per-agent behavior is opt-in | active |
 | pattern_handoff_is_overwritten_not_appended_2026_10_12 | workflow | pattern | Rule: Overwrite the handoff with the current state each time; never only append. | active |
@@ -203,12 +207,12 @@
 | todo_ai_mem_violates_link_type | architecture | todo | TODO: In an ai-mem session, propose a new link type 'violates' (anti-pattern → p | active |
 | todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: The archivist report names the areas it searched. This is a lever from an  | active |
 | todo_bibliothekar_haiku_retrieval_agent_2026_09_25 | general | learning | RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09- | active |
-| todo_check_no_private_records_before_push_2026_10_12 | workflow | todo | TODO: Before any push (main and tag v0-last-mcp), check that no internal or priv | active |
 | todo_chunk4c_retro_log_dedupe_and_doctor_constant_2026_10_11 | plugin | todo | TODO: (1) Deduplicate retro_log.jsonl by agent_id, since a blocked agent logs tw | active |
 | todo_confidence_decay_adsr_design | general | learning | Design and implement a confidence-decay mechanism modeled on an ADSR envelope (A | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_detect_skipped_reflect_gate_2026_10_11 | architecture | todo | TODO: Make `mem doctor` detect a skipped reflect gate, e.g. commits on main sinc | active |
 | todo_doctor_reads_environment_records_2026_10_11 | architecture | todo | TODO: make `mem doctor` (Wiring) read environment records (e.g. "external team,  | active |
 | todo_doctor_retired_system_check_sidestepped_by_softer_wording_2026_10_12 | architecture | todo | TODO (user confirmed): The doctor's retired-system check can be sidestepped by s | active |
+| todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13 | records | todo | TODO: A `mem doctor` (or `mem lint`) check that lists hits in docs/records and d | active |
 | todo_doctor_wiring_deferred_from_4c_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the doctor): (1) hooks registered only | active |
 | todo_dream_area_refs_refactor | workflow | todo | TODO (from the mem-dream area-mode review): replace AreaRefResolver.resolve(..., | active |
 | todo_dream_guard_before_llm_calls | workflow | todo | TODO (from the mem-dream area-mode review): in mem-dream area mode the migration | active |

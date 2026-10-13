@@ -3,7 +3,7 @@ type: learning
 area: architecture
 created: 1791138589.146879
 edges: [{"target_id": "todo_holistic_opus_review_adr_migration_2026_09_25", "edge_type": "confirms"}, {"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}]
-cue: wenn ids oder Namen aus Tool-Eingaben zu Dateinamen, Pfaden oder Glob-Mustern werden, oder wenn ein Review-Prompt geschrieben wird
+cue: Ids or names from tool input become file names, paths or glob patterns, or I am writing a review prompt.
 ---
 
 Observed: find_adr_files built a glob from the entry id (`**/<id>.md`), so mem_delete(ids=['*']) deleted every record of a collection, and a subagent.* collection name could leave the records home via '../'. Neither the author nor the four /simplify reviewers (reuse, quality, efficiency, architecture) found it. Only the automatic security review after the commit did.

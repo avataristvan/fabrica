@@ -2,7 +2,7 @@ id: pattern_english_output_strings
 type: pattern
 area: workflow
 created: 1779055358.898205
-cue: nutzersichtbare Strings oder Fehlermeldungen im ai-mem-Code werden geschrieben
+cue: I am about to write user-visible strings or error messages in ai-mem code.
 ---
 
 Rule: Keep all user-facing strings in ai-mem code in English.

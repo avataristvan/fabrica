@@ -3,7 +3,7 @@ type: learning
 area: workflow
 created: 1790440075.46643
 edges: [{"target_id": "../fabrica:pattern_status_markers_rot_in_memory", "edge_type": "confirms"}]
-cue: eine Session startet mit 'weiter machen' und current_focus meldet uncommittete oder laufende Arbeit
+cue: A session starts with "continue" and current_focus reports uncommitted or still-running work.
 ---
 
 Observed: The session started with 'continue'; current_focus reported 'uncommitted'/'measurement may still be running', although it had long been committed.

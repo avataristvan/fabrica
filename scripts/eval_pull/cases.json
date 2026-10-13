@@ -20,7 +20,7 @@
     {
       "id": "g1_pretool_numbers",
       "kind": "gap",
-      "question": "Warum wirft ai-mem mir nichts mehr in den Kontext, bevor ich eine Datei bearbeite? Früher war das mal anders. Was hat die Entscheidung ausgelöst?",
+      "question": "Why does ai-mem no longer put anything into my context before I edit a file? It used to be different. What triggered the decision?",
       "wrong_instinct": "Generic 'token cost scaled with edits' (docs/hooks.md says roughly that) or 'it was buggy/slow'",
       "discriminator": "Trigger was a usage scan by another session over 50 transcripts: 348 Edit/Write calls ~ 67.6k tokens ~ 92% of ai-mem's whole context footprint; the maintainer then chose a full switch to pull",
       "vetted_absent": [
@@ -44,7 +44,7 @@
     {
       "id": "g3_dream_history",
       "kind": "gap",
-      "question": "In der Git-Historie sieht man, dass mem_dream mal nur mit 'exit status 1' abgebrochen ist. Was war damals die Ursache, und was hat man geändert?",
+      "question": "The git history shows that mem_dream once aborted with nothing but 'exit status 1'. What was the cause back then, and what was changed?",
       "wrong_instinct": "'The pinned claude-sonnet-4-6 tag was stale, so the CLI rejected it' (the diff invites exactly this reading)",
       "discriminator": "The stale versioned tag was NOT proven to be the trigger: a manual repro with the old tag still exited 0. The real diagnostic blocker was check=True hiding stderr (CalledProcessError str() has only the exit code). Fix: bare aliases + RuntimeError carrying stderr/stdout",
       "vetted_absent": [
@@ -54,7 +54,7 @@
     {
       "id": "g4_userprompt_trigger",
       "kind": "gap",
-      "question": "Was war der eigentliche Auslöser dafür, dass der UserPromptSubmit-Hook am 13. September entfernt wurde?",
+      "question": "What was the actual trigger for removing the UserPromptSubmit hook on 13 September?",
       "wrong_instinct": "CLAUDE.md says both push hooks were retired after token-cost/noise measurements -> answer 'cost'",
       "discriminator": "Trigger was the maintainer noticing that an attempted deactivation of ai-mem auto-inject had no effect; an audit of all settings layers found none where ai-mem was actually disabled, and the hooks kept firing",
       "vetted_absent": []
@@ -62,7 +62,7 @@
     {
       "id": "g5_code_review",
       "kind": "gap",
-      "question": "Ich bin mit einer größeren Änderung fertig und die Tests laufen durch. Soll ich vor dem Commit noch etwas einplanen, oder ist das dann gut?",
+      "question": "I have finished a larger change and the tests pass. Should I plan anything else before the commit, or is that it?",
       "wrong_instinct": "'Tests green -> commit' (project instructions only ask for a test run)",
       "discriminator": "The maintainer rates code-review runs as worthwhile for stability/security; run one after non-trivial work before committing (a past run found 8 verified findings, incl. a bug in the fix itself)",
       "vetted_absent": []
@@ -70,7 +70,7 @@
     {
       "id": "g6_status_notes",
       "kind": "gap",
-      "question": "Ich will für die nächste Session festhalten, woran ich gerade arbeite und wo wir stehen. Wie formuliere ich das am besten?",
+      "question": "I want to note for the next session what I am working on and where we stand. How do I best phrase that?",
       "wrong_instinct": "Write explicit status words ('in progress', 'not committed yet')",
       "discriminator": "Never embed mutable status strings in entry text; reference commit SHA / ticket id and update when it exists. Evidence: three entries from 2026-07-31 had stale 'NOT YET COMMITTED' markers within the same session",
       "vetted_absent": [
@@ -89,7 +89,7 @@
     {
       "id": "c2_pypi",
       "kind": "control",
-      "question": "Wann wurde entschieden, ai-mem als PyPI-Paket zu veröffentlichen, und warum?",
+      "question": "When was it decided to publish ai-mem as a PyPI package, and why?",
       "expected": "No such decision recorded anywhere.",
       "vetted_absent": [
         "pypi"

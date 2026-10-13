@@ -87,8 +87,8 @@ today has 6 gap cases, not 7; see below on g7).
 g7 does not exist in the tracked `cases.json` (only 6 gap cases + 2 controls are tracked; g7 was asked
 live in the 2026-09-20 run and ruled invalid there, never persisted). Reconstructed from that session's
 own transcript for completeness and run anyway, reported separately, not counted in the totals above:
-question "Warum fragt the-coder als Reviewer im chunk-plan aktiv ai-mem ab, obwohl er den Plan doch
-bewusst 'kalt' lesen soll?", gold `design_three_tier_pull_the_coder_2026_09_12` +
+question "Why does the-coder, as reviewer in chunk-plan, actively query ai-mem although it is meant to
+read the plan 'cold' on purpose?", gold `design_three_tier_pull_the_coder_2026_09_12` +
 `arch_decision_push_vs_pull_2026_07_31`. Librarian got 1 of 2 (`design_three_tier_pull_the_coder...`),
 with a correct-direction answer ("cold reading makes the query *more* necessary, not less"). Already a
 weak case per its own 2026-09-20 note (the "read it cold" instruction is itself in `chunk-plan.md`/

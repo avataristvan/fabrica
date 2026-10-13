@@ -2,7 +2,7 @@ id: antipattern_mem_add_metadata_repass
 type: anti-pattern
 area: workflow
 created: 1781434290.659998
-cue: ein bestehender Eintrag soll per mem_add aktualisiert werden
+cue: I am about to update an existing record via mem_add.
 ---
 
 Tried: Manually re-passing all existing metadata fields (access_count, boost_count, confidence, created_at, edges) when calling mem_add to update an entry's text.

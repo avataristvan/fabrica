@@ -2,7 +2,7 @@ id: pattern_load_bearing_entries_require_maintenance_discipline
 type: pattern
 area: workflow
 created: 1785517820.086595
-cue: eine Änderung verschiebt Schwellen oder benennt Konzepte, die in Einträgen stehen
+cue: A change shifts thresholds or renames concepts that records describe.
 ---
 
 Rule: When a change alters observable system behavior (thresholds, renamed concepts, API semantics), grep the literal old term/value across the ENTIRE collection, not just the top-N entries by access_count -- before closing the session.

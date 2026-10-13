@@ -4,29 +4,30 @@ date: 2026-07-31
 origin: memory entry arch_redesign_sketch_pull_based_2026_07_31, exported to docs/reference/ on 2026-10-04
 status: processed
 ---
+> Translated from the German original on 2026-10-13; content unchanged.
 
 ## What the source says
 
-Status-Nachtrag (2026-09-29): Zwei Aussagen im Status-Block unten wurden später umgekehrt -- Punkt 1 (userprompt_hook löschen), hier als ABGELEHNT vermerkt, wurde am 2026-09-13 doch umgesetzt (arch_decision_userprompt_push_removed_2026_09_13); Punkt 5 (PreToolUse behalten) wurde am 2026-09-12 verworfen, PreToolUse komplett entfernt (arch_decision_pretool_push_removed_2026_09_12). Punkte 2-4 und 6 bleiben gültig. chunk2_available_format_mem_topics_shipped_2026_07_31 ist in arch_decision_push_vs_pull_2026_07_31 aufgegangen.
+Status addendum (2026-09-29): Two statements in the status block below were later reversed -- point 1 (delete userprompt_hook), noted here as REJECTED, was implemented after all on 2026-09-13 (arch_decision_userprompt_push_removed_2026_09_13); point 5 (keep PreToolUse) was dropped on 2026-09-12, PreToolUse removed entirely (arch_decision_pretool_push_removed_2026_09_12). Points 2-4 and 6 remain valid. chunk2_available_format_mem_topics_shipped_2026_07_31 has been merged into arch_decision_push_vs_pull_2026_07_31.
 
-# Konkreter Pull-basierter Redesign-Vorschlag (Opus, 2026-07-31) -- Referenz, Entscheidung bereits getroffen
+# Concrete pull-based redesign proposal (Opus, 2026-07-31) -- reference, decision already made
 
-Ausgangspunkt: die Pull-Leiter existiert in server.py bereits (mem_list -> Collections+Counts, mem_list(collection) -> {id,title}-Paare, mem_get(ids) -> voller Text ohne Ranking) -- analog zu einem bestehenden MCP-Muster (list_tool_categories -> list_tools_in_category -> get_tool_signature). Push wurde AUF ein bereits funktionierendes Pull-System draufgebaut, nicht statt eines fehlenden.
+Starting point: the pull ladder already exists in server.py (mem_list -> collections+counts, mem_list(collection) -> {id,title} pairs, mem_get(ids) -> full text without ranking) -- analogous to an existing MCP pattern (list_tool_categories -> list_tools_in_category -> get_tool_signature). Push was built ON TOP OF an already working pull system, not instead of a missing one.
 
-## Vorschlag (7 Punkte, unverändert aus dem Original-Report)
-1. `userprompt_hook`-Injection komplett löschen (nicht nur tunen) -- Begründung: der Richter (isolierter Prompt-String ohne Task-Kontext) ist strukturell schlechter informiert als der Agent selbst, und das Scoring-Gate war beweisbar wirkungslos (siehe l2/BM25-Bug, jetzt gefixt).
-2. SessionStart behalten, aber auf einen Index verkleinern, nicht Inhalt -- current_focus + Git-Commits + Collection-Namen + Titel-Index, nicht Entry-Bodies.
-3. `[always-present]` durch `[available]` ersetzen -- nur Titel+IDs zeigen, `mem_get` ist einen billigen Call entfernt falls gebraucht.
-4. `mem_topics(collection)` ergänzen -- die fehlende `list_tools_in_category`-Sprosse; Titel clustern/taggen, damit auch eine 300-Einträge-Collection browsable bleibt.
-5. PreToolUse behalten, aber fixen und als einzigen aktions-getriggerten Push-Punkt begründen -- Trigger ist eine konkrete Handlung (Datei X wird editiert), nicht ein vager Prompt-String.
-6. Scoring unabhängig von der Architektur-Entscheidung fixen (l2/cosine, BM25-Restbug).
-7. `access_count` entweder bedeutsam machen (nur hochzählen wenn Agent bewusst per ID `mem_get`-t oder in /reflect zitiert) oder fallen lassen.
+## Proposal (7 points, unchanged from the original report)
+1. Delete the `userprompt_hook` injection entirely (not just tune it) -- reason: the judge (an isolated prompt string without task context) is structurally worse informed than the agent itself, and the scoring gate was demonstrably ineffective (see l2/BM25 bug, now fixed).
+2. Keep SessionStart, but shrink it to an index, not content -- current_focus + git commits + collection names + title index, not entry bodies.
+3. Replace `[always-present]` with `[available]` -- show only titles+IDs, `mem_get` is one cheap call away if needed.
+4. Add `mem_topics(collection)` -- the missing `list_tools_in_category` rung; cluster/tag titles so that even a 300-entry collection stays browsable.
+5. Keep PreToolUse, but fix it and justify it as the only action-triggered push point -- the trigger is a concrete action (file X is being edited), not a vague prompt string.
+6. Fix scoring independently of the architecture decision (l2/cosine, BM25 residual bug).
+7. Either make `access_count` meaningful (only count up when the agent deliberately `mem_get`s by ID or cites in /reflect) or drop it.
 
-## Sonnets Vorbehalt zu diesem Vorschlag
-Nicht 1:1 übernehmen ohne Blindtest-Ergebnis einzubeziehen (siehe pattern_gap_test_evaluation) -- der Blindtest zeigte ein nuancierteres Bild als 'Pull schlägt Push immer'. Empfehlung: schrittweise umsetzen, nicht als ein großer Rewrite.
+## Sonnet's reservation about this proposal
+Do not adopt 1:1 without taking the blind-test result into account (see pattern_gap_test_evaluation) -- the blind test showed a more nuanced picture than 'pull always beats push'. Recommendation: implement step by step, not as one big rewrite.
 
-## Status (2026-07-31, Ende der Session)
-Die Entscheidung ist getroffen (siehe arch_decision_push_vs_pull_2026_07_31): Punkte 2-6 wurden übernommen und sind umgesetzt (chunk1_daemon_shipped_2026_07_31, chunk2_available_format_mem_topics_shipped_2026_07_31, chunk3_access_count_semantics_shipped_2026_07_31, bm25_saturating_transform_final_2026_07_31). Punkt 1 (userprompt_hook komplett löschen) wurde ABGELEHNT -- der Blindtest sprach dagegen. Dieser Eintrag ist historische Referenz für Opus' Originalvorschlag, kein offener Arbeitsposten mehr.
+## Status (2026-07-31, end of session)
+The decision has been made (see arch_decision_push_vs_pull_2026_07_31): points 2-6 were adopted and implemented (chunk1_daemon_shipped_2026_07_31, chunk2_available_format_mem_topics_shipped_2026_07_31, chunk3_access_count_semantics_shipped_2026_07_31, bm25_saturating_transform_final_2026_07_31). Point 1 (delete userprompt_hook entirely) was REJECTED -- the blind test argued against it. This entry is a historical reference for Opus' original proposal, no longer an open work item.
 
 ## Our notes
 

@@ -3,7 +3,7 @@ type: pattern
 area: workflow
 created: 1790409909.376447
 edges: [{"target_id": "pattern_load_bearing_entries_require_maintenance_discipline", "edge_type": "related"}]
-cue: ein Modul/Hook wird retired oder deaktiviert und Nachbar-Einträge sollen auf tote Call-Pfade/Schwellen geprüft werden
+cue: A module or hook is being retired or disabled and neighbouring records should be checked for dead call paths or thresholds.
 ---
 
 Rule: Entries written or last edited shortly before a retirement commit silently rot along with it unless someone greps specifically for the affected modules. pattern_load_bearing_entries_require_maintenance_discipline does not catch this automatically, because its grep targets a known old term/threshold — a retirement (module removed or disabled entirely) often leaves behind not a single renamed term but a whole dead call path or a dead threshold, which you only find by searching specifically for the removed module, not for a word. In addition: after every retirement or removal commit, also grep external consumers (~/.claude/agents, ~/.claude/commands, CLAUDE.md files, skills/examples, docs/) — a retirement that is only followed through in the repo itself leaves installed/deployed copies with the old term.

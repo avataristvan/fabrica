@@ -3,7 +3,7 @@ type: pattern
 area: architecture
 created: 1789250498.959187
 edges: [{"target_id": "hook_routing_subagent", "edge_type": "related"}, {"target_id": "domain_dev_team_own_plugin_ai_mem_ships_record_parts_2026_10_12", "edge_type": "related"}]
-cue: agentenspezifisches Verhalten soll in den ai-mem-Kern
+cue: I am about to put agent-specific behaviour into the ai-mem core.
 ---
 
 Rule: ai-mem's own source must stay agent-agnostic. Per-agent behavior is opt-in and lives in the USER's own config (`~/.config/ai-mem/agents.yaml`'s `inject_agents`/`signatures`), never as a hardcoded agent name in ai-mem's source. Selectivity happens at RUNTIME inside `agent_context.py` (`should_inject`, checked against the allowlist) -- there is exactly one generic hook registration per event in `settings.json`, never a separate registration per agent. Whatever `install.py` DOES write to disk (hook entries, MCP registration, permissions, installed slash-commands) must have a matching cleanup path in `uninstall.py`, and `install.py` itself must self-heal stale entries from a prior version on re-run (see `_remove_hook_command`/`_upsert_hook_command`) -- this is what 'ai-mem stays installable/updatable' means operationally. `~/.config/ai-mem/agents.yaml` and the ai-mem store directory (the memory DB) are the deliberate exception: user config/data that neither `install.py` creates nor `uninstall.py` removes, same as any other user data.

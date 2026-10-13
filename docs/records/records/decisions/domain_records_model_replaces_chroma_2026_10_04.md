@@ -3,7 +3,7 @@ type: domain
 area: records
 created: 1791065383.941984
 edges: [{"target_id": "../fabrica:domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "confirms"}, {"target_id": "../fabrica:pattern_status_markers_rot_in_memory", "edge_type": "confirms"}, {"target_id": "domain_learning_decision_split_subfolders_2026_09_29", "edge_type": "related"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}]
-cue: bevor an Speicher, Abruf oder Hooks von ai-mem etwas geändert oder ein neuer Eintragstyp eingeführt wird
+cue: I am about to change ai-mem storage, retrieval or hooks, or introduce a new record type.
 ---
 
 Decision: ChromaDB is replaced. The source of truth is git-native files in four kinds: decisions/ (domain, pattern, anti-pattern), learnings/ (learning, retros, insight feedback), todos/ (open = file exists; done = delete the file and write a learning with the commit SHA) and FOCUS.md (one file per repo, overwritten, Git keeps the history; replaces current_focus). reference entries become normal documentation under docs/reference/ of the repo, decisions/insights from them move into the logs. Counters (boost_count, last_accessed_at) and the ranker are dropped; cue belongs in the files, because it carries the experience index. Retrieval without a DB: docs/records/INDEX.md + grep, linked via CLAUDE.md.

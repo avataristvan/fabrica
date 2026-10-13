@@ -30,7 +30,7 @@ Before asking the user, contribute your own observations:
 - **Blocked:** what got in the way — missing tool, unclear requirement, wrong mental model
 - **Next:** one or two todo suggestions based on what you saw
 
-Flag each as **"Meine Beobachtung:"** so the user knows it's from the agent side.
+Flag each as **"My observation:"** so the user knows it's from the agent side.
 
 ---
 
@@ -38,8 +38,8 @@ Flag each as **"Meine Beobachtung:"** so the user knows it's from the agent side
 
 Ask both questions together:
 
-> **"Was hast du gelernt oder was hat dich überrascht?"**
-> **"Was hat dich gehindert?"**
+> **"What did you learn, or what surprised you?"**
+> **"What got in your way?"**
 
 Wait for the user's answer. Skip if the user has nothing to add.
 
@@ -54,7 +54,7 @@ Aggregate next-todo suggestions:
 
 Present them as a short list and ask which ones to keep:
 
-> **"Welche davon sind relevant?"**
+> **"Which of these are relevant?"**
 
 Confirmed todos become record candidates (Step 6). A todo finished in this session becomes a candidate too: "todo `<id>` is done in `<sha>`" — the archivist closes it.
 
@@ -62,7 +62,7 @@ Confirmed todos become record candidates (Step 6). A todo finished in this sessi
 
 ## Step 5 — Handoff (state)
 
-Ask: **"Was ist dein nächster Fokus?"** (or derive it from the confirmed todos if obvious).
+Ask: **"What is your next focus?"** (or derive it from the confirmed todos if obvious).
 
 Write the handoff yourself, as plain files in the area — this is state, overwritten each time; git keeps the history, so no dates or status words that will rot inside the text:
 
@@ -93,7 +93,7 @@ Do not decide the record type, id, area, edges or supersede yourself — that is
 
 Show the list to the user once:
 
-> **"Diese Kandidaten gehen an den Archivar — fehlt etwas oder soll etwas raus?"**
+> **"These candidates go to the archivist — is anything missing, or should something come out?"**
 
 ---
 
@@ -121,13 +121,13 @@ One sentence: handoff written + what the archivist integrated or left open. Exam
 
 When spawning subagents for non-trivial tasks, add this to the end of their prompt:
 
-> Am Ende deiner Antwort füge einen `[retro]`-Block hinzu:
+> At the end of your answer, add a `[retro]` block:
 > ```
 > [retro]
-> learned: <was überraschend war oder nicht funktioniert hat — oder "nothing">
-> blocked: <was dich gehindert hat — oder "nothing">
-> next: <Vorschlag für ein nächstes Todo — oder "nothing">
-> record_candidates: <Entscheidungen oder Learnings, die als Record bleiben sollten, als Klartext — oder "none">
+> learned: <what was surprising or did not work — or "nothing">
+> blocked: <what got in your way — or "nothing">
+> next: <a suggestion for a next todo — or "nothing">
+> record_candidates: <decisions or learnings that should stay as a record, in plain text — or "none">
 > ```
 
 The main agent reads this block in Step 1; `learned:` and `record_candidates:` lines become record candidates in Step 6 and `next:` lines todo suggestions in Step 4. Subagents never write records themselves — they deliver candidates. This makes subagent observations (silent fallbacks, tool failures, dead ends) visible without requiring transcript review.
