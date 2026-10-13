@@ -1,0 +1,10 @@
+id: learning_daemon_latency_and_record_access_race_2026_08_23
+type: learning
+area: architecture
+created: 1790678545.949146
+---
+
+Observed: Two latency problems, diagnosed by measuring both hook paths live: warm-daemon round trip ~0.87s, cold in-process fallback ~1.5s for the first query -- neither alone explains the ~8s timeouts that /doctor flagged, but they add up. (a) userprompt_hook.py::main() fired its 4 independent queries sequentially; daemon.py::run()'s accept loop was strictly single-threaded (each connection in turn, up to REQUEST_TIMEOUT_SECONDS=3.0 each), and since every session on the machine shares one daemon per db_path, parallel sessions queued up. (b) ChromaMemoryRepository.query() passed `query_texts=[text]`, so ChromaDB's embedding function re-embedded the raw text on every call -- the fan-out queried the same prompt text up to 4x per hook call. Measured cost: ~150-250ms per embedding call, constant regardless of process warmth (ONNX inference per call, no one-time model loading cost -- confirmed by timing repeated calls on a warm DefaultEmbeddingFunction).
+Empirically confirmed (not assumed): ChromaDB's Rust-based PersistentClient (chromadb 1.5.7) tolerates concurrent reads+writes without corruption, but `ChromaMemoryRepository.record_access()`'s get-then-update was a genuine application race: 8 threads x 20 unlocked increments on the same id ended at 32 instead of 160. `query_embeddings` with a precomputed vector returns identical hits/distances as `query_texts` for the same text. DefaultEmbeddingFunction is byte-identical to what get_or_create_collection() uses internally without an explicit embedding_function (this code never passes one).
+Cause: sequential accept loop; unlocked read-modify-write in record_access; redundant re-embedding of the same text.
+Evidence: Live measurements against the production DB; after the fix the warm-daemon 4-way fan-out dropped from ~0.80-0.83s to ~0.15s per hook call (same machine, same query text, back-to-back A/B via a temporary `git stash` of only this fix). Commit 5419baa, 2026-08-23 (formerly cited as 7e4b87f).

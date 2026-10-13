@@ -1,0 +1,3 @@
+#!/bin/sh
+# Plugin shim: run the CLI from this plugin's checkout with the system python3, no pip install needed.
+exec python3 "$(dirname "$0")/run_cli.py" ai_mem.mem_cli "$@"

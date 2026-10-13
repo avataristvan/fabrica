@@ -1,3 +1,5 @@
+> Retired system, kept as rollback only until chunk 7 removes it.
+
 Chroma rollback backend and dormant modules -- facts that only matter with AI_MEM_BACKEND=chroma or when touching code that is no longer wired. Moved out of CLAUDE.md on 2026-10-04 when the record files became the only store (domain_file_backend_replaces_chroma_2026_10_04); removal is tracked in todo_drop_chromadb_dependency.
 
 ## Chroma rollback stack (AI_MEM_BACKEND=chroma)

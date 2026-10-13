@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from unittest.mock import patch
 
 from ai_mem.upgrade_guard import (
     GUARD_MESSAGE,
@@ -59,7 +60,10 @@ def test_sentinel_is_the_file_install_py_uses(tmp_path):
     import install
 
     assert records_v1_sentinel(tmp_path) == tmp_path / ".migrations" / "records_v1.done"
-    assert install.MIGRATIONS_DIR.name == ".migrations"
+    assert not hasattr(install, "MIGRATIONS_DIR")  # install.py asks upgrade_guard instead of defining the path again
+    with patch.object(install, "DB_PATH", tmp_path / "no-store"):
+        install.run_records_migration()
+    assert records_v1_sentinel(tmp_path / "no-store").exists()
 
 
 def test_guard_message_is_one_line_naming_upgrading_md():

@@ -1,0 +1,224 @@
+[
+ {
+  "source": "domain_archivist_who_what_how_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_archivist_who_what_how_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_user_records_as_role_perspective_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_archivist_who_what_how_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_handwritten_records_drift_from_format_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_area_path_is_the_address_of_knowledge_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_organizational_not_personal_memory_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_area_path_is_the_address_of_knowledge_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_clear_dead_weight_keep_reasons_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_superseded_flag_not_hide_2026_09_20",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_clear_dead_weight_keep_reasons_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_archivist_who_what_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_docs_split_into_documentation_and_sources_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_three_kinds_of_knowledge_age_differently_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_doctor_diagnoses_ritual_erosion_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_hooks_enforce_that_roles_decide_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_doctor_diagnoses_ritual_erosion_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_archivist_who_what_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_file_backend_replaces_chroma_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_librarian_at_review_handoff_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_fabrica_records_public_as_self_proof_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "domain_framework_named_fabrica_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_fabrica_records_public_as_self_proof_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_area_path_is_the_address_of_knowledge_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_fabrica_records_public_as_self_proof_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_ai_mem_records_private_gitignored_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_fabrica_records_public_as_self_proof_2026_10_10",
+  "edge_type": "supersedes",
+  "target": "domain_ai_mem_records_private_gitignored_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_hooks_enforce_that_roles_decide_how_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_archivist_who_what_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_hooks_enforce_that_roles_decide_how_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_hooks_enforce_that_roles_decide_how_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_organizational_not_personal_memory_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_perspective_is_a_lens_not_a_location_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_area_path_is_the_address_of_knowledge_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_perspective_is_a_lens_not_a_location_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_user_records_as_role_perspective_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_context_boundary_is_read_and_write_point_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_three_kinds_of_knowledge_age_differently_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_three_kinds_of_knowledge_age_differently_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_archivist_who_what_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_why_travels_with_chunk_spec_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_context_boundary_is_read_and_write_point_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_why_travels_with_chunk_spec_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_archivist_who_what_how_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "learning_context_boundary_is_read_and_write_point_2026_10_10",
+  "edge_type": "confirms",
+  "target": "domain_librarian_at_review_handoff_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "learning_organizational_not_personal_memory_2026_10_10",
+  "edge_type": "related",
+  "target": "eval_pull_gap_test_2026_09_20",
+  "predecessor_area": null
+ },
+ {
+  "source": "learning_trigger_must_name_observable_moment_2026_10_10",
+  "edge_type": "related",
+  "target": "learning_context_boundary_is_read_and_write_point_2026_10_10",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_librarian_at_review_handoff_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "eval_pull_gap_test_2026_09_20",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_librarian_at_review_handoff_2026_10_10",
+  "edge_type": "derived_from",
+  "target": "learning_pull_needs_situation_triggers_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_librarian_at_review_handoff_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_user_records_as_role_perspective_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "domain_librarian_at_review_handoff_2026_10_10",
+  "edge_type": "related",
+  "target": "domain_librarian_replaces_experience_index_2026_10_04",
+  "predecessor_area": null
+ },
+ {
+  "source": "learning_context_boundary_is_read_and_write_point_2026_10_10",
+  "edge_type": "related",
+  "target": "pattern_retrieval_needs_fixed_trigger_in_role_prompt",
+  "predecessor_area": "ai-mem-records/workspace"
+ },
+ {
+  "source": "domain_area_path_is_the_address_of_knowledge_2026_10_10",
+  "edge_type": "related",
+  "target": "pattern_mixed_context_focus_degradation",
+  "predecessor_area": "ai-mem-records/global"
+ },
+ {
+  "source": "domain_hooks_enforce_that_roles_decide_how_2026_10_10",
+  "edge_type": "related",
+  "target": "pattern_convention_enforcement_gap",
+  "predecessor_area": "ai-mem-records/global"
+ },
+ {
+  "source": "domain_archivist_who_what_how_2026_10_10",
+  "edge_type": "related",
+  "target": "knowledge_architecture_framework",
+  "predecessor_area": "ai-mem-records/global"
+ }
+]

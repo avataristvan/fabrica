@@ -1,77 +1,21 @@
-"""Tests for install.py — _upsert_hook_command dedup logic."""
+"""Tests for install.py — what the plugin replaced, workspace root recovery, migrations."""
 from __future__ import annotations
 
 import json
 from unittest.mock import patch
 
+import pytest
+
 import install
+import uninstall
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _hook(command: str, timeout: int = 5) -> dict:
     return {"type": "command", "command": command, "timeout": timeout}
 
 
-def _group(hooks: list[dict], matcher: str | None = None) -> dict:
-    entry = {"hooks": hooks}
-    if matcher is not None:
-        entry["matcher"] = matcher
-    return entry
-
-
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
-
-def test_matcher_not_overwritten_when_group_has_unrelated_hook():
-    """A hook group that bundles an ai-mem hook alongside a user's own hook must keep
-    its own matcher untouched — ai-mem should not claim a group it doesn't own outright."""
-    ai_mem_hook = _hook("python3 -m ai_mem.sometest_hook ")
-    unrelated_hook = _hook("some-other-tool --do-thing")
-    entries = [_group([ai_mem_hook, unrelated_hook], matcher="UserPromptSubmit")]
-
-    install._upsert_hook_command(
-        entries, "ai_mem.sometest_hook", "python3 -m ai_mem.sometest_hook ", 5, matcher="SessionStart"
-    )
-
-    assert entries[0]["matcher"] == "UserPromptSubmit"
-    assert unrelated_hook in entries[0]["hooks"]
-    assert len(entries[0]["hooks"]) == 2
-
-
-def test_matcher_overwritten_when_group_is_ai_mem_only():
-    """When the group ends up holding only the ai-mem hook, the matcher may be updated."""
-    ai_mem_hook = _hook("python3 -m ai_mem.sometest_hook ")
-    entries = [_group([ai_mem_hook], matcher="OldMatcher")]
-
-    install._upsert_hook_command(
-        entries, "ai_mem.sometest_hook", "python3 -m ai_mem.sometest_hook ", 5, matcher="NewMatcher"
-    )
-
-    assert entries[0]["matcher"] == "NewMatcher"
-
-
-def test_remove_by_identity_not_value_equality():
-    """Two dict-value-equal empty groups in `entries` must not cause list.remove to drop
-    the wrong one — removal must target the specific emptied entry by identity."""
-    unrelated_empty = {"hooks": []}
-    first_dup = _group([_hook("python3 -m ai_mem.sometest_hook ")])
-    second_dup = _group([_hook("python -m ai_mem.sometest_hook ")])
-    entries = [unrelated_empty, first_dup, second_dup]
-
-    install._upsert_hook_command(
-        entries, "ai_mem.sometest_hook", "python3 -m ai_mem.sometest_hook ", 5
-    )
-
-    # first_dup is kept (updated in place), second_dup gets emptied and removed by
-    # identity — the pre-existing unrelated empty entry must survive untouched.
-    assert any(e is unrelated_empty for e in entries)
-    assert any(e is first_dup for e in entries)
-    assert not any(e is second_dup for e in entries)
-    assert len(entries) == 2
+def _group(hooks: list[dict]) -> dict:
+    return {"hooks": hooks}
 
 
 # ---------------------------------------------------------------------------
@@ -83,12 +27,12 @@ def test_existing_workspace_root_recovered_from_installed_hook_command(tmp_path)
     settings_path.write_text(json.dumps({
         "hooks": {
             "SessionStart": [_group([_hook(
-                "AI_MEM_WORKSPACE_ROOT=/home/istvan/workspace python3 -m ai_mem.hook 2>/dev/null || true"
+                "AI_MEM_WORKSPACE_ROOT=/home/user/workspace python3 -m ai_mem.hook 2>/dev/null || true"
             )])]
         }
     }))
 
-    assert install._existing_workspace_root(settings_path, "ai_mem.hook") == "/home/istvan/workspace"
+    assert install._existing_workspace_root(settings_path, "ai_mem.hook") == "/home/user/workspace"
 
 
 def test_existing_workspace_root_empty_when_prefix_absent(tmp_path):
@@ -131,7 +75,6 @@ def _run_records_migration(tmp_path, answers, db_exists=True, returncode=0):
     completed = type("Completed", (), {"returncode": returncode, "stdout": "1 files to write\nReport: x", "stderr": "boom"})
     with (
         patch.object(install, "DB_PATH", db_path),
-        patch.object(install, "MIGRATIONS_DIR", db_path / ".migrations"),
         patch.object(install, "python_exe", return_value="python3"),
         patch.object(install.subprocess, "run", return_value=completed) as run,
         patch("builtins.input", side_effect=answers),
@@ -167,7 +110,6 @@ def test_records_migration_apply_exit_1_after_clean_dry_run_leaves_no_sentinel(t
     applied = type("Completed", (), {"returncode": 1, "stdout": "Report: x", "stderr": "records_v1 NOT marked done"})
     with (
         patch.object(install, "DB_PATH", db_path),
-        patch.object(install, "MIGRATIONS_DIR", db_path / ".migrations"),
         patch.object(install, "python_exe", return_value="python3"),
         patch.object(install.subprocess, "run", side_effect=[dry, applied]) as run,
         patch("builtins.input", side_effect=["n", "y"]),
@@ -182,3 +124,109 @@ def test_records_migration_without_store_only_marks_done(tmp_path):
     run, sentinel = _run_records_migration(tmp_path, [], db_exists=False)
     run.assert_not_called()
     assert sentinel.exists()
+
+
+# ---------------------------------------------------------------------------
+# what install.py no longer deploys, and the plugin switch (temp HOME only)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def home(tmp_path, monkeypatch):
+    monkeypatch.setattr(install, "HOME", tmp_path)
+    monkeypatch.setattr(uninstall, "HOME", tmp_path)
+    return tmp_path
+
+
+def test_sync_commands_is_gone_and_does_not_fall_through_to_the_interactive_install(home):
+    with patch("sys.argv", ["install.py", "--sync-commands"]), pytest.raises(SystemExit) as exit_info:
+        install.main()
+    assert exit_info.value.code == 2
+    assert not (home / ".claude").exists()
+
+
+def test_register_claude_no_longer_deploys_hooks_or_commands(home):
+    install.register_claude()
+    settings = json.loads((home / ".claude" / "settings.json").read_text())
+    assert "SessionStart" not in settings.get("hooks", {})
+    assert not (home / ".claude" / "commands").exists()
+
+
+LEGACY_SETTINGS = {"hooks": {
+    "SessionStart": [{"hooks": [{"type": "command", "command": "AI_MEM_WORKSPACE_ROOT=/ws /py -m ai_mem.hook 2>/dev/null || true"}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "/py -m ai_mem.hooks.reflect_reminder 2>/dev/null || true"},
+                         {"type": "command", "command": "my-own-stop-hook"}]}],
+}}
+
+
+def _legacy_home(home):
+    (home / ".claude" / "commands").mkdir(parents=True)
+    (home / ".claude" / "settings.json").write_text(json.dumps(LEGACY_SETTINGS))
+    (home / ".claude" / "commands" / "reflect.md").write_text("ai-mem /reflect: hand candidates to the archivist")
+    (home / ".claude" / "commands" / "mem-init.md").write_text("Initialize or update the ai-mem memory for the current project scope.\n\n1. Detect the active scope")
+
+
+def test_plugin_switch_removes_leftovers_on_yes_and_keeps_user_hooks(home, capsys):
+    _legacy_home(home)
+    with patch("builtins.input", return_value="y"):
+        install.offer_plugin_switch()
+    settings = json.loads((home / ".claude" / "settings.json").read_text())
+    assert "SessionStart" not in settings["hooks"]
+    assert [h["command"] for g in settings["hooks"]["Stop"] for h in g["hooks"]] == ["my-own-stop-hook"]
+    assert not any((home / ".claude" / "commands").iterdir())
+    out = capsys.readouterr().out
+    assert "SessionStart hook in settings.json" in out and "command mem-init.md" in out
+
+
+def test_plugin_switch_flag_runs_only_the_offer(home):
+    _legacy_home(home)
+    with patch("sys.argv", ["install.py", "--plugin-switch"]), patch("builtins.input", return_value="y"):
+        install.main()
+    assert not (home / ".claude" / "commands" / "reflect.md").exists()
+    assert not (home / ".claude.json").exists()
+
+
+def test_plugin_switch_declined_changes_nothing(home):
+    _legacy_home(home)
+    before = (home / ".claude" / "settings.json").read_text()
+    with patch("builtins.input", return_value="n"):
+        install.offer_plugin_switch()
+    assert (home / ".claude" / "settings.json").read_text() == before
+    assert (home / ".claude" / "commands" / "reflect.md").exists()
+    assert (home / ".claude" / "commands" / "mem-init.md").exists()
+
+
+def test_plugin_switch_is_silent_without_leftovers(home):
+    with patch("builtins.input", side_effect=AssertionError("must not ask")):
+        install.offer_plugin_switch()
+
+
+def test_failed_apply_message_does_not_call_the_migration_non_fatal(tmp_path, capsys):
+    db_path = tmp_path / "db"
+    db_path.mkdir()
+    dry = type("Completed", (), {"returncode": 0, "stdout": "1 files to write", "stderr": ""})
+    applied = type("Completed", (), {"returncode": 1, "stdout": "Report: x", "stderr": "records_v1 NOT marked done (2 unplaced)"})
+    with (
+        patch.object(install, "DB_PATH", db_path),
+        patch.object(install, "python_exe", return_value="python3"),
+        patch.object(install.subprocess, "run", side_effect=[dry, applied]),
+        patch("builtins.input", side_effect=["n", "y"]),
+    ):
+        install.run_records_migration(str(tmp_path / "ws"))
+    out = capsys.readouterr().out
+    assert "NOT marked done" in out and "non-fatal" not in out
+
+
+def test_unreadable_store_apply_failure_says_nothing_was_written(tmp_path, capsys):
+    db_path = tmp_path / "db"
+    db_path.mkdir()
+    dry = type("Completed", (), {"returncode": 0, "stdout": "1 files to write", "stderr": ""})
+    applied = type("Completed", (), {"returncode": 1, "stdout": "", "stderr": "cannot read the ChromaDB store"})
+    with (
+        patch.object(install, "DB_PATH", db_path),
+        patch.object(install, "python_exe", return_value="python3"),
+        patch.object(install.subprocess, "run", side_effect=[dry, applied]),
+        patch("builtins.input", side_effect=["n", "y"]),
+    ):
+        install.run_records_migration(str(tmp_path / "ws"))
+    out = capsys.readouterr().out
+    assert "nothing was marked done" in out and "applied" not in out

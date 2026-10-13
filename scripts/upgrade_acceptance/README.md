@@ -36,8 +36,12 @@ python scripts/upgrade_acceptance/equivalence.py <store-copy> [--scan-root DIR] 
 - **A:** `mem-adr-sync migrate --apply` run directly: exit 0, sentinel written.
 - **Hook:** a copy of A's store without the sentinel makes `python -m ai_mem.hook` print the
   guard line, with empty stderr.
-- **B:** `claude -p "Upgrade this installation. Instructions: <B/checkout>/UPGRADING.md"` in
-  `B/checkout` (no MCP servers, hooks disabled, tools Bash/Read/Glob/Grep). Checks: the remote
+- **B:** `claude -p "Upgrade the ai-mem installation in <B/checkout>. Instructions: <B/checkout>/UPGRADING.md"`
+  in `<scratch>/B` (no MCP servers, hooks disabled, tools Bash/Read/Glob/Grep; Bash runs in the
+  Claude Code sandbox, strict: writes only below `<scratch>/B` and the temp dir, network only
+  to PyPI, no unsandboxed retry, fails if the sandbox cannot start). The cwd is not the
+  checkout because the sandbox masks protected paths (`.bashrc`, `.claude/`, ...) in its cwd
+  with `/dev/null` mounts, which `git status` lists as untracked. Checks: the remote
   commit was pulled, sentinel exists, venv still has no chromadb, `diff -r -x .git A/ws B/ws`
   is empty, `records-migration-report.md` equal after stripping the scratch prefixes.
 - **C:** the same agent on the diverged checkout must stop: HEAD unchanged, no merge commit,

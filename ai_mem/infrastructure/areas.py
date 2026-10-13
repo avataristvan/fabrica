@@ -75,6 +75,34 @@ def discover_areas(root: Path, max_depth: int = 4) -> list[Area]:
     return sorted(found, key=lambda area: str(area.root))
 
 
+def ancestor_areas(home: Area, root: Path) -> list[Area]:
+    """Areas above `home` up to `root` (inclusive), nearest first. Never above the root; none when `home` is not below it."""
+    if not home.root.is_relative_to(root):
+        return []
+    areas = []
+    for directory in home.root.parents:
+        area = _area_at(directory)
+        if area is not None:
+            areas.append(area)
+        if directory == root:
+            break
+    return areas
+
+
+def search_order(home: Area, root: Path) -> list[Area]:
+    """Where to look for an id: the home area, then bubble-up to `root`, then every other area below `root`.
+
+    The last stage is temporary: it reaches the records home, a sibling; chunk 5x moves root knowledge to
+    `<root>/docs/records/` and drops it (plan D5).
+    """
+    ordered, seen = [home], {home.root}
+    for area in (*ancestor_areas(home, root), *discover_areas(root)):
+        if area.root not in seen:
+            ordered.append(area)
+            seen.add(area.root)
+    return ordered
+
+
 def _validate_rel(rel: str) -> None:
     """`.` or `..`(/`..`)* as the leading part, then plain segments. No absolute, `~`, empty segment, NUL."""
     if not rel or rel.startswith(("/", "~")) or "\0" in rel or "\\" in rel:

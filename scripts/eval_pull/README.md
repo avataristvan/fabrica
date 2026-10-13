@@ -59,7 +59,7 @@ own `When:` lines, not from the question wording); treat the result as a directi
 ## Librarian arm (2026-09-26)
 
 Different question from the earlier arms: not "does an agent ask memory unprompted" but "what does a
-cheap agent find once explicitly told to ask." The librarian (`examples/agents/librarian.md`) is a
+cheap agent find once explicitly told to ask." The librarian (`agents/librarian.md`) is a
 Haiku prototype: full `mem_list`+`docs/records/INDEX.md` catalogue scan, candidates picked by judgment
 on titles/meaning (not score), `mem_get` + `mem_edges` on candidates, `mem_query` only as a fallback,
 explicit "not documented" with no padding. It never calls a memory-writing tool.

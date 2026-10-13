@@ -1,0 +1,618 @@
+{
+ "date": "2026-10-11 (runs started 2026-10-10 late evening)",
+ "baseline": "baseline_2026_10_10.json",
+ "rule": "core = ids cited in >= 2 baseline runs; a run passes when it cites >= ceil(|core|/2) core ids and every id it cites is in (baseline union | control union); a question passes when >= 2 of its runs pass",
+ "arms": [
+  {
+   "arm": "edited",
+   "librarian": "examples/agents/librarian.md after chunk 2a, as a project agent in a scratch dir (reference path pointed at the worktree's reference/navigating_records.md)",
+   "cwd": "<scratchpad>/libproj",
+   "questions": [
+    {
+     "id": "q1",
+     "question": "Was replacing the MCP server (ai_mem/server.py, mem_* tools) with a CLI/scripts, or packaging ai-mem as a Claude Code plugin, ever considered, tried or rejected? Why?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, both were considered, and the decision went to replacing the MCP server with a plugin. The record `domain_drop_mcp_server_for_cli_plugin_2026_10_10` (2026-10-10) decides that ai-mem's `server.py` and `mem_*` tools are dropped. ai-mem becomes a Claude Code plugin with no `.mcp.json`. It has a stdlib-only CLI for writes (format and path validation), reads go through Read/Glob/Grep and the librarian agent, and agents, skills and the SessionStart hook ship as plugin parts. A setup assistant is planned to fit the framework into the user's own workflows.\n\nWhy, as recorded: the value had moved from the tool to the practice (records in the repo, fixed retrieval points at transitions, judgment over scores). The change that mattered, the librarian in the dev-team review, was conceptual and structural, and no tool could have delivered it. The server also costs restarts, stale code in running sessions, and the `mcp` and `chromadb` dependencies, while the file path needs only the stdlib. Two earlier records document that MCP friction. `learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29` found old server processes still writing the old flat layout after a persistence change, and the client showed a cached tool schema. `antipattern_ai_mem_path_via_mcp_env_misses_hooks` found that an `env` setting on the MCP entry does not reach the hooks.\n\nStatus: `todo_plugin_packaging` is open. It supersedes an earlier 2026-10-04 audit plan that used `.mcp.json`, a venv bootstrap and `mcp__plugin_ai-mem_ai-mem__*` tool names. The new plan needs only `python3`. The CLI part is under way: `learning_dev_team_plugin_step2_done_2026_10_10` records that chunk 1b-1 (the mem CLI with add, link, delete, context and lint/doctor stubs) was merged, and 806 tests passed at that point.\n\nNo record says the MCP-replacement or plugin route was rejected. Nothing I read documents a trade-off against keeping the MCP server beyond the reasons above.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging",
+        "learning_dev_team_plugin_step2_done_2026_10_10",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "antipattern_ai_mem_path_via_mcp_env_misses_hooks"
+       ],
+       "librarian_tool_calls": 9,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "learning_dev_team_plugin_step2_done_2026_10_10",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [
+        "antipattern_ai_mem_path_via_mcp_env_misses_hooks"
+       ],
+       "pass": false
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, both were considered and the decision was made. On 2026-10-10 the project decided to drop the MCP server (`server.py`, `mem_*` tools) and package ai-mem as a Claude Code plugin with no `.mcp.json`. The plugin has a stdlib-only CLI for writes (format and path validation). Reads go through Read/Glob/Grep and the librarian agent. Agents, skills and the SessionStart hook ship as plugin parts, and a setup assistant wires the framework into the user's own workflows. The stated reasons:\n\n- Value moved from tool to practice. Records live in the repo, retrieval happens at fixed transition points, and judgment replaces scores. The change that mattered (the librarian in the dev-team review) was conceptual and structural, which the records say no tool could have delivered.\n- The server has real costs. It needs restarts, runs stale code in running sessions, and pulls in the `mcp` and `chromadb` dependencies. The file path needs only the stdlib.\n- The earlier plan is superseded. The 2026-10-04 audit plan (`.mcp.json`, venv bootstrap, `mcp__plugin_ai-mem_ai-mem__*` tool names) is replaced, since python3 alone is enough.\n- Supporting evidence. A 2026-09-29 learning recorded three old `ai_mem.server` processes still running pre-commit code, and the client still showing an old tool schema after restart. The file backend replaced Chroma on 2026-10-04, which removed the main reason for a server.\n- Progress. A 2026-10-10 closure record says dev-team step 2 is done: a `mem` CLI (add, link, delete, context, lint/doctor stubs) was merged in c5f630e, and 806 tests pass.\n- Open constraint. Removing the Chroma rollback is blocked until a known external installation that still runs on Chroma has migrated. Its agent auto-updates from git, so the records_v1 migration must stay runnable on main first.\n\nNot documented: I found no record of a CLI-only option being evaluated and rejected before the 2026-10-10 decision. The records show the MCP server being kept until then, but not an earlier explicit rejection of the plugin or CLI route. The records name no authors or perspectives beyond the project's own agents.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging",
+        "todo_drop_chromadb_dependency",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_dev_team_plugin_step2_done_2026_10_10"
+       ],
+       "librarian_tool_calls": 12,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_dev_team_plugin_step2_done_2026_10_10",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, both were considered, and the decision has been made. On 2026-10-10 the MCP server was dropped in favour of packaging ai-mem as a Claude Code plugin with no MCP server (no .mcp.json). The record is status active.\n\nWhat the decision is: the server (server.py, mem_* tools) goes away. The plugin keeps a stdlib-only CLI for writes (format and path validation). Reads go through Read/Glob/Grep and the librarian. Agents, skills and the SessionStart hook ship as plugin parts, plus a setup assistant that wires the framework into the user's own workflows. The /reflect step that called mem_dream is to call the mem-dream CLI (mem-dream --area) once the server is gone.\n\nWhy (as recorded): the value has moved from the tool to the practice (records in the repo, fixed retrieval points at workflow transitions, judgment instead of scores). The change that mattered, the librarian in the dev-team review, was conceptual and structural, and no tool could have delivered it. The server costs restarts, stale code in running sessions, and the mcp and chromadb dependencies, while the file path needs only the stdlib.\n\nEarlier plan, superseded: the 2026-10-04 audit plan for plugin packaging kept the MCP server (.mcp.json, venv bootstrap, mcp__plugin_ai-mem_ai-mem__* tool names). todo_plugin_packaging now replaces it with the no-MCP design and notes that the file path needs only python3, no venv.\n\nSupporting context: the file backend (domain_file_backend_replaces_chroma_2026_10_04) made the record files the only store, with mem_query reduced to keyword search. The MCP-restart learning (learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29) reports that server processes kept old code and clients cached the old tool schema after a persistence change. That observation is a practical driver, though the record does not tie it explicitly to the decision.\n\nNot documented: I found no record of a rejected alternative to the CLI/plugin route beyond the superseded 2026-10-04 MCP-based plan. I also found no record of a trial of a CLI-only setup before this. The FOCUS record says plugin work is in progress (step 3 of the /dev-team plan, todo_continue_dev_team_plugin_step3), so the state may have moved since.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "domain_dream_after_every_reflect_2026_09_26"
+       ],
+       "librarian_tool_calls": 13,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [
+        "domain_dream_after_every_reflect_2026_09_26"
+       ],
+       "pass": false
+      }
+     ],
+     "pass": false,
+     "ids_in_2_of_3_runs": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_dev_team_plugin_step2_done_2026_10_10",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_dev_team_plugin_step2_done_2026_10_10",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "pattern_persistence_migration_bypasses_mcp",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 4,
+     "runs_passed": 1
+    },
+    {
+     "id": "q2",
+     "question": "Does anything recorded depend on the MCP server staying — e.g. the Chroma rollback backend (AI_MEM_BACKEND=chroma), the daemon, the adr_collection_roots.json mapping that the server writes at startup, or subagents relying on mem_context?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Partly. Nothing recorded says the Chroma rollback, the adr_collection_roots.json mapping, or subagents' mem_context use depends on the MCP server staying. The records instead record a decision to remove the server. The one documented MCP-dependent behaviour is the-coder's explicit mem_query pulls, which exist because subagents get no SessionStart output.\n\n- Server removal (decided, active, 2026-10-10): the MCP server (server.py, mem_*-Tools) is to go. ai-mem becomes a Claude Code plugin with no .mcp.json. Writes go through a stdlib CLI, and reads go through Read/Glob/Grep and the librarian. The record says the server costs restarts, stale code in running sessions, and the mcp/chromadb dependencies. Its Scope says the ChromaDB files on disk stay untouched.\n- Chroma rollback (AI_MEM_BACKEND=chroma, active, 2026-10-04): the record says the file backend is the only store, and AI_MEM_BACKEND=chroma restores the old stack as a rollback. The reference doc says the rollback is built by repository_factory.build_repository(), which server.py and dream_cli.py share. No record says the rollback needs the server running. Its removal is tracked in todo_drop_chromadb_dependency, which keeps the rollback until an external Chroma installation has migrated. That installation's agent auto-updates ai-mem from git.\n- Daemon: described as dormant, not deleted, and existing only for Chroma latency. It is listed for removal in todo_drop_chromadb_dependency. No record ties it to the MCP server.\n- adr_collection_roots.json and mem_context: no record or reference doc mentions adr_collection_roots.json. The only mention of mem_context is in reference/arch_overview.md (\"14 MCP tools (mem_context added)\"). Nothing records a dependency on it.\n- Subagents: learning_subagents_no_sessionstart_output_2026_10_04 (general, cause unknown) records that subagents get no SessionStart output in practice. Its evidence says the-coder's explicit mem_query pulls exist because of this gap. That is the one recorded case of subagents depending on an MCP tool. No perspective is given. After the server drop, the record implies subagents would read via Read/Glob/Grep and the librarian instead; no record spells out how subagents would be served.\n- Related caution: learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 (workflow) records that running MCP server processes keep old code and cached tool schemas after a persistence-layer change. That is a reason recorded for dropping the server, not a dependency on it.\n- todo_plugin_packaging (architecture, active) already supersedes the earlier .mcp.json and venv plan.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "chroma_rollback_backend",
+        "arch_overview"
+       ],
+       "librarian_tool_calls": 14,
+       "core_cited": [
+        "chroma_rollback_backend",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [
+        "arch_overview"
+       ],
+       "pass": false
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes in part. Recorded dependencies on the MCP server are thin, and the decision is moving away from it.\n\n- The MCP server itself is being dropped. domain_drop_mcp_server_for_cli_plugin_2026_10_10 (2026-10-10, architecture) decides that server.py and the mem_* tools go, ai-mem becomes a Claude Code plugin without .mcp.json, and reads move to Read/Glob/Grep plus the librarian. Its Why names the MCP server's costs: restarts, stale code in running sessions, and the mcp/chromadb dependencies.\n- Chroma rollback (AI_MEM_BACKEND=chroma): nothing depends on the MCP server for it. domain_file_backend_replaces_chroma_2026_10_04 makes the record files the only store and keeps Chroma as a rollback, with chromadb still installed. The reference doc docs/reference/chroma_rollback_backend.md (not a record) lists the rollback stack, and todo_drop_chromadb_dependency says removal waits until a known external installation, which auto-updates from git, has migrated. That constraint is about the records_v1 migration staying runnable, not about the server.\n- Daemon: records say it serves only hook calls on the Chroma backend and is now dormant, not deleted (domain_file_backend_replaces_chroma_2026_10_04; the reference doc above). No record ties it to the MCP server.\n- adr_collection_roots.json mapping: no record in docs/records/, docs/reference/ or docs/sources/ mentions this file or says the server writes it at startup. I found only out-of-scope plan docs (docs/plan_plugin_chunks.md, docs/adr-migration-chunk-plan.md, which I read by accident through an over-broad grep) that describe it as read first by the root resolver and persisted by record_collection_root(). Those are not records and do not say the server writes it at startup. Treat this as undocumented in the records.\n- Subagents and mem_context: no record says subagents rely on mem_context. learning_subagents_no_sessionstart_output_2026_10_04 (perspective not stated; Evidence cited) observes that subagents get no SessionStart output at all, and design_three_tier_pull_the_coder_2026_09_12 says the-coder pulls explicitly from its agent, project and global collections (it describes mem_query calls). So subagent recall currently depends on explicit MCP tool calls, and that pull would have to move to Read/Grep or the librarian under the drop decision. No record names mem_context specifically for subagents.\n- Server-process caveat: learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 (workflow) observed that running MCP server processes kept old code and cached tool schemas after a persistence change, which is one of the costs the drop decision cites.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "design_three_tier_pull_the_coder_2026_09_12",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29"
+       ],
+       "librarian_tool_calls": 15,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "todo_drop_chromadb_dependency"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Partly. The records do not make the MCP server a load-bearing dependency of the file store, but several things still lean on it.\n\n1. Chroma rollback (AI_MEM_BACKEND=chroma): recorded as a rollback, not a dependency of the server. The file backend is the only store; AI_MEM_BACKEND=chroma restores the old stack, which needs the optional `.[chroma]` extra. chromadb stays installed until other installations have run the records_v1 migration. A known external installation still runs on Chroma as of 2026-10-10 and auto-updates ai-mem from git, so the migration must stay runnable on main (lazy optional chromadb import), and UPGRADING.md plus a guard must land before any breaking removal. The Chroma-stack facts are in docs/reference/chroma_rollback_backend.md, which is background, not a record.\n\n2. Daemon: dormant, not needed by the file backend. The daemon (daemon.py, daemon_client.py) exists only for Chroma latency and is reached only when the backend is Chroma. It is marked for removal in todo_drop_chromadb_dependency.\n\n3. adr_collection_roots.json: no record or reference doc in my scope documents this file or its startup write. I did not find it in docs/records, docs/reference or docs/sources. A grep hit in docs/plan_plugin_chunks.md and docs/adr-migration-chunk-plan.md mentions it, but those are outside my read scope, so I did not rely on them.\n\n4. mem_context and subagents: no record mentions mem_context as a subagent dependency. docs/reference/arch_overview.md says 14 MCP tools exist with mem_context added. Records say subagents receive no SessionStart output (learning_subagents_no_sessionstart_output_2026_10_04), so the-coder pulls explicitly with mem_query (design_three_tier_pull_the_coder_2026_09_12). Records do not say what happens to those pulls once the server is removed. That is my inference, not recorded.\n\n5. The MCP server itself: decided 2026-10-10 to drop it (domain_drop_mcp_server_for_cli_plugin_2026_10_10). ai-mem becomes a plugin without .mcp.json; reading goes through Read/Glob/Grep and the librarian. todo_plugin_packaging is open. The stated reasons include server restarts, stale code and cached tool schemas in running sessions (learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29). The librarian's file-first procedure falls back to mem_* only for collections without record files (domain_librarian_replaces_experience_index_2026_10_04). Which collections still lack record files is not recorded in my scope. Those are the remaining case that needs the server.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging",
+        "domain_librarian_replaces_experience_index_2026_10_04",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "design_three_tier_pull_the_coder_2026_09_12",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_e2e_file_backend_after_restart_2026_10_04",
+        "chroma_rollback_backend",
+        "arch_overview"
+       ],
+       "librarian_tool_calls": 17,
+       "core_cited": [
+        "chroma_rollback_backend",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [
+        "arch_overview",
+        "learning_e2e_file_backend_after_restart_2026_10_04"
+       ],
+       "pass": false
+      }
+     ],
+     "pass": false,
+     "ids_in_2_of_3_runs": [
+      "arch_overview",
+      "chroma_rollback_backend",
+      "design_three_tier_pull_the_coder_2026_09_12",
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "learning_subagents_no_sessionstart_output_2026_10_04",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "chroma_rollback_backend",
+      "chunk1_daemon_shipped_2026_07_31",
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "learning_subagents_no_sessionstart_output_2026_10_04",
+      "pattern_persistence_migration_bypasses_mcp",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 5,
+     "runs_passed": 1
+    },
+    {
+     "id": "q3",
+     "question": "Are there open todo_* entries that touch server.py, the daemon, or install.py's MCP registration?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch the MCP server or the daemon. Neither names `install.py` directly.\n\n- `todo_drop_chromadb_dependency` (architecture, status active, still a TODO) covers `daemon/daemon_client`, among other removals. It is gated: the records_v1 migration must stay runnable on main, and UPGRADING.md plus a guard must land first. A known external installation still runs on Chroma and auto-updates ai-mem from git, so the migration code can only go after that installation has migrated.\n- `todo_plugin_packaging` (architecture, status active, still a TODO) plans to package ai-mem as a Claude Code plugin without an MCP server. It supersedes the 2026-10-04 audit plan, which had a `.mcp.json`, venv bootstrap and `mcp__plugin_ai-mem_ai-mem__*` tool names. That is the closest the records come to the MCP registration, and it is the only open todo that addresses it.\n\nThe server removal behind the plugin todo is a decision, not a todo: `domain_drop_mcp_server_for_cli_plugin_2026_10_10` says `server.py` and the `mem_*` tools go away, and the plugin ships without `.mcp.json`. Its stated reasons are that the value moved from tool to practice, and that the server costs restarts, stale code in running sessions, and the mcp/chromadb dependencies.\n\nThe other open todos in `docs/records` (the `todo_dream_*` set, `todo_frontmatter_value_injection`, `todo_symlink_following_delete`, `todo_pull_trigger_points_per_situation` and others) do not touch `server.py`, the daemon or `install.py`, so I left them out. The `todo_*` rows are all marked \"active\" in the index, so \"open\" here means \"still written as a TODO\", not verified against code. I did not read `docs/target_picture_plugin.md`, since it is outside the folders I'm scoped to.",
+       "relied_on": [
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10"
+       ],
+       "librarian_tool_calls": 9,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch this, though none is titled as a server.py, daemon or install.py task.\n- todo_drop_chromadb_dependency (architecture, open): removes the Chroma rollback, including daemon/daemon_client. It must stay runnable on main until a known external Chroma installation has migrated, and UPGRADING.md plus a guard must land first.\n- todo_plugin_packaging (architecture, open): packages ai-mem as a Claude Code plugin without an MCP server. It replaces the earlier plan for .mcp.json, venv bootstrap and mcp__plugin_ai-mem_ai-mem__* tool names. This is the todo that bears on server.py and install.py's MCP registration, since the decision it follows (domain_drop_mcp_server_for_cli_plugin_2026_10_10) says server.py and the mem_* tools go away.\nNot touching these: the todo_symlink_following_delete and todo_frontmatter_value_injection todos mention adr_paths and adr_markdown, not server.py, the daemon or install.py. The todo_dream_* todos are about mem_dream area mode.\nNote: the todo_plugin_packaging record points to docs/target_picture_plugin.md, which I did not read (outside my allowed paths).",
+       "relied_on": [
+        "todo_plugin_packaging",
+        "todo_drop_chromadb_dependency",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10"
+       ],
+       "librarian_tool_calls": 10,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch these areas. Both are marked `active` in INDEX.md.\n\n- todo_plugin_packaging (architecture) touches MCP registration. It says to package ai-mem as a Claude Code plugin *without* an MCP server, following the MCP-server removal decision (domain_drop_mcp_server_for_cli_plugin_2026_10_10), and it supersedes the earlier audit plan involving `.mcp.json` and `mcp__plugin_ai-mem_ai-mem__*` tool names. The plugin needs python3 and no venv. The target picture is in docs/target_picture_plugin.md, which I did not read (outside my scope).\n- todo_drop_chromadb_dependency (architecture) names the daemon directly. It says to remove daemon/daemon_client along with the chromadb dependency, chroma_repository, and the unwired hook modules. It also says the records_v1 migration must stay runnable until one known external Chroma installation has migrated, and that UPGRADING.md and a guard must land first.\n\nNot matched: the other todos (todo_mem_query_edge_expansion_full_text, todo_frontmatter_value_injection, todo_symlink_following_delete, todo_ai_mem_violates_link_type, and the dream and workflow todos) do not mention server.py, the daemon, or install.py's MCP registration in their text. todo_mem_query_edge_expansion_full_text concerns the mem_query use case, which may be served by server.py, but its text does not say so.",
+       "relied_on": [
+        "todo_plugin_packaging",
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text",
+        "todo_frontmatter_value_injection",
+        "todo_symlink_following_delete",
+        "todo_ai_mem_violates_link_type"
+       ],
+       "librarian_tool_calls": 10,
+       "core_cited": [
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [
+        "todo_ai_mem_violates_link_type",
+        "todo_frontmatter_value_injection",
+        "todo_symlink_following_delete"
+       ],
+       "pass": false
+      }
+     ],
+     "pass": true,
+     "ids_in_2_of_3_runs": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "todo_drop_chromadb_dependency",
+      "todo_mem_query_edge_expansion_full_text",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 2,
+     "runs_passed": 2
+    }
+   ]
+  },
+  {
+   "arm": "control",
+   "librarian": "unchanged librarian (main ca9f302, ~/.claude/agents/librarian.md), same setup as the baseline",
+   "cwd": "<repo>",
+   "questions": [
+    {
+     "id": "q1",
+     "question": "Was replacing the MCP server (ai_mem/server.py, mem_* tools) with a CLI/scripts, or packaging ai-mem as a Claude Code plugin, ever considered, tried or rejected? Why?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, both were considered. The decision was made on 2026-10-10: the MCP server (`server.py`, `mem_*` tools) is to be dropped, and ai-mem packaged as a Claude Code plugin with no `.mcp.json`. Reads and writes go through a stdlib-only CLI for write access (format and path validation), reads go through Read/Glob/Grep and the librarian, and agents, skills and the SessionStart hook ship as plugin parts. The reasons given are that the value has moved from the tool to the practice (records in the repo, fixed retrieval points at transitions, judgment over scores), and that the server costs restarts, stale code in running sessions, and the `mcp`/`chromadb` dependencies, while the file path needs only the stdlib.\n\nEarlier, a 2026-10-04 audit plan had the plugin packaged *with* an MCP server (`.mcp.json`, venv bootstrap, `mcp__plugin_ai-mem_ai-mem__*` tool names). The 10-10 todo supersedes that plan. I found no record that rejected a CLI or plugin path with a stated reason, and no record that argues for keeping the MCP server beyond the server-staleness problems above.\n\nStatus: the decision is recorded and the packaging todo is active (`todo_plugin_packaging`, which points to `docs/target_picture_plugin.md`, outside my read scope). Chunk 1b-1 (the `mem` CLI) is merged (c5f630e, ca9f302). The MCP server still exists in the code, and the Chroma removal (`todo_drop_chromadb_dependency`) is still open, so the server has not yet been removed.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_dev_team_plugin_step2_done_2026_10_10"
+       ],
+       "librarian_tool_calls": 10,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_dev_team_plugin_step2_done_2026_10_10",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, it was decided on 2026-10-10 (not just considered). The decision is to drop the MCP server (server.py, mem_* tools) and package ai-mem as a Claude Code plugin without .mcp.json. The plugin would have a stdlib-only CLI for writes (format and path validation), reads through Read/Glob/Grep and the librarian agent, and agents, skills and the SessionStart hook as plugin parts, plus a setup assistant. The stated why: the value had moved from the tool to the practice (records in the repo, fixed recall points at transitions, judgment over score). The change that worked (the librarian in the dev-team review) was conceptual and structural, and no tool would have delivered it. The server costs restarts, stale code in running sessions, and the mcp/chromadb dependencies, while the file path needs only the stdlib. The older 2026-10-04 audit plan (.mcp.json, venv bootstrap, mcp__plugin_ai-mem_ai-mem__* tool names) is superseded by this. The plugin packaging is still an open todo (todo_plugin_packaging), with the target picture and chunks in docs/target_picture_plugin.md (not a record, not read by me). The records do not document a trial of the CLI in place of the MCP server beyond this decision; the INDEX row for learning_dev_team_plugin_step2_done_2026_10_10 mentions that chunk 1b-1 (mem CLI) is done, but I did not open that file. No record documents a rejected alternative to the plugin route.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging"
+       ],
+       "librarian_tool_calls": 6,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": false
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, it was considered and decided, on 2026-10-10. The decision is to remove the MCP server (server.py, mem_* tools) and package ai-mem as a Claude Code plugin without .mcp.json. Writes go through a stdlib-only CLI that does format and path validation. Reads go through Read/Glob/Grep and the librarian agent. Agents, skills and the SessionStart hook ship as plugin parts, and a setup assistant wires the framework into the user's own workflows.\n\nWhy: the value had moved from the tool to the practice (records in the repo, fixed retrieval points at handoffs, judgment over scores). The decisive change, the librarian in the dev-team review, was conceptual and structural, and no tool could have delivered it. The server costs restarts, stale code in running sessions (learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 documents an old tool schema surviving a server restart), and the mcp/chromadb dependencies. The file path needs only the stdlib. ChromaDB data on disk is left alone.\n\nEarlier plan: the 2026-10-04 audit plan (.mcp.json, venv bootstrap, mcp__plugin_ai-mem_ai-mem__* tool names) is superseded by todo_plugin_packaging. It was not explicitly rejected in a record.\n\nBefore this, the MCP server was kept. domain_file_backend_replaces_chroma_2026_10_04 (2026-10-04) moved storage to record files, but the server, mem-dream and hooks still ran through it, so no CLI-replacement was tried then. pattern_persistence_migration_bypasses_mcp (2026-10-04) is a workflow rule: migrations run via the Python API, never via mem_* tools, because running servers keep old code.\n\nOpen: todo_drop_chromadb_dependency says the migration code and chromadb must stay runnable until an external Chroma installation has migrated, so removal is gated on that. I found no record of a rejected alternative to the MCP removal; \"considered\" rests on the 2026-10-10 decision text itself.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_plugin_packaging",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "pattern_persistence_migration_bypasses_mcp",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "domain_librarian_replaces_experience_index_2026_10_04"
+       ],
+       "librarian_tool_calls": 11,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "pattern_persistence_migration_bypasses_mcp",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      }
+     ],
+     "pass": true,
+     "ids_in_2_of_3_runs": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_dev_team_plugin_step2_done_2026_10_10",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "pattern_persistence_migration_bypasses_mcp",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 4,
+     "runs_passed": 2
+    },
+    {
+     "id": "q2",
+     "question": "Does anything recorded depend on the MCP server staying — e.g. the Chroma rollback backend (AI_MEM_BACKEND=chroma), the daemon, the adr_collection_roots.json mapping that the server writes at startup, or subagents relying on mem_context?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Partly documented. The records say the MCP server, the Chroma rollback and the daemon are on their way out, but none of them is recorded as something the system must keep running, and nothing I found covers adr_collection_roots.json.\n\n- MCP server: domain_drop_mcp_server_for_cli_plugin_2026_10_10 decides that server.py and the mem_* tools go away. ai-mem becomes a Claude Code plugin without .mcp.json, with a stdlib CLI for writes, reads through Read/Glob/Grep and the librarian, and no MCP dependencies. Its stated reason is that the server costs restarts, stale code in running sessions, and the mcp/chromadb dependencies. The server still exists in the code today, so the decision is not yet implemented.\n- Chroma rollback (AI_MEM_BACKEND=chroma): domain_file_backend_replaces_chroma_2026_10_04 keeps it as a rollback, with chromadb kept installed until other installations have run the records_v1 migration. todo_drop_chromadb_dependency says removal must wait: a known external installation still runs on Chroma as of 2026-10-10 and auto-updates ai-mem from git, so the migration code must stay runnable and UPGRADING.md plus a guard must land first. The facts for the rollback are in docs/reference/chroma_rollback_backend.md. That reference says the factory, not the MCP server, builds the Chroma stack, so the rollback does not depend on the server.\n- Daemon: chunk1_daemon_shipped_2026_07_31 records it as a warm-process cache for Chroma hook latency. domain_file_backend_replaces_chroma_2026_10_04 says the daemon is dormant, not deleted, and the reference says _hook_deps only tries it on the Chroma backend. No record says anything depends on it staying.\n- adr_collection_roots.json (written by the server at startup): no record mentions it. Not documented.\n- Subagents and mem_context: no record mentions mem_context. learning_subagents_no_sessionstart_output_2026_10_04 says subagents get no SessionStart output, and arch_expert_agent_collections says they query their subagent.<name> collection explicitly from their own prompt. The learning also says the-coder's explicit mem_query pulls exist because of that gap, so those agents rely on mem_* tools. domain_librarian_replaces_experience_index_2026_10_04 says the librarian falls back to mem_* tools only for collections without record files. Removing the MCP server would therefore break those explicit mem_query pulls, but no record states that this has been addressed.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "chroma_rollback_backend",
+        "chunk1_daemon_shipped_2026_07_31",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "arch_expert_agent_collections",
+        "domain_librarian_replaces_experience_index_2026_10_04"
+       ],
+       "librarian_tool_calls": 20,
+       "core_cited": [
+        "chroma_rollback_backend",
+        "chunk1_daemon_shipped_2026_07_31",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "todo_drop_chromadb_dependency"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Partly. Nothing recorded requires the MCP server to stay, and the recorded direction is to remove it. The dependencies you named are:\n\n- MCP server: decided 2026-10-10 to be dropped. ai-mem becomes a Claude Code plugin without .mcp.json, with a stdlib CLI for writes, Read/Glob/Grep plus the librarian for reads, and agents, skills and the SessionStart hook as plugin parts. Reason: the server costs restarts, stale code in running sessions, and the mcp/chromadb dependencies. The packaging plan (todo_plugin_packaging) is still open, and the same decision says the Chroma files on disk stay untouched. Note that the server code is still in the repo, so the removal is planned, not done.\n- Chroma rollback (AI_MEM_BACKEND=chroma): not tied to the MCP server. The factory builds it, and server.py and dream_cli.py share it. It is the rollback, kept until the known external installation has run the records_v1 migration. Removal is tracked in todo_drop_chromadb_dependency, which requires UPGRADING.md and a guard before anything breaking, because an external agent auto-updates ai-mem from git and still runs Chroma as of 2026-10-10.\n- Daemon: only serves hook calls and only on the Chroma backend (`_build_query_uc` tries it only there). It is dormant under the file backend. Its purpose was Chroma latency, per domain_file_backend_replaces_chroma_2026_10_04. The daemon records are chunk1_daemon_shipped_2026_07_31 and the reference chroma_rollback_backend.\n- adr_collection_roots.json: I found no record or reference doc that describes this mapping or says anything depends on it. Not documented in docs/records or docs/reference. (My Grep ran over all of docs/, so it also surfaced docs/plan_plugin_chunks.md, which is outside my allowed scope. I did not read it, and I am not citing it.)\n- Subagents and mem_context: no record mentions mem_context specifically. Subagents receive no SessionStart output in practice (learning_subagents_no_sessionstart_output_2026_10_04), so the-coder does its own explicit mem_query pulls from its prompt. arch_expert_agent_collections describes the same pull-based reading. Under the plugin decision these reads move to Read/Glob/Grep and the librarian, but no record says how the-coder's prompt changes.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "chunk1_daemon_shipped_2026_07_31",
+        "arch_expert_agent_collections",
+        "chroma_rollback_backend",
+        "hook_routing_subagent"
+       ],
+       "librarian_tool_calls": 22,
+       "core_cited": [
+        "chroma_rollback_backend",
+        "chunk1_daemon_shipped_2026_07_31",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, several records depend on the MCP server, but the recorded direction is to remove it. The server (server.py, mem_* tools) is slated to go with the plugin packaging, and the dependents are being removed with it.\n\n- Chroma rollback (AI_MEM_BACKEND=chroma): the rollback stack is built by repository_factory.build_repository() and shared by server.py and dream_cli.py (reference chroma_rollback_backend). The decision keeps the Chroma store on disk and the records_v1 migration runnable, because an external installation still runs on Chroma and auto-updates ai-mem from git. The migration code may only go after that installation has migrated, behind UPGRADING.md and a guard (todo_drop_chromadb_dependency).\n- Daemon (daemon.py / daemon_client.py): it only serves the Chroma backend (_hook_deps._build_query_uc tries it only there). Its purpose was Chroma latency, which the file backend removes. It is dormant, not deleted, and is on the removal list in todo_drop_chromadb_dependency (chunk1_daemon_shipped_2026_07_31, domain_file_backend_replaces_chroma_2026_10_04).\n- adr_collection_roots.json: no record in docs/records/ or docs/reference/ mentions this mapping. Not documented in the records I can read. Note that grep hits for it exist in docs/plan_plugin_chunks.md and docs/adr-migration-chunk-plan.md, which are outside my allowed read scope, so I did not read or use them. The plugin plan file, if it is the authority here, sits there.\n- Subagents and mem_context: no record mentions mem_context specifically. The subagent dependency is real: subagents get no SessionStart output (learning_subagents_no_sessionstart_output_2026_10_04), so the-coder does its own explicit mem_query pulls from its prompt (hook_routing_subagent reference). Those pulls are MCP tool calls. The planned replacement is Read/Glob/Grep plus the librarian agent (domain_drop_mcp_server_for_cli_plugin_2026_10_10, domain_librarian_replaces_experience_index_2026_10_04). No record says how the-coder's pulls are migrated.\n- Also relevant: the server keeps stale code in running sessions and its tool schema can be cached client-side (learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29). Migrations should not write through mem_* tools (pattern_persistence_migration_bypasses_mcp). The drop decision cites restarts, stale code, and the mcp/chromadb dependencies as costs of the server.",
+       "relied_on": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "domain_librarian_replaces_experience_index_2026_10_04",
+        "chunk1_daemon_shipped_2026_07_31",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "pattern_persistence_migration_bypasses_mcp",
+        "chroma_rollback_backend",
+        "hook_routing_subagent"
+       ],
+       "librarian_tool_calls": 24,
+       "core_cited": [
+        "chroma_rollback_backend",
+        "chunk1_daemon_shipped_2026_07_31",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "domain_file_backend_replaces_chroma_2026_10_04",
+        "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+        "learning_subagents_no_sessionstart_output_2026_10_04",
+        "pattern_persistence_migration_bypasses_mcp",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      }
+     ],
+     "pass": true,
+     "ids_in_2_of_3_runs": [
+      "arch_expert_agent_collections",
+      "chroma_rollback_backend",
+      "chunk1_daemon_shipped_2026_07_31",
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "domain_librarian_replaces_experience_index_2026_10_04",
+      "hook_routing_subagent",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "learning_subagents_no_sessionstart_output_2026_10_04",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "chroma_rollback_backend",
+      "chunk1_daemon_shipped_2026_07_31",
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "domain_file_backend_replaces_chroma_2026_10_04",
+      "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29",
+      "learning_subagents_no_sessionstart_output_2026_10_04",
+      "pattern_persistence_migration_bypasses_mcp",
+      "todo_drop_chromadb_dependency",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 5,
+     "runs_passed": 3
+    },
+    {
+     "id": "q3",
+     "question": "Are there open todo_* entries that touch server.py, the daemon, or install.py's MCP registration?",
+     "runs": [
+      {
+       "run": 1,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch the MCP server or the daemon. Neither names install.py.\n1. todo_plugin_packaging (open) is about the MCP registration. It plans to package ai-mem as a Claude Code plugin WITHOUT an MCP server, and it supersedes the 2026-10-04 audit plan (.mcp.json, venv bootstrap, mcp__plugin_ai-mem_ai-mem__* tool names). The decision behind it, domain_drop_mcp_server_for_cli_plugin_2026_10_10, says server.py and the mem_* tools go away. So the .mcp.json registration is to be removed, not kept or rewritten. The record says nothing about install.py changes.\n2. todo_drop_chromadb_dependency (open) names the daemon and daemon_client among the code to remove, along with chroma_repository, the experience index, and the unwired hook modules. It is gated: an external installation still runs on Chroma and auto-updates ai-mem from git, so the records_v1 migration must stay runnable on main (lazy optional chromadb import). UPGRADING.md and a guard must land before anything breaking, and the migration code goes only after that installation has migrated.\nBorderline, not counted as touching server.py or the daemon: todo_mem_query_edge_expansion_full_text (open) concerns the QueryMemoryUseCase edge expansion behind mem_query. It does not name server.py, and it is about the use case, not the registration.\nThe other open todos (frontmatter_value_injection, symlink_following_delete, continue_dev_team_plugin_step3, pull_trigger_points_per_situation, the dream todos, and others) do not mention server.py, the daemon, or MCP registration.",
+       "relied_on": [
+        "todo_plugin_packaging",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text"
+       ],
+       "librarian_tool_calls": 14,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 2,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch these areas, and one more is adjacent.\n- todo_plugin_packaging (architecture, open): plans to package ai-mem as a Claude Code plugin without an MCP server, which removes the MCP registration. Its text still names the superseded `.mcp.json` / venv plan, and the target picture and chunks are in docs/target_picture_plugin.md. This is the one that bears on install.py's MCP registration and on server.py going away. It is derived from domain_drop_mcp_server_for_cli_plugin_2026_10_10.\n- todo_drop_chromadb_dependency (architecture, open): explicitly lists removing `daemon/daemon_client` (plus chroma_repository, markdown_adr_repository, bm25_repository, experience_index, and the unwired posttool/pretool/userprompt hooks). It is gated: the migration code must stay runnable and UPGRADING.md plus a guard must land first, because an external Chroma-based installation still exists and auto-updates from git. This is the only open todo that names the daemon.\n- todo_mem_query_edge_expansion_full_text (architecture, open): asks that mem_query return 1-hop linked entries as id + title instead of full text. It does not name server.py, but mem_query is an MCP tool, so it changes that tool's output. Adjacent rather than a direct hit.\nNo open todo mentions install.py. The workflow todos on adr_markdown serialization (todo_frontmatter_value_injection) and symlink-following deletion (todo_symlink_following_delete) involve mem_add metadata and remove_files, not server.py, the daemon, or install.py, so I left them out.",
+       "relied_on": [
+        "todo_plugin_packaging",
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10"
+       ],
+       "librarian_tool_calls": 11,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_mem_query_edge_expansion_full_text",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      },
+      {
+       "run": 3,
+       "subagent_type": "librarian",
+       "model": "haiku",
+       "answer": "Yes, two open todos touch these areas. Neither names `install.py` directly.\n\n- `todo_plugin_packaging` touches the MCP registration. It plans to package ai-mem as a Claude Code plugin without an MCP server, which removes the `.mcp.json` registration. It replaces the 2026-10-04 audit plan that covered `.mcp.json`, the venv bootstrap, and the `mcp__plugin_ai-mem_ai-mem__*` tool names. Its scope, per `domain_drop_mcp_server_for_cli_plugin_2026_10_10`, is the server.py / `mem_*` tool removal.\n- `todo_drop_chromadb_dependency` touches the daemon. It lists `daemon/daemon_client` for removal, along with the chromadb dependency and the unwired posttool/pretool/userprompt hook modules. It must stay gated: the records_v1 migration stays runnable on main, and UPGRADING.md plus a guard must land first, because an external Chroma installation still auto-updates from git.\n\nNot matching: `todo_mem_query_edge_expansion_full_text` concerns the `mem_query` MCP tool's edge expansion, but the record does not mention server.py, the daemon, or install.py, so I am not counting it as a hit. The other open todos in the repo's todo set do not mention server.py, the daemon, install.py, or MCP.",
+       "relied_on": [
+        "todo_plugin_packaging",
+        "todo_drop_chromadb_dependency",
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10"
+       ],
+       "librarian_tool_calls": 9,
+       "core_cited": [
+        "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+        "todo_drop_chromadb_dependency",
+        "todo_plugin_packaging"
+       ],
+       "outside_allowed": [],
+       "pass": true
+      }
+     ],
+     "pass": true,
+     "ids_in_2_of_3_runs": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "todo_drop_chromadb_dependency",
+      "todo_mem_query_edge_expansion_full_text",
+      "todo_plugin_packaging"
+     ],
+     "core": [
+      "domain_drop_mcp_server_for_cli_plugin_2026_10_10",
+      "todo_drop_chromadb_dependency",
+      "todo_mem_query_edge_expansion_full_text",
+      "todo_plugin_packaging"
+     ],
+     "core_needed": 2,
+     "runs_passed": 3
+    }
+   ]
+  }
+ ]
+}

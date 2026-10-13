@@ -15,20 +15,22 @@ from ai_mem.infrastructure.adr_paths import iter_record_files, write_atomic
 _INDEX_FILENAME = "INDEX.md"
 
 
-def regenerate_index(adr_dir: Path) -> None:
-    """Rebuild `<adr_dir>/INDEX.md` from every `*.md` file below `adr_dir`, except the
+def render_index(adr_dir: Path, report_skipped: bool = True) -> str:
+    """The INDEX.md text for every `*.md` file below `adr_dir`, except the
     top-level INDEX.md/README.md (same-named files in subfolders are ordinary records).
 
-    A malformed file is skipped and reported by name (stderr) rather than aborting the
-    run, matching `adr_cli.py`'s import behavior. Rows are sorted by id and the field
-    order is fixed, so output is byte-identical across runs given unchanged sources.
+    A malformed file is skipped and reported by name (stderr, unless `report_skipped` is
+    off) rather than aborting the run, matching `adr_cli.py`'s import behavior. Rows are
+    sorted by id and the field order is fixed, so output is byte-identical across runs
+    given unchanged sources.
     """
     rows: list[tuple[str, str, str, str, str]] = []
     for file_path in iter_record_files(adr_dir):
         try:
             parsed = adr_markdown.parse(file_path.read_text())
         except ValueError as exc:
-            print(f"skipping {file_path.relative_to(adr_dir)}: {exc}", file=sys.stderr)
+            if report_skipped:
+                print(f"skipping {file_path.relative_to(adr_dir)}: {exc}", file=sys.stderr)
             continue
 
         status = f"superseded_by: {parsed.superseded_by}" if parsed.superseded_by else "active"
@@ -38,9 +40,22 @@ def regenerate_index(adr_dir: Path) -> None:
 
     lines = ["# Decision Records Index", "", "| id | area | type | title | status |", "|---|---|---|---|---|"]
     lines.extend(f"| {row_id} | {area} | {entry_type} | {title} | {status} |" for row_id, area, entry_type, title, status in rows)
+    return "\n".join(lines) + "\n"
 
+
+def index_is_current(adr_dir: Path) -> bool:
+    """Whether the existing INDEX.md equals what `regenerate_index` would write (unreadable = no)."""
+    try:
+        current = (adr_dir / _INDEX_FILENAME).read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return False
+    return current == render_index(adr_dir, report_skipped=False)
+
+
+def regenerate_index(adr_dir: Path) -> None:
+    """Rebuild `<adr_dir>/INDEX.md` (see `render_index`)."""
     # Full rescan, not read-modify-write: two concurrent writers each produce a complete table and
     # the swap is atomic. A writer that scanned before another writer's file landed can leave a
     # stale table; it heals on the next regeneration.
-    write_atomic(adr_dir / _INDEX_FILENAME, "\n".join(lines) + "\n")
+    write_atomic(adr_dir / _INDEX_FILENAME, render_index(adr_dir))
 

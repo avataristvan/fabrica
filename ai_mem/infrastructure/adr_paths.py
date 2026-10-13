@@ -34,6 +34,13 @@ RECORDS_HOME_ENV = "AI_MEM_RECORDS_HOME"
 SUBAGENT_PREFIX = "subagent."
 
 
+def is_contained(path: Path, records_dir: Path, *, allow_symlink: bool) -> bool:
+    """Whether `path` resolves inside `records_dir`; with allow_symlink=False a symlink at `path` itself also fails."""
+    if not allow_symlink and path.is_symlink():
+        return False
+    return path.resolve().is_relative_to(records_dir.resolve())
+
+
 def _mapping_file(db_path: Path) -> Path:
     return db_path / _MAPPING_FILENAME
 
@@ -126,6 +133,11 @@ def records_dir_for_root(root: Path) -> Path:
 def reference_dir(records_dir: Path) -> Path:
     """Plain reference docs live next to the records directory: `docs/reference/` by default."""
     return records_dir.parent / "reference"
+
+
+def sources_dir(records_dir: Path) -> Path:
+    """Sources (dated evidence, claims frozen) live next to the records directory: `docs/sources/` by default."""
+    return records_dir.parent / "sources"
 
 
 def adr_dir_for(db_path: Path, collection: str) -> Path | None:

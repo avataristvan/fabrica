@@ -12,7 +12,7 @@ Breaking steps, oldest first:
 |---|---|---|
 | records_v1 | Memory moves out of ChromaDB into Markdown record files in each project | released |
 | Collections -> areas | Collection folders are redistributed into areas | not yet released |
-| MCP server -> plugin | The MCP server is replaced by a Claude Code plugin | not yet released |
+| MCP server -> plugin | The MCP server is replaced by a Claude Code plugin (part 1: install the plugin) | part 1 released, part 2 not yet |
 
 ## Preconditions
 
@@ -75,8 +75,38 @@ needs the extra: `"$PY" -m pip install -e '.[chroma]'`.
 
 ## Collections -> areas
 
-Not yet released -- stop here.
+The records that lived in collection folders (`ai-mem-records/<collection>/`) belong in the area of the topic they describe. Where each record goes is a judgment about your projects: the agent never decides it automatically. If you are an agent following this section, stop here and ask the human for the placement of every record.
+
+1. Check that the source areas are under git and committed, and `mem doctor --root <workspace>` is clean enough to compare against later. Save its output and checksums of the existing records in the target areas.
+2. Agree a placement table with the human: one row per record (`source_area<TAB>id<TAB>target_area<TAB>perspective`, paths relative to the file or absolute, `#` comments). Hand-kept INDEX.md files in a target area stop `mem move`; adopt them first with `mem lint --fix` in that area.
+3. Dry run: `mem move --batch <table.tsv> --dry-run --scan-root <workspace>`. It lists every write, delete and edge rewrite and stops on conflicts (same id with different content in the target, supersede pairs that would cross areas). Resolve conflicts first.
+4. Apply: `mem move --batch <table.tsv> --scan-root <workspace>`. A rerun after an interruption continues where it stopped.
+5. `mem doctor --root <workspace>`: no records left under collection names, no new dangling edges compared with step 1. Reference docs (`docs/reference/`) are not records: copy them by hand and remove the original afterwards.
 
 ## MCP server -> plugin
+
+Two parts. Part 1 (this section) installs the plugin next to the still-registered MCP server. Part 2, removing the server, is not yet released -- stop after part 1.
+
+### Part 1: install the plugin
+
+Skip steps 2 to 5 if `claude plugin list` already shows `ai-mem@ai-mem` as enabled. Run from the ai-mem checkout.
+
+1. Preconditions of this document hold, and records_v1 is done: `$STORE/.migrations/records_v1.done` exists, or `$STORE/chroma.sqlite3` does not. Otherwise: **STOP** (finish that section first).
+2. `claude --version` exits 0. Otherwise: **STOP** (no Claude Code CLI on the PATH).
+3. `command -v python3` prints a path. The plugin's hooks and its `mem` command call `python3` and need nothing else installed. Otherwise: **STOP**.
+4. `claude plugin validate "$PWD"` exits 0 (warnings are fine). Otherwise: **STOP**; do not edit the manifest.
+5. Install: `claude plugin marketplace add "$PWD"`, then `claude plugin install ai-mem@ai-mem`. Non-zero exit, a prompt, or an error that the name is taken by another marketplace: **STOP**.
+6. **Hand over to a human** (do not do these yourself; the first edits `~/.claude`):
+   - `python3 install.py --plugin-switch` lists the hooks in `~/.claude/settings.json`, the `~/.claude/commands/reflect.md` and `~/.claude/commands/mem-init.md` commands (only the copies ai-mem installed; a command the user wrote under the same name is not listed and stays) and the symlinks (`~/.claude/agents/{librarian,archivist,anchor-lint}.md`, `~/.claude/skills/handoff-protocol`, `~/.claude/ai-mem/`) that the plugin now provides, and removes them on `y`. Until then every hook fires twice, and a bare `librarian` or `archivist` agent from the old links shadows the plugin's.
+   - Optionally set the plugin's options with `/plugin configure ai-mem@ai-mem` in Claude Code; while they are unset the hooks use their defaults (`retro_roles` includes `ai-mem:anchor-lint`).
+   - Restart Claude Code (all sessions). `/reflect` is now `/ai-mem:reflect`; agents are called `ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`; the skill is `ai-mem:handoff-protocol`. Team files that name the bare ones (the one-line hook-in, `Agent(subagent_type="librarian")`) need the prefix: `mem doctor` (Wiring) lists teams that lack the hook-in.
+   - In a new session inside an area: the SessionStart output has an `Area:` line, `mem context` works from Bash, and `mem doctor` (Wiring) shows the plugin enabled and no duplicate hooks.
+   - `/mem-init` is replaced by `/ai-mem:setup`. Run it in a session to get the hook-in proposals for the teams `mem doctor` lists and the CLAUDE.md lines; it changes the user's files only on approval, so an unattended agent does not run it ([how-to](docs/how-to/set-up.md)).
+
+Do not remove the `ai-mem` MCP registration or the `mcp__ai-mem__*` permissions in part 1; the server keeps running until part 2. Do not call `mem_*` MCP tools to check the plugin.
+
+What changed, for the record: hooks moved from `~/.claude/settings.json` into the plugin's `hooks/hooks.json`; `AI_MEM_WORKSPACE_ROOT` is no longer put in the hook commands (the area is found by walking up from the working directory, the collection routing line keeps using the environment of the session); agents and skills moved from `examples/agents/` and `skills/examples/` to `agents/` and `skills/reflect/`; `/mem-init` became the plugin skill `/ai-mem:setup`, and `install.py --sync-commands` is gone (`install.py` now refuses the flag with exit code 2 instead of starting the interactive install).
+
+### Part 2: remove the server
 
 Not yet released -- stop here.

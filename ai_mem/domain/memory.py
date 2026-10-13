@@ -1,6 +1,7 @@
 """Domain layer: entities and repository interface."""
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal, Protocol
@@ -96,6 +97,17 @@ class MemoryRepository(Protocol):
 def is_area_qualified(target_id: str) -> bool:
     """An edge target `<rel-area-path>:<id>` points into another area; a bare id stays in the same one."""
     return ":" in target_id
+
+
+def parse_edges(raw: str | None) -> list[dict]:
+    """The `edges` frontmatter value as a list of {target_id, edge_type} dicts (both strings); ValueError when malformed."""
+    try:
+        edges = json.loads(raw or "[]")
+        if not isinstance(edges, list) or not all(isinstance(e["target_id"], str) and isinstance(e["edge_type"], str) for e in edges):
+            raise ValueError
+    except (ValueError, KeyError, TypeError, RecursionError) as exc:
+        raise ValueError("edges is not a JSON list of {target_id, edge_type} string objects") from exc
+    return edges
 
 
 class AreaRefs(Protocol):

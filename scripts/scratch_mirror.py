@@ -2,10 +2,9 @@
 
     python scripts/scratch_mirror.py <target> [--source ~/workspace] [--drop-suffix _2026_10_10]
 
-Copies `<area>/docs/records/` of ai-mem, ai-architecture (incl. software-architecture-gathering),
-briefing-interviewer, fabrica and every `ai-mem-records/<collection>/` to the same relative paths
-below <target>. The sources are only read. <target> must not exist yet (or be empty) and must lie
-outside <source>.
+Copies `<area>/docs/records/` of every area below <source> (nested areas and every
+`ai-mem-records/<collection>/` included) to the same relative paths below <target>. The sources
+are only read. <target> must not exist yet (or be empty) and must lie outside <source>.
 
 `--drop-suffix S` (for the archivist acceptance run): in the ai-mem copy, every record whose id
 ends in S is removed and INDEX.md regenerated; in every copied area, edges pointing at a removed
@@ -25,17 +24,13 @@ from ai_mem.infrastructure.adr_paths import ADR_TYPES, records_dir_for_root  # n
 from ai_mem.infrastructure.areas import area_records_dir, discover_areas, resolve_ref  # noqa: E402
 from ai_mem.infrastructure.file_repository import FileMemoryRepository  # noqa: E402
 
-AREAS = ("ai-mem", "ai-architecture", "ai-architecture/software-architecture-gathering", "briefing-interviewer", "fabrica")
 RECORDS_HOME = "ai-mem-records"
 DROP_AREA = "ai-mem"
 
 
 def area_paths(source: Path) -> list[str]:
-    rels = [rel for rel in AREAS if records_dir_for_root(source / rel).is_dir()]
-    home = source / RECORDS_HOME
-    if home.is_dir():
-        rels += sorted(f"{RECORDS_HOME}/{path.name}" for path in home.iterdir() if records_dir_for_root(path).is_dir())
-    return rels
+    source = source.resolve()
+    return [str(area.root.relative_to(source)) for area in discover_areas(source)]
 
 
 def mirror(source: Path, target: Path) -> list[str]:

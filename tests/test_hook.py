@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 import sys
 from io import StringIO
 from pathlib import Path
@@ -62,6 +63,7 @@ def _run_main(
     extra_settings: dict | None = None,
     chroma_cls: MagicMock | None = None,
     git_root: Path | None = None,
+    area: object | None = None,
 ) -> str:
     """Run hook.main() with mocked dependencies; return captured stdout.
 
@@ -123,6 +125,7 @@ def _run_main(
         patch.object(hook, "GetMemoryUseCase"),
         patch.object(hook, "detect_repo_context", return_value=repo_ctx),
         patch.object(hook, "record_injection"),
+        patch.object(hook, "find_area", return_value=area),
         patch.object(hook, "GLOBAL_COLLECTION", "global"),
         patch.object(hook, "WORKSPACE_COLLECTION", "workspace"),
         patch.object(hook, "ListCollectionsUseCase", mock_list_uc),
@@ -708,3 +711,90 @@ def test_hook_process_prints_guard_line_for_a_store_without_sentinel(tmp_path: P
     )
     assert result.returncode == 0 and result.stderr == ""
     assert hook.GUARD_MESSAGE in json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+
+
+# ---------------------------------------------------------------------------
+# Area line (D3) and doctor pointer (D7)
+# ---------------------------------------------------------------------------
+
+def _area(root: Path) -> MagicMock:
+    area = MagicMock()
+    area.root = root
+    area.records_dir = root / "docs" / "records"
+    return area
+
+
+def _context_for_area(tmp_path: Path, **kwargs) -> str:
+    root = _with_records(tmp_path)
+    out = _run_main(tmp_path / "db", has_claude_md=False, verbose=False, area=_area(root), **kwargs)
+    return json.loads(out)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_area_line_and_records_pointer_without_claude_md(tmp_path: Path) -> None:
+    ctx = _context_for_area(tmp_path)
+    assert f"Area: {tmp_path / 'repo'}" in ctx
+    assert ctx.index("Area: ") < ctx.index("Records: ")
+    assert "Active collection" not in ctx
+
+
+def test_routing_line_stays_next_to_the_area_line(tmp_path: Path) -> None:
+    root = _with_records(tmp_path)
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False, area=_area(root))
+    ctx = json.loads(out)["hookSpecificOutput"]["additionalContext"]
+    assert 'Active collection: "repo.x"' in ctx and f"Area: {root}" in ctx
+
+
+def test_no_area_line_outside_an_area(tmp_path: Path) -> None:
+    out = _run_main(tmp_path / "db", repo_collection="repo.x", has_claude_md=True, verbose=False, git_root=tmp_path)
+    assert "Area: " not in json.loads(out)["hookSpecificOutput"]["additionalContext"]
+
+
+def test_doctor_pointer_when_never_run(tmp_path: Path) -> None:
+    assert "Run mem doctor (not run yet)." in _context_for_area(tmp_path)
+
+
+def test_doctor_pointer_names_age_when_older_than_14_days(tmp_path: Path) -> None:
+    db = tmp_path / "db"
+    db.mkdir()
+    (db / "doctor_last_run").write_text(f"{int(time.time()) - 20 * 86400}\n")
+    assert "Run mem doctor (last run 20 days ago)." in _context_for_area(tmp_path)
+
+
+def test_no_doctor_pointer_when_run_recently(tmp_path: Path) -> None:
+    db = tmp_path / "db"
+    db.mkdir()
+    (db / "doctor_last_run").write_text(f"{int(time.time()) - 3 * 86400}\n")
+    assert "mem doctor" not in _context_for_area(tmp_path)
+
+
+def test_doctor_cadence_option_moves_the_threshold(tmp_path: Path, monkeypatch) -> None:
+    db = tmp_path / "db"
+    db.mkdir()
+    (db / "doctor_last_run").write_text(f"{int(time.time()) - 3 * 86400}\n")
+    monkeypatch.setenv("CLAUDE_PLUGIN_OPTION_DOCTOR_CADENCE_DAYS", "2")
+    assert "Run mem doctor (last run 3 days ago)." in _context_for_area(tmp_path)
+
+
+def test_doctor_cadence_option_garbage_keeps_the_default(tmp_path: Path, monkeypatch) -> None:
+    db = tmp_path / "db"
+    db.mkdir()
+    (db / "doctor_last_run").write_text(f"{int(time.time()) - 3 * 86400}\n")
+    monkeypatch.setenv("CLAUDE_PLUGIN_OPTION_DOCTOR_CADENCE_DAYS", "soon")
+    assert "mem doctor" not in _context_for_area(tmp_path)
+
+
+def test_doctor_pointer_on_unreadable_timestamp(tmp_path: Path) -> None:
+    db = tmp_path / "db"
+    db.mkdir()
+    (db / "doctor_last_run").write_text("garbage\n")
+    assert "Run mem doctor (not run yet)." in _context_for_area(tmp_path)
+
+
+def test_area_lines_never_raise(tmp_path: Path) -> None:
+    with patch.object(hook, "find_area", side_effect=RuntimeError("boom")):
+        assert hook._area_lines() == []
+
+
+def test_doctor_pointer_survives_overflowing_timestamp(tmp_path: Path) -> None:
+    (tmp_path / "doctor_last_run").write_text("-1e999\n")
+    assert hook._doctor_pointer(tmp_path, time.time()) == "Run mem doctor (not run yet)."

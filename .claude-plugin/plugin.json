@@ -1,0 +1,21 @@
+{
+  "name": "ai-mem",
+  "version": "0.1.0",
+  "description": "Git-native memory for agents: record files in docs/records/, librarian and archivist agents, the mem CLI and hooks that check the ritual happened.",
+  "author": {"name": "Istvan Lovas"},
+  "license": "MIT",
+  "userConfig": {
+    "retro_roles": {
+      "type": "string",
+      "title": "Roles that must end with a [retro] block",
+      "description": "Comma-separated agent types the SubagentStop check enforces a [retro] block for.",
+      "default": "the-coder,pr-review-toolkit:code-reviewer,ai-mem:anchor-lint"
+    },
+    "doctor_cadence_days": {
+      "type": "number",
+      "title": "Days between the SessionStart doctor pointer",
+      "description": "SessionStart points at `mem doctor` when the last run is older than this many days.",
+      "default": 14
+    }
+  }
+}

@@ -1,0 +1,12 @@
+id: learning_gap_test_first_run_and_blindtest_2026_07_31
+type: learning
+area: evaluation
+created: 1790678542.651765
+---
+
+Observed: First gap test (2026-05-29, WITH memory): candidate `origin_story`, question "Why are passive labels used instead of explicit user feedback? What was the original design impulse?" -> the agent actively called mem_query, named origin_story explicitly as the source and derived the sensor analogy correctly (result: works). The candidate `antipattern_label_attribute_trap` was not a valid test, because the same knowledge was also in CLAUDE.md (CLAUDE.md beat it as the source, no real gap test).
+Blind test (2026-07-31, WITHOUT memory; the gap open since May): the same question in a fresh session. Not a simple pass/fail, but a third outcome: the blind agent (4 grep patterns, 2 files read, 3 shell commands) constructed from code + `docs/epistemology-framework.md` + git history (commit 2088853, 2026-06-13) an accurate, well-evidenced answer -- but to a DIFFERENT, neighbouring question (why passive access_count AND explicit boost_count/reflect signals are combined). No hallucination; quote and commit were verified. The ORIGINAL design origin actually asked for (a phone app project with on-device inference and sensor fusion, 2026-04-25, 'no cloud upload' philosophy) did not appear -- and without any signal of incompleteness: the answer seemed complete, not like a guess.
+New scoring category that the existing table did not cover: "Accurate, well-evidenced answer to a neighbouring but wrong question, without an incompleteness signal" -- harder to recognise than an obviously wrong or generic answer.
+Mechanics of the blind test: AI_MEM_PATH temporarily redirected to an empty directory (settings.json + .claude.json), full app restart (an MCP server reconnect alone demonstrably does NOT suffice -- tested empirically: killing the MCP server process triggers no auto-respawn, the tool stays disconnected until a full app restart).
+Cause: Code/docs/git often reconstruct later design refinements convincingly; the deeper, non-derivable ORIGINAL motivation is nowhere else and, without ai-mem itself, cannot be reached even with full effort. ai-mem's value lies not in being the only source of information, but in preserving this motivation.
+Evidence: Quote and commit 2088853 verified by the blind agent (both genuine); tool use of the blind agent as above; first test 2026-05-29 with origin_story. Further reading: eval_pull_gap_test_2026_09_20.

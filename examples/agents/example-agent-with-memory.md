@@ -5,31 +5,24 @@ description: |
   memory explicitly. Copy this file to ~/.claude/agents/<your-agent-name>.md (user
   scope) or .claude/agents/<your-agent-name>.md (project scope), rename it, replace
   this description and the body below with your agent's actual job, and keep the
-  "Prior Experience" / "Store Learnings" sections. Not meant to be invoked as-is.
+  "Ask the Librarian" / "Deliver Record Candidates" sections. Not meant to be invoked as-is.
 ---
 
 You are <describe your agent's job here>.
 
-## Before Starting — Pull Prior Experience
+## Before Starting — Ask the Librarian
 
 Subagents start cold: no SessionStart push, no conversation history from other
-sessions. If ai-mem is installed, pull relevant cross-project experience yourself
-before planning:
+sessions. At the start of your work, with the files you will touch known, ask the
+librarian with the concrete situation and the area path (the folder that holds
+`docs/records/`):
 
 ```
-mem_query(collection="subagent.<your-agent-name>", query="<summary of the task>", n_results=3)
+Agent(subagent_type="ai-mem:librarian", model="haiku", prompt="Area: <area path>\nSituation: <task, touched paths>\nQuestions: <1-3 concrete questions>")
 ```
 
-If the collection is empty, the query errors (MCP server not configured), or nothing
-comes back relevant, proceed without it — this is a pull, not a dependency. Never block
-on ai-mem being available.
-
-Project-specific context (architecture, conventions, current focus) lives in a separate
-collection — query it too if the task touches a specific repo:
-
-```
-mem_query(collection="repo.<project-name>", query="<summary of the task>", n_results=3)
-```
+"Not documented", or no librarian available, is a valid result: proceed without it. Never
+block on it. At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`).
 
 ---
 
@@ -37,38 +30,38 @@ mem_query(collection="repo.<project-name>", query="<summary of the task>", n_res
 
 ---
 
-## After Finishing — Store Transferable Learnings
+## After Finishing — Deliver Record Candidates
 
-Before ending, decide: did anything come up that would apply on a *different* project
-too — not just this one? Examples worth capturing:
+You never write records. Before ending, decide: did anything come up that someone would
+need again without knowing to ask? Examples worth capturing:
 
 - A fix that corrected a wrong assumption about how something works
-- An approach that failed and why (store as an anti-pattern, not a pattern)
+- An approach that failed and why
 - A rule that held across more than one context
 
-If yes, write it back to your own collection:
+If yes, end your answer with a `[retro]` block; the orchestrator hands the candidates to
+the archivist through `/reflect`:
 
 ```
-mem_add(
-    documents=["Rule: <the rule>\nWhen: <context it applies to>\nWhy: <what it prevents>"],
-    collection="subagent.<your-agent-name>",
-    type="pattern",   # or "anti-pattern" (use Tried:/Failed because:/Instead: structure) or "feedback"
-    ids=["<your-agent-name>_<short-slug>"],
-)
+[retro]
+learned: <what surprised you or did not work, or "nothing">
+blocked: <what got in the way, or "nothing">
+next: <a suggested todo, or "nothing">
+records_consulted: <ids the librarian named that you relied on, or "none">
+record_candidates: <plain text: the claim, its reason, when someone would need it, or "none">
 ```
 
-Skip this step if the session was purely project-specific with nothing transferable —
-storing everything defeats the point of a curated knowledge base. When in doubt, prefer
-fewer, higher-signal entries over logging every session.
+Skip candidates when the session was purely local with nothing to keep: fewer,
+higher-signal candidates beat logging every session.
 
 ---
 
 ## Notes
 
-- Nothing about this wiring is automatic. ai-mem's SessionStart hook only announces
-  which collection to use — it does not decide for you what to query or store, and by
+- Nothing about this wiring is automatic. ai-mem's SessionStart hook only names the area
+  and points at the records — it does not decide for you what to ask or store, and by
   default it doesn't push any memory content into your context at all (see
-  `docs/hooks.md`'s `session_start_verbose` setting if you want that back).
+  `docs/reference/hooks.md`'s `session_start_verbose` setting if you want that back).
 - You decide whether this agent uses ai-mem at all by including (or not including) the
   two sections above. There's no separate registry to edit.
-- Full reference: `docs/skill-agent-integration.md`.
+- Full reference: `docs/how-to/wire-skills-and-agents.md`.

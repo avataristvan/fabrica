@@ -148,10 +148,13 @@ check "hook writes no stderr" test ! -s "$SCRATCH/hookcheck.err"
 
 run_agent() {  # run_agent <X>
   local X=$1
-  (cd "$SCRATCH/$X/checkout" && env $(env_for "$X") "$CLAUDE_BIN" -p \
-      "Upgrade this installation. Instructions: $SCRATCH/$X/checkout/UPGRADING.md" \
+  # cwd is <scratch>/X, not the checkout: the sandbox masks protected paths (.bashrc, .claude/, ...)
+  # in its cwd with /dev/null mounts, which would show up as untracked files in the checkout.
+  (cd "$SCRATCH/$X" && env $(env_for "$X") "$CLAUDE_BIN" -p \
+      "Upgrade the ai-mem installation in $SCRATCH/$X/checkout. Instructions: $SCRATCH/$X/checkout/UPGRADING.md" \
       --output-format json --strict-mcp-config --mcp-config '{"mcpServers":{}}' \
-      --settings '{"disableAllHooks": true}' --allowedTools "Bash Read Glob Grep" \
+      --settings '{"disableAllHooks": true, "sandbox": {"enabled": true, "failIfUnavailable": true, "allowUnsandboxedCommands": false, "network": {"allowedDomains": ["pypi.org", "files.pythonhosted.org"]}}}' \
+      --allowedTools "Bash Read Glob Grep" \
       --add-dir "$SCRATCH/$X" > "$SCRATCH/$X/agent.json" 2> "$SCRATCH/$X/agent.err")
   echo "agent $X exit $?"
   "$BASE_PY" -c "import json,sys; print(json.load(open(sys.argv[1])).get('result',''))" "$SCRATCH/$X/agent.json" \

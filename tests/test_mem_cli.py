@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 
 import pytest
 
@@ -283,12 +284,6 @@ def test_context_reports_paths_and_legacy_collection(env, tmp_path, monkeypatch,
     assert find_area(coll.root) == coll
 
 
-def test_stubs_exit_2(env, capsys):
-    assert main(["lint"]) == 2
-    assert main(["doctor"]) == 2
-    assert "not implemented yet" in capsys.readouterr().err
-
-
 def test_importing_the_cli_loads_no_third_party_module():
     import subprocess
     import sys
@@ -309,3 +304,611 @@ def test_add_refuses_to_overwrite_an_unreadable_record(env):
     assert _add("--id", "hw", "--type", "learning", "--text", "clobber") == 1
 
     assert broken.read_text() == before
+
+
+# --- move / context --map (chunk 1b-2) ---------------------------------------------------------
+
+def _third(tmp_path):
+    return _make_area(tmp_path / "ws" / "third")
+
+
+def _seed_move(proj, other, third):
+    _add("--id", "learning_m", "--type", "learning", "--text", "Moved.")
+    _add("--id", "learning_local", "--type", "learning", "--text", "Stays.")
+    _add("--id", "learning_ref", "--type", "learning", "--text", "Refers to moved.")
+    _add("--area", str(other.root), "--id", "pattern_t", "--type", "pattern", "--text", "T.")
+    _add("--area", str(third.root), "--id", "learning_far", "--type", "learning", "--text", "Far.")
+    main(["link", "learning_m", "learning_local", "--type", "related"])
+    main(["link", "learning_m", "pattern_t", "--type", "related", "--to-area", str(other.root)])
+    main(["link", "learning_ref", "learning_m", "--type", "derived_from"])
+    main(["link", "learning_far", "../proj:learning_m", "--type", "related", "--area", str(third.root)])
+
+
+def test_move_round_trip_requalifies_and_rewrites_source_referrers(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third = _third(tmp_path)
+    _seed_move(proj, other, third)
+    far_before = _tree(third.root)
+
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 0
+    out = capsys.readouterr().out
+
+    assert not list(proj.records_dir.rglob("learning_m.md"))
+    text = _record(other, "learning_m").read_text()
+    assert "../proj:learning_local" in text and "pattern_t" in text and "../other:pattern_t" not in text
+    assert resolve_ref(other, "../proj:learning_local") == (proj, "learning_local")
+    assert "../other:learning_m" in _record(proj, "learning_ref").read_text()
+    assert "learning_m" not in (proj.records_dir / "INDEX.md").read_text()
+    assert "learning_m" in (other.records_dir / "INDEX.md").read_text()
+    assert _tree(third.root) == far_before
+    assert "report (not edited)" in out and "learning_far" in out
+
+
+def test_move_dry_run_changes_nothing_and_lists_everything(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third = _third(tmp_path)
+    _seed_move(proj, other, third)
+    before = (_tree(proj.root), _tree(other.root), _tree(third.root))
+
+    assert main(["move", "learning_m", "--to-area", str(other.root), "--dry-run"]) == 0
+    out = capsys.readouterr().out
+
+    assert (_tree(proj.root), _tree(other.root), _tree(third.root)) == before
+    assert out.count("would write") == 2 and "would delete" in out and "would rewrite edge" in out
+
+
+def test_move_conflict_leaves_both_areas_unchanged(env, capsys):
+    _, _, proj, other = env
+    _add("--id", "learning_m", "--type", "learning", "--text", "Mine.")
+    _add("--area", str(other.root), "--id", "learning_m", "--type", "learning", "--text", "Different.")
+    before = (_tree(proj.root), _tree(other.root))
+
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 1
+    assert (_tree(proj.root), _tree(other.root)) == before
+    assert "conflict learning_m" in capsys.readouterr().out
+
+
+def test_move_refuses_to_overwrite_an_unreadable_target_file(env):
+    _, _, proj, other = env
+    _add("--id", "learning_m", "--type", "learning", "--text", "Mine.")
+    broken = other.records_dir / "general" / "learnings" / "learning_m.md"
+    broken.parent.mkdir(parents=True)
+    broken.write_text("no frontmatter at all")
+    before = (_tree(proj.root), _tree(other.root))
+
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 1
+    assert (_tree(proj.root), _tree(other.root)) == before
+
+
+def test_move_refuses_symlinked_target_file_leaving_the_records_dir(env, tmp_path):
+    _, _, proj, other = env
+    _add("--id", "learning_m", "--type", "learning", "--text", "Mine.")
+    outside = tmp_path / "outside.md"
+    outside.write_text("untouched")
+    link = other.records_dir / "general" / "learnings" / "learning_m.md"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(outside)
+
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 1
+    assert _record(proj, "learning_m").is_file() and outside.read_text() == "untouched"
+
+
+def test_move_together_keeps_mutual_edges_bare(env):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--id", "learning_b", "--type", "learning", "--text", "B.")
+    main(["link", "learning_a", "learning_b", "--type", "related"])
+
+    assert main(["move", "learning_a", "learning_b", "--to-area", str(other.root)]) == 0
+    text = _record(other, "learning_a").read_text()
+    assert "learning_b" in text and "../" not in text
+
+
+def test_move_supersedes_across_areas_is_refused(env):
+    _, _, proj, other = env
+    _add("--id", "learning_old", "--type", "learning", "--text", "Old.")
+    _add("--id", "learning_new", "--type", "learning", "--text", "New.")
+    main(["link", "learning_new", "learning_old", "--type", "supersedes"])
+    before = (_tree(proj.root), _tree(other.root))
+
+    assert main(["move", "learning_new", "--to-area", str(other.root)]) == 1
+    assert main(["move", "learning_old", "--to-area", str(other.root)]) == 1
+    assert (_tree(proj.root), _tree(other.root)) == before
+
+
+@pytest.mark.parametrize("bad", ["../x", "a/b", "*", "a:b", "current_focus"])
+def test_move_hostile_ids_refused(env, bad):
+    _, _, proj, other = env
+    before = _tree(proj.root)
+    assert main(["move", bad, "--to-area", str(other.root)]) == 2
+    assert _tree(proj.root) == before
+
+
+def test_move_same_area_missing_id_and_pending_guard(env):
+    _, db, proj, other = env
+    assert main(["move", "learning_zz", "--to-area", str(other.root)]) == 1
+    assert main(["move", "learning_zz", "--to-area", str(proj.root)]) == 2
+    (db / "chroma.sqlite3").write_text("")
+    assert main(["move", "learning_zz", "--to-area", str(other.root)]) == 3
+
+
+def test_context_map_aggregates_cross_area_edges_and_unresolved(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third = _third(tmp_path)
+    _seed_move(proj, other, third)
+    _add("--area", str(other.root), "--id", "pattern_gone", "--type", "pattern", "--text", "G.")
+    main(["link", "learning_ref", "pattern_gone", "--type", "related", "--to-area", str(other.root)])
+    main(["delete", "pattern_gone", "--area", str(other.root)])
+    capsys.readouterr()
+
+    root = str(tmp_path / "ws")
+    assert main(["context", "--map", "--root", root]) == 0
+    out = capsys.readouterr().out
+    assert "proj → other: 1 (related)" in out
+    assert "third → proj: 1 (related)" in out
+    assert "unresolved: proj:learning_ref --related--> ../other:pattern_gone" in out
+
+    assert main(["context", "--map", "--root", root, "--json"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert {(e["from"], e["to"], e["count"]) for e in data["edges"]} == {
+        (str(proj.root), str(other.root), 1), (str(third.root), str(proj.root), 1)}
+    assert len(data["unresolved"]) == 1
+
+
+def test_context_map_lists_malformed_edges_as_unresolved(env, monkeypatch, capsys):
+    from ai_mem import mem_cli
+
+    _, _, proj, _ = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    real = mem_cli._repository()
+
+    class Corrupt:  # mock: one entry carries a stored edges field that is not valid JSON
+        def get_all(self, key):
+            entries = real.get_all(key)
+            for entry in entries:
+                entry.metadata["edges"] = "{not json"
+            return entries
+
+        def get_by_ids(self, key, ids):
+            return real.get_by_ids(key, ids)
+
+    monkeypatch.setattr(mem_cli, "_repository", lambda: Corrupt())
+    assert main(["context", "--map", "--root", str(proj.root)]) == 0
+    assert "<malformed edges field>" in capsys.readouterr().out
+
+
+def test_move_requires_scan_root_when_areas_only_share_home_or_above(env, tmp_path, monkeypatch):
+    _, _, proj, other = env
+    _add("--id", "learning_m", "--type", "learning", "--text", "Mine.")
+    monkeypatch.setenv("HOME", str(tmp_path / "ws"))
+    before = (_tree(proj.root), _tree(other.root))
+
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 2
+    assert main(["move", "learning_m", "--to-area", str(other.root), "--scan-root", str(tmp_path / "ws"), "--dry-run"]) == 0
+    assert (_tree(proj.root), _tree(other.root)) == before
+
+
+def _hand_index(area):
+    (area.records_dir / "INDEX.md").write_text("# Hand-kept\n\n- [[learning_x]] with a link\n")
+
+
+@pytest.mark.parametrize("argv", [
+    ["add", "--id", "learning_new", "--type", "learning", "--text", "N."],
+    ["add", "--id", "learning_x", "--cue", "when"],
+    ["link", "learning_x", "learning_y", "--type", "related"],
+    ["delete", "learning_x"],
+])
+def test_hand_kept_index_refuses_every_write_and_changes_nothing(env, capsys, argv):
+    tmp_path, _, proj, _ = env
+    _add("--id", "learning_x", "--type", "learning", "--text", "X.")
+    _add("--id", "learning_y", "--type", "learning", "--text", "Y.")
+    _hand_index(proj)
+    before = _tree(tmp_path)
+    assert main(argv) == 1
+    err = capsys.readouterr().err
+    assert "hand-kept" in err and "mem lint --fix" in err
+    assert _tree(tmp_path) == before
+
+
+def test_missing_index_is_not_hand_kept(env):
+    _, _, proj, _ = env
+    assert _add("--id", "learning_x", "--type", "learning", "--text", "X.") == 0
+    (proj.records_dir / "INDEX.md").unlink()
+    assert _add("--id", "learning_y", "--type", "learning", "--text", "Y.") == 0
+
+
+def test_current_focus_is_exempt(env):
+    _, _, proj, _ = env
+    _add("--id", "learning_x", "--type", "learning", "--text", "X.")
+    _hand_index(proj)
+    assert _add("--id", "current_focus", "--text", "Now.") == 0
+    assert main(["delete", "current_focus"]) == 0
+    assert (proj.records_dir / "INDEX.md").read_text().startswith("# Hand-kept")
+
+
+def test_lint_fix_adopts_the_area_and_the_write_then_succeeds(env):
+    _, _, proj, _ = env
+    _add("--id", "learning_x", "--type", "learning", "--text", "X.")
+    _hand_index(proj)
+    assert _add("--id", "learning_y", "--type", "learning", "--text", "Y.") == 1
+    assert main(["lint", "--fix", "--area", str(proj.root)]) == 0
+    assert _add("--id", "learning_y", "--type", "learning", "--text", "Y.") == 0
+
+
+def test_move_into_hand_kept_target_or_out_of_hand_kept_source_is_refused(env, capsys):
+    tmp_path, _, proj, other = env
+    _add("--id", "learning_m", "--type", "learning", "--text", "M.")
+    _add("--area", str(other.root), "--id", "pattern_t", "--type", "pattern", "--text", "T.")
+    _hand_index(other)
+    before = _tree(tmp_path)
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 1
+    assert main(["move", "learning_m", "--to-area", str(other.root), "--dry-run"]) == 1
+    assert "hand-kept" in capsys.readouterr().err
+    assert _tree(tmp_path) == before
+    (other.records_dir / "INDEX.md").unlink()
+    _hand_index(proj)
+    before = _tree(tmp_path)
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 1
+    assert _tree(tmp_path) == before
+
+
+def test_move_ignores_a_hand_kept_third_area(env):
+    tmp_path, _, proj, other = env
+    third = _third(tmp_path)
+    _add("--id", "learning_m", "--type", "learning", "--text", "M.")
+    _add("--area", str(third.root), "--id", "learning_far", "--type", "learning", "--text", "Far.")
+    _hand_index(third)
+    assert main(["move", "learning_m", "--to-area", str(other.root)]) == 0
+    assert (third.records_dir / "INDEX.md").read_text().startswith("# Hand-kept")
+
+
+def test_pending_migration_beats_the_index_check(env):
+    _, db, proj, _ = env
+    (db / "chroma.sqlite3").write_bytes(b"x")
+    _hand_index(proj)
+    assert _add("--id", "learning_x", "--type", "learning", "--text", "X.") == 3
+
+
+# --- mem find -------------------------------------------------------------------------------------------
+
+def _write_record(area, entry_id, kind="learnings"):
+    path = area.records_dir / "general" / kind / f"{entry_id}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"---\nid: {entry_id}\ntype: learning\narea: general\ncreated: 2026-01-01\n---\ntext\n")
+    return path
+
+
+def test_find_hit_in_home_area_is_a_bare_id(env, capsys):
+    _, _, proj, _ = env
+    path = _write_record(proj, "x_home")
+    assert main(["find", "x_home"]) == 0
+    assert capsys.readouterr().out.strip() == f"x_home  {path.resolve()}"
+
+
+def test_find_hit_in_ancestor_area(env, capsys):
+    tmp, _, proj, _ = env
+    outer = _make_area(tmp / "ws")
+    path = _write_record(outer, "x_outer")
+    assert main(["find", "x_outer", "--root", str(proj.root)]) == 0
+    assert capsys.readouterr().out.strip() == f"..:x_outer  {path.resolve()}"
+
+
+def test_find_hit_in_sibling_area(env, capsys):
+    _, _, proj, other = env
+    _write_record(other, "x_sib")
+    assert main(["find", "x_sib"]) == 0
+    assert capsys.readouterr().out.split("  ")[0] == "../other:x_sib"
+
+
+def test_find_hit_in_reference_doc(env, capsys):
+    _, _, proj, other = env
+    doc = other.records_dir.parent / "reference" / "x_ref.md"
+    doc.parent.mkdir()
+    doc.write_text("plain doc\n")
+    assert main(["find", "x_ref"]) == 0
+    assert capsys.readouterr().out.strip() == f"../other:x_ref  {doc.resolve()}"
+
+
+def test_find_lists_all_hits_home_first(env, capsys):
+    _, _, proj, other = env
+    _write_record(other, "x_dup")
+    _write_record(proj, "x_dup")
+    assert main(["find", "x_dup", "--json"]) == 0
+    refs = [json.loads(line)["ref"] for line in capsys.readouterr().out.splitlines()]
+    assert refs == ["x_dup", "../other:x_dup"]
+
+
+def test_find_none_exits_1_and_counts_areas(env, capsys):
+    assert main(["find", "x_nothing"]) == 1
+    assert capsys.readouterr().out.strip() == "not found in 2 areas"
+
+
+def test_find_root_comes_from_workspace_root_env(env, capsys, monkeypatch):
+    tmp, _, proj, _ = env
+    far = _make_area(tmp / "elsewhere" / "far")
+    _write_record(far, "x_far")
+    assert main(["find", "x_far"]) == 1
+    capsys.readouterr()
+    monkeypatch.setenv("AI_MEM_WORKSPACE_ROOT", str(tmp))
+    assert main(["find", "x_far"]) == 0
+    assert capsys.readouterr().out.startswith("../../elsewhere/far:x_far")
+
+
+@pytest.mark.parametrize("bad", ["..", "../x", "a/b", "a:b", "x\ny", "*", "INDEX", " x"])
+def test_find_refuses_hostile_ids(env, capsys, bad):
+    assert main(["find", bad]) == 2
+    assert capsys.readouterr().out == ""
+
+
+def test_find_skips_symlink_leaving_the_records_dir_and_writes_nothing(env, capsys):
+    tmp, _, proj, other = env
+    secret = tmp / "secret.md"
+    secret.write_text("secret\n")
+    link = other.records_dir / "general" / "learnings" / "x_link.md"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(secret)
+    before = _tree(tmp)
+    assert main(["find", "x_link"]) == 1
+    assert _tree(tmp) == before
+
+
+def test_link_error_names_where_a_missing_target_lives(env, capsys):
+    _, _, proj, other = env
+    _write_record(proj, "x_src")
+    _write_record(other, "x_elsewhere")
+    assert main(["link", "x_src", "x_elsewhere", "--type", "related"]) == 1
+    err = capsys.readouterr().err
+    assert "not in this area; found at ../other:x_elsewhere" in err
+
+
+def test_link_error_says_found_nowhere(env, capsys):
+    _, _, proj, _ = env
+    _write_record(proj, "x_src")
+    assert main(["link", "x_src", "x_ghost", "--type", "related"]) == 1
+    assert "found nowhere" in capsys.readouterr().err
+
+
+def test_find_walks_nested_areas_up_to_the_root_skipping_area_less_dirs(env, capsys):
+    tmp, _, _, _ = env
+    top = _make_area(tmp / "n")
+    mid = _make_area(tmp / "n" / "b")
+    leaf = _make_area(tmp / "n" / "b" / "plain" / "c")
+    for area, entry_id in ((top, "x_top"), (mid, "x_mid")):
+        _write_record(area, entry_id)
+    for entry_id, ref in (("x_mid", "../..:x_mid"), ("x_top", "../../..:x_top")):
+        assert main(["find", entry_id, "--area", str(leaf.root), "--root", str(top.root)]) == 0
+        assert capsys.readouterr().out.startswith(ref)
+
+
+def test_find_never_searches_above_the_root(env, capsys):
+    tmp, _, _, _ = env
+    above = _make_area(tmp / "m")
+    _write_record(above, "x_above")
+    root = _make_area(tmp / "m" / "r")
+    leaf = _make_area(tmp / "m" / "r" / "leaf")
+    assert main(["find", "x_above", "--area", str(leaf.root), "--root", str(root.root)]) == 1
+    assert main(["find", "x_above", "--area", str(leaf.root), "--root", str(above.root)]) == 0
+    capsys.readouterr()
+    outside = _make_area(tmp / "elsewhere")
+    _write_record(outside, "x_out")
+    assert main(["find", "x_out", "--area", str(leaf.root), "--root", str(root.root)]) == 1
+
+
+def test_find_lists_only_top_level_reference_docs(env):
+    _, _, proj, other = env
+    nested = other.records_dir.parent / "reference" / "sub" / "x_deep.md"
+    nested.parent.mkdir(parents=True)
+    nested.write_text("doc\n")
+    assert main(["find", "x_deep"]) == 1
+
+
+def test_link_hint_only_when_the_target_is_the_problem(env, capsys):
+    _, _, proj, other = env
+    _write_record(proj, "x_t")
+    assert main(["link", "x_ghost_src", "x_t", "--type", "related"]) == 1
+    assert "found at" not in capsys.readouterr().err
+
+
+# --- move --batch (chunk 5x-a) ------------------------------------------------------------------
+
+def _batch_file(tmp_path, *rows, name="batch.tsv"):
+    path = tmp_path / name
+    path.write_text("\n".join(rows) + "\n")
+    return str(path)
+
+
+def _row(source, entry_id, target, perspective=""):
+    return "\t".join([str(source.root), entry_id, str(target.root), perspective])
+
+
+def _stored_edges(area, entry_id):
+    text = _record(area, entry_id).read_text()
+    (line,) = [l for l in text.splitlines() if l.startswith("edges:")]
+    return {(e["target_id"], e["edge_type"]) for e in json.loads(line.removeprefix("edges:").strip())}
+
+
+def _seed_batch(env, tmp_path):
+    """proj: a, b, user_u, stays (stays -> a); other: o (o -> ../proj:a); third: t, bystander (bystander -> ../proj:a)."""
+    _, _, proj, other = env
+    third, fourth = _third(tmp_path), _make_area(tmp_path / "ws" / "fourth")
+    for area, entry_id, kind in ((proj, "learning_a", "learning"), (proj, "learning_b", "learning"), (proj, "user_u", "user"),
+                                 (proj, "learning_stays", "learning"), (other, "learning_o", "learning"),
+                                 (third, "learning_t", "learning"), (third, "learning_bystander", "learning")):
+        _add("--area", str(area.root), "--id", entry_id, "--type", kind, "--text", f"{entry_id} text.")
+    main(["link", "learning_a", "learning_b", "--type", "related"])
+    main(["link", "learning_b", "../third:learning_t", "--type", "related"])
+    main(["link", "learning_stays", "learning_a", "--type", "derived_from"])
+    main(["link", "learning_o", "../proj:learning_a", "--type", "related", "--area", str(other.root)])
+    main(["link", "learning_bystander", "../proj:learning_a", "--type", "related", "--area", str(third.root)])
+    return third, fourth
+
+
+def test_batch_moves_across_sources_and_targets_with_final_edges(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third, fourth = _seed_batch(env, tmp_path)
+    main(["link", "learning_t", "../proj:learning_b", "--type", "related", "--area", str(third.root)])
+    batch = _batch_file(tmp_path, _row(proj, "learning_a", other, "tooling"), _row(proj, "learning_b", fourth),
+                        _row(third, "learning_t", other), _row(proj, "user_u", other, "ignored"))
+    bystander_before = _record(third, "learning_bystander").read_text()
+    o_before = _record(other, "learning_o").read_text()
+
+    assert main(["move", "--batch", batch]) == 0
+
+    # a -> other, b -> fourth, t -> other: edges written against the final locations, in either direction
+    assert _stored_edges(other, "learning_a") == {("../fourth:learning_b", "related")}
+    assert _stored_edges(fourth, "learning_b") == {("../other:learning_t", "related")}
+    assert _stored_edges(other, "learning_t") == {("../fourth:learning_b", "related")}
+    # referrer inside a source area is rewritten to the final location
+    assert _stored_edges(proj, "learning_stays") == {("../other:learning_a", "derived_from")}
+    # a source area (third) is also rewritten: nothing references moved records there except t's neighbours
+    assert _record(third, "learning_bystander").read_text() != bystander_before
+    assert _stored_edges(third, "learning_bystander") == {("../other:learning_a", "related")}
+    # a non-source, pre-existing target record is only reported
+    assert _record(other, "learning_o").read_text() == o_before
+    assert "perspective: tooling" in _record(other, "learning_a").read_text()
+    assert "perspective: user" in _record(other, "user_u").read_text()
+    for area, moved in ((proj, "learning_a"), (proj, "learning_b"), (third, "learning_t"), (proj, "user_u")):
+        assert not list(area.records_dir.rglob(f"{moved}.md"))
+
+
+def test_batch_reports_referrers_outside_the_source_areas_and_never_edits_them(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third, fourth = _seed_batch(env, tmp_path)
+    capsys.readouterr()
+    before = {key: _tree(area.root) for key, area in (("other", other), ("third", third), ("fourth", fourth))}
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", fourth)), "--scan-root", str(tmp_path / "ws")]) == 0
+
+    out = capsys.readouterr().out
+    assert "report (not edited) " + str(other.root) + ":learning_o" in out
+    assert _tree(other.root) == before["other"]
+    assert _tree(third.root) == before["third"]  # not a source area of this batch: reported only
+    assert "report (not edited) " + str(third.root) + ":learning_bystander" in out
+
+
+def test_batch_dry_run_changes_nothing_and_prints_the_plan(env, tmp_path, capsys):
+    _, _, proj, other = env
+    _seed_batch(env, tmp_path)
+    before = _tree(tmp_path / "ws")
+    capsys.readouterr()
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), _row(proj, "learning_b", other)), "--dry-run"]) == 0
+
+    assert _tree(tmp_path / "ws") == before
+    out = capsys.readouterr().out
+    assert "would write" in out and "would delete" in out and "would rewrite edge" in out
+
+
+def test_batch_supersede_pair_moves_together_but_never_split(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third, _ = _seed_batch(env, tmp_path)
+    main(["link", "learning_a", "learning_b", "--type", "supersedes"])
+    before = _tree(tmp_path / "ws")
+
+    # one end only, or the two ends to different targets: refused, nothing changes
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other))]) == 1
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), _row(proj, "learning_b", third))]) == 1
+    assert _tree(tmp_path / "ws") == before
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), _row(proj, "learning_b", other))]) == 0
+    assert ("learning_b", "supersedes") in _stored_edges(other, "learning_a")
+
+
+def test_batch_refuses_reference_docs_and_a_differing_record_in_the_target(env, tmp_path, capsys):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--area", str(other.root), "--id", "learning_a", "--type", "learning", "--text", "Different.")
+    ref = proj.root / "docs" / "reference"
+    ref.mkdir()
+    (ref / "ref_doc.md").write_text("---\ntype: reference\n---\nA reference doc.\n")
+    before = _tree(tmp_path / "ws")
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other))]) == 1
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "ref_doc", other))]) == 1
+    assert _tree(tmp_path / "ws") == before
+    assert "not records" in capsys.readouterr().out
+
+
+def test_batch_rerun_is_idempotent_and_resumes_an_interrupted_run(env, tmp_path, capsys):
+    _, _, proj, other = env
+    third, _ = _seed_batch(env, tmp_path)
+    batch = _batch_file(tmp_path, _row(proj, "learning_a", other, "tooling"), _row(proj, "learning_b", third))
+
+    # interrupted run: the arrivals landed in the targets, the source rewrites and deletes did not
+    backup = tmp_path / "proj-before"
+    shutil.copytree(proj.records_dir, backup)
+    assert main(["move", "--batch", batch]) == 0
+    expected = _tree(tmp_path / "ws")
+    shutil.rmtree(proj.records_dir)
+    shutil.copytree(backup, proj.records_dir)
+    assert main(["move", "--batch", batch]) == 0
+    assert _tree(tmp_path / "ws") == expected
+    assert not list(proj.records_dir.rglob("learning_a.md"))
+
+    # a finished batch run again: all rows are done, nothing changes
+    capsys.readouterr()
+    snapshot = _tree(tmp_path / "ws")
+    assert main(["move", "--batch", batch]) == 0
+    assert _tree(tmp_path / "ws") == snapshot
+    assert capsys.readouterr().out.count("done learning_") == 2
+
+
+def test_batch_row_validation(env, tmp_path, capsys):
+    _, _, proj, other = env
+    _seed_batch(env, tmp_path)
+    before = _tree(tmp_path / "ws")
+    bad_rows = {
+        "too few columns": f"{proj.root}\tlearning_a",
+        "too many columns": _row(proj, "learning_a", other, "x") + "\textra",
+        "empty id": _row(proj, "", other),
+        "hostile id": _row(proj, "../../x", other),
+        "qualified id": _row(proj, "a:b", other),
+        "same area": _row(proj, "learning_a", proj),
+        "not an area": f"{tmp_path}\tlearning_a\t{other.root}",
+        "bad perspective": _row(proj, "learning_a", other, "Not Safe"),
+        "focus": _row(proj, "current_focus", other),
+    }
+    for name, row in bad_rows.items():
+        assert main(["move", "--batch", _batch_file(tmp_path, row)]) == 2, name
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), _row(proj, "learning_a", other))]) == 2
+    third = tmp_path / "ws" / "third"
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), f"{third}\tlearning_a\t{other.root}")]) == 2
+    assert main(["move", "--batch", _batch_file(tmp_path, "# only a comment", "")]) == 2
+    assert main(["move", "--batch", str(tmp_path / "missing.tsv")]) == 2
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other)), "learning_b"]) == 2
+    assert _tree(tmp_path / "ws") == before
+
+
+def test_batch_comments_blank_lines_and_relative_paths(env, tmp_path):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+
+    batch = tmp_path / "ws" / "batch.tsv"
+    batch.write_text("# header\n\nproj\tlearning_a\tother\n")
+
+    assert main(["move", "--batch", str(batch)]) == 0
+    assert _record(other, "learning_a")
+
+
+def test_batch_unknown_id_aborts_before_anything_is_written(env, tmp_path, capsys):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    before = _tree(tmp_path / "ws")
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other), _row(proj, "learning_zz", other))]) == 1
+
+    assert _tree(tmp_path / "ws") == before
+    assert "not found learning_zz" in capsys.readouterr().out
+
+
+def test_batch_into_hand_kept_target_is_refused(env, tmp_path, capsys):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--area", str(other.root), "--id", "pattern_t", "--type", "pattern", "--text", "T.")
+    _hand_index(other)
+    before = _tree(tmp_path / "ws")
+
+    assert main(["move", "--batch", _batch_file(tmp_path, _row(proj, "learning_a", other)), "--dry-run"]) == 1
+
+    assert "hand-kept" in capsys.readouterr().err
+    assert _tree(tmp_path / "ws") == before

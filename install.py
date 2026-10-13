@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""ai-mem installer — registers the MCP server with Claude Code, Gemini CLI, and/or Cursor."""
+"""ai-mem installer — registers the MCP server with Claude Code, Gemini CLI, and/or Cursor.
+
+The agents, skills, hooks and `mem` commands come with the Claude Code plugin (`claude plugin install ai-mem@ai-mem`),
+not from here; see UPGRADING.md.
+"""
 import argparse
 import json
 import re
@@ -7,13 +11,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+from ai_mem import upgrade_guard
+
 REPO_ROOT = Path(__file__).parent.resolve()
 HOME = Path.home()
 SERVER_MODULE = "ai_mem.server"
 DB_PATH = Path(
     __import__("os").environ.get("AI_MEM_PATH", str(HOME / ".local" / "share" / "ai-mem"))
 )
-MIGRATIONS_DIR = DB_PATH / ".migrations"
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -41,8 +46,8 @@ def _remove_hook_command(entries: list[dict], module: str) -> None:
 
     Used to retire a hook install.py no longer registers (PreToolUse push→pull migration,
     2026-09-12) — re-running install.py on an existing installation self-heals by removing
-    the stale entry, same surgical per-hook-object removal as _upsert_hook_command's own
-    dedup path, so a user-customized group that bundles an unrelated hook keeps that hook.
+    the stale entry. Removal is per hook object, so a user-customized group that bundles an
+    unrelated hook keeps that hook.
     """
     marker = f"-m {module} "
     for entry in list(entries):
@@ -78,53 +83,6 @@ def _existing_workspace_root(settings_path: Path, module: str) -> str:
             if match:
                 return match.group(1)
     return ""
-
-
-def _upsert_hook_command(entries: list[dict], module: str, command: str, timeout: int, matcher: str | None = None) -> None:
-    """Update the existing hook entry that invokes `module`, or append a new one.
-
-    Matches by module name (`-m <module>`) rather than exact command string, so re-running
-    install.py with a different env prefix (e.g. AI_MEM_WORKSPACE_ROOT changing) updates the
-    existing entry in place instead of appending a duplicate that fires alongside the old one.
-
-    Self-healing: if more than one hook entry already matches `module` (e.g. left over from
-    installs predating this dedup logic, or from install.py having been invoked once via
-    `python` and once via `python3`), the extras are removed here too — every install run
-    sanitizes the file down to exactly one entry per module instead of only preventing new
-    duplicates from being added. Removal is surgical: only the matching hook object is
-    stripped out of a group's `hooks` list, and the group itself is dropped only if that
-    leaves it empty — a user-customized group that bundles an unrelated hook alongside an
-    old ai-mem duplicate keeps its unrelated hook intact.
-    """
-    marker = f"-m {module} "
-    kept: dict | None = None
-    for entry in list(entries):
-        hooks_list = entry.get("hooks", [])
-        matching = [h for h in hooks_list if marker in h.get("command", "")]
-        if not matching:
-            continue
-        if kept is None:
-            kept = matching[0]
-            # drop any further duplicates that happen to sit in this same group too
-            entry["hooks"] = [h for h in hooks_list if h is kept or marker not in h.get("command", "")]
-            # only claim the matcher if the group is exclusively ours now — a group that
-            # still holds an unrelated user hook keeps its own matcher untouched
-            if matcher is not None and len(entry["hooks"]) == 1:
-                entry["matcher"] = matcher
-        else:
-            entry["hooks"] = [h for h in hooks_list if marker not in h.get("command", "")]
-            if not entry["hooks"]:
-                # remove by identity, not value-equality — two unrelated emptied/empty
-                # groups can be dict-equal and list.remove would drop the wrong one
-                entries[:] = [e for e in entries if e is not entry]
-    if kept is not None:
-        kept["command"] = command
-        kept["timeout"] = timeout
-        return
-    new_entry = {"hooks": [{"type": "command", "command": command, "timeout": timeout}]}
-    if matcher is not None:
-        new_entry["matcher"] = matcher
-    entries.append(new_entry)
 
 
 # ── installation steps ────────────────────────────────────────────────────────
@@ -170,7 +128,7 @@ def prompt_workspace_root() -> str:
 
 
 def register_claude(workspace_root: str = ""):
-    """Add ai-mem MCP server + SessionStart hook to ~/.claude.json and ~/.claude/settings.json."""
+    """Add the ai-mem MCP server to ~/.claude.json and its permissions to ~/.claude/settings.json."""
     # MCP server → ~/.claude.json
     mcp_path = HOME / ".claude.json"
     print(f"\n🤖 Registering with Claude Code ({mcp_path})...")
@@ -207,22 +165,8 @@ def register_claude(workspace_root: str = ""):
 
     patch_json(mcp_path, update_mcp)
 
-    # SessionStart + PostToolUse hooks + permissions → ~/.claude/settings.json
-    # PreToolUse's automatic push (pretool_hook.py) was retired 2026-09-12 in favor of explicit
-    # pull (mem_query) from role-scoped collections in agent/command prompts.
-    # UserPromptSubmit's automatic push (userprompt_hook.py) was retired 2026-09-13 for the same
-    # reason: it fired on every single message (not just once per session like SessionStart),
-    # doing up to 4 parallel semantic queries each time.
+    # Hooks come from the plugin (hooks/hooks.json); here only the retired legacy entries are removed.
     settings_path = HOME / ".claude" / "settings.json"
-    # Hooks run as separate subprocesses spawned by Claude Code directly — they do NOT inherit
-    # the "env" block set on the MCP server entry above (that only applies to the MCP server's own
-    # subprocess). So workspace_root must be threaded into the hook commands themselves, or hooks
-    # keep using git-based detection while mem_add/mem_query use workspace-root-based naming —
-    # the same failure mode already documented for AI_MEM_PATH in ai-mem's own memory.
-    if not workspace_root:
-        workspace_root = _existing_workspace_root(settings_path, "ai_mem.hook")
-    env_prefix = f"AI_MEM_WORKSPACE_ROOT={workspace_root} " if workspace_root else ""
-    hook_cmd = f"{env_prefix}{python_exe()} -m ai_mem.hook 2>/dev/null || true"
 
     MCP_PERMISSIONS = [
         "mcp__ai-mem__mem_add",
@@ -238,9 +182,6 @@ def register_claude(workspace_root: str = ""):
 
     def update_settings(data: dict) -> dict:
         hooks = data.setdefault("hooks", {})
-
-        session_hooks = hooks.setdefault("SessionStart", [])
-        _upsert_hook_command(session_hooks, "ai_mem.hook", hook_cmd, timeout=10)
 
         if "UserPromptSubmit" in hooks:
             _remove_hook_command(hooks["UserPromptSubmit"], "ai_mem.userprompt_hook")
@@ -268,96 +209,28 @@ def register_claude(workspace_root: str = ""):
 
     patch_json(settings_path, update_settings)
 
-    install_mem_init_command()
-    install_reflect_command()
-    print("   ✓ MCP server + hooks + permissions registered. Restart Claude Code to activate.")
+    print("   ✓ MCP server + permissions registered. Restart Claude Code to activate.")
 
 
-_MEM_INIT_CONTENT = """\
-Initialize or update the ai-mem memory for the current project scope.
+def offer_plugin_switch():
+    """The plugin replaces the hooks, /reflect and /mem-init commands and links older versions installed; remove them on consent."""
+    import uninstall
 
-1. Detect the active scope:
-   - Find the nearest CLAUDE.md (or agent.md) walking up from the current directory
-
-   If AI_MEM_WORKSPACE_ROOT is set (recommended):
-   - Compute the CLAUDE.md directory path relative to the workspace root
-   - Each path component becomes a dot-separated scope segment
-   - Sanitize each part: replace characters outside [a-zA-Z0-9._-] with underscore, strip leading/trailing ._-
-   - Collection name: `repo.<scope>` (e.g. `repo.acme-project.filming`)
-   - If CLAUDE.md is at the workspace root itself: falls back to `workspace`
-
-   If AI_MEM_WORKSPACE_ROOT is not set (git-based fallback):
-   - From the CLAUDE.md directory run: `git rev-parse --show-toplevel`
-   - Try: `git remote get-url origin` and extract the trailing path component (strip .git suffix)
-   - Fall back to the basename of the git root if no remote
-   - If CLAUDE.md is not at the git root, append the relative subpath (dot-separated)
-   - Collection name: `repo.<scope>` (e.g. `repo.ai-mem`, `repo.mymonorepo.backend`)
-
-2. Tell the user: "Initializing ai-mem for scope '<scope>' using collection 'repo.<scope>'."
-
-3. Ask: "What are you currently working on in this scope? (This becomes current_focus.)"
-
-4. Call mem_add:
-   - documents: [<user's answer>]
-   - ids: ["current_focus"]
-   - collection: "repo.<scope>"
-
-5. Seed the collection by exploring the repo with your tools (Read, Bash, Grep).
-   Answer each question below and store the answer with a separate mem_add call.
-   Skip a question if the repo is too new or empty to answer it meaningfully.
-
-   a. What is this project?
-      Read README, pyproject.toml, package.json, or equivalent to find out.
-      mem_add(ids=["seed_project"], collection="repo.<scope>",
-              documents=[<answer>], metadatas=[{"type": "reference", "seeded_by": "mem-init"}])
-
-   b. What are the non-obvious architectural decisions — things not immediately visible from the directory structure?
-      mem_add(ids=["seed_architecture"], collection="repo.<scope>",
-              documents=[<answer>], metadatas=[{"type": "pattern", "seeded_by": "mem-init"}])
-
-   c. What conventions or gotchas would surprise a new contributor?
-      mem_add(ids=["seed_conventions"], collection="repo.<scope>",
-              documents=[<answer>], metadatas=[{"type": "pattern", "seeded_by": "mem-init"}])
-
-   Each answer becomes a file: seed_project in docs/reference/, the patterns in docs/records/general/decisions/.
-   Re-running /mem-init updates these files in place (same ids = upsert).
-
-6. Confirm: "Done. Memory initialized for 'repo.<scope>'. Re-run /mem-init after major structural changes."
-
-7. Close with this reminder:
-   "One more thing: run /reflect after every task you complete. That closes the
-   Plan → Code → Reflect loop and is the actual core of ai-mem — without it,
-   ai-mem is just a database. With /reflect, the agent accumulates structured
-   experience across sessions and builds progressively better context."
-
-current_focus is written to docs/records/FOCUS.md. A focus that spans all repos goes into
-collection="global" (its FOCUS.md lives in the records home, ai-mem-records/global/).
-"""
-
-
-def install_mem_init_command():
-    commands_dir = HOME / ".claude" / "commands"
-    commands_dir.mkdir(parents=True, exist_ok=True)
-    target = commands_dir / "mem-init.md"
-    target.write_text(_MEM_INIT_CONTENT)
-    print(f"   ✓ /mem-init command installed at {target}")
-
-
-def install_reflect_command():
-    source = REPO_ROOT / "skills" / "examples" / "reflect.md"
-    if not source.exists():
-        print("   ⚠ skills/reflect.md not found, skipping /reflect install.")
+    leftovers = uninstall.plugin_leftovers(HOME)
+    if not leftovers:
         return
-    commands_dir = HOME / ".claude" / "commands"
-    commands_dir.mkdir(parents=True, exist_ok=True)
-    target = commands_dir / "reflect.md"
-    target.write_text(source.read_text())
-    print(f"   ✓ /reflect command installed at {target}")
+    print("\nThe ai-mem plugin now provides what older versions installed here:")
+    for item in leftovers:
+        print(f"  - {item}")
+    print("Left in place they fire twice once the plugin is installed (claude plugin install ai-mem@ai-mem).")
+    if input("Remove them now? [y/N]: ").strip().lower() == "y":
+        uninstall.remove_plugin_provided(HOME, dry_run=False)
 
 
 def run_pending_migrations():
     """Run one-time data migrations that have not yet been applied to this installation."""
-    sentinel = MIGRATIONS_DIR / "boost_count_v1.done"
+    migrations_dir = upgrade_guard.migrations_dir(DB_PATH)
+    sentinel = migrations_dir / "boost_count_v1.done"
     if sentinel.exists():
         return
 
@@ -366,7 +239,7 @@ def run_pending_migrations():
         return
 
     if not DB_PATH.exists():
-        MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        migrations_dir.mkdir(parents=True, exist_ok=True)
         sentinel.touch()
         return
 
@@ -376,7 +249,7 @@ def run_pending_migrations():
         capture_output=True, text=True,
     )
     if result.returncode == 0:
-        MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
+        migrations_dir.mkdir(parents=True, exist_ok=True)
         sentinel.touch()
         summary = [l for l in result.stdout.splitlines() if l.strip() and not l.startswith("  ")]
         print(f"   ✓ {summary[-1] if summary else 'Done.'}")
@@ -390,12 +263,10 @@ def run_records_migration(workspace_root: str = ""):
     Writes into the user's project repos, so it always shows a dry run first and only applies
     on an explicit yes. Declining leaves no sentinel: the next install.py run asks again.
     """
-    sentinel = MIGRATIONS_DIR / "records_v1.done"
-    if sentinel.exists():
+    if upgrade_guard.records_v1_sentinel(DB_PATH).exists():
         return
     if not DB_PATH.exists():
-        MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
-        sentinel.touch()
+        upgrade_guard.mark_records_v1_done(DB_PATH)
         return
 
     root = workspace_root or _existing_workspace_root(HOME / ".claude" / "settings.json", "ai_mem.hook")
@@ -429,10 +300,16 @@ def run_records_migration(workspace_root: str = ""):
 
     applied = subprocess.run(cmd + ["--apply"], capture_output=True, text=True, env=env)
     if applied.returncode != 0:
-        print(f"   ⚠ Migration failed (non-fatal): {applied.stderr.strip()[:200]}")
+        if "Report:" in applied.stdout:
+            # The files were written but the plan was not clean: records_v1 is NOT marked done, so the
+            # upgrade guard stays on (SessionStart and `mem` say so) until a clean `migrate --apply`.
+            print("\n".join(f"   {line}" for line in applied.stdout.splitlines() if line.startswith(("Backup", "Report"))))
+            print(f"   ⚠ Migration applied, but records_v1 is NOT marked done: {applied.stderr.strip()[:200]}")
+        else:
+            print(f"   ⚠ Migration failed, nothing was marked done: {applied.stderr.strip()[:200]}")
+        print("     The upgrade guard stays on. Re-run: mem-adr-sync migrate --apply (see UPGRADING.md).")
         return
-    MIGRATIONS_DIR.mkdir(parents=True, exist_ok=True)
-    sentinel.touch()
+    upgrade_guard.mark_records_v1_done(DB_PATH)
     print("\n".join(f"   {line}" for line in applied.stdout.splitlines() if line.startswith(("Backup", "Report"))))
     print("   ✓ Done. Review the report, then commit docs/records/ (and docs/reference/) in each repo.")
 
@@ -499,13 +376,11 @@ def prompt_targets() -> list:
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("--sync-commands", action="store_true")
-    args, _ = parser.parse_known_args()
+    parser.add_argument("--plugin-switch", action="store_true")
+    args = parser.parse_args()
 
-    if args.sync_commands:
-        install_mem_init_command()
-        install_reflect_command()
-        print("\n✅ Commands synced.")
+    if args.plugin_switch:
+        offer_plugin_switch()
         return
 
     print("=" * 50)
@@ -528,13 +403,15 @@ def main():
         except Exception as e:
             print(f"   ✗ {label} registration failed: {e}")
 
+    offer_plugin_switch()
+
     print("\n✅ Done! Restart your AI tool(s) to start using ai-mem.")
     print(f"\n   Data will be stored at: {HOME / '.local' / 'share' / 'ai-mem'}")
     print("   Override with: AI_MEM_PATH=/your/path")
     print("\n   Quick start:")
-    print("     /mem-init   — initialize memory for your current project")
-    print("     /reflect    — run after every task to close the learning loop")
-    print("     python3 install.py --sync-commands   — sync only the /mem-init and /reflect commands")
+    print("     claude plugin marketplace add " + str(REPO_ROOT) + " && claude plugin install ai-mem@ai-mem")
+    print("                 — agents, /ai-mem:reflect, /ai-mem:setup, the mem command and the hooks")
+    print("     /ai-mem:setup   — wire your teams and CLAUDE.md to ai-mem (proposes, applies on your approval)")
     print(f"\n   How the framework works: {REPO_ROOT / 'docs' / 'epistemology-framework.md'}")
 
 

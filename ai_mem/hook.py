@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """SessionStart hook — announces the active collection and where the records live; verbose mode adds focus text."""
 import json
+import math
 import os
 import sys
 from pathlib import Path
 
 import time
+
+from ai_mem.hooks import DOCTOR_STAMP  # stdlib-only, so it stays outside the guarded imports below
 
 DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
 
@@ -16,6 +19,7 @@ try:
     from ai_mem.application.list_collections import ListCollectionsUseCase
     from ai_mem.application.list_entries import title_of
     from ai_mem.infrastructure.adr_paths import records_dir_for_root
+    from ai_mem.infrastructure.areas import find_area
     from ai_mem.infrastructure.repository_factory import build_repository
     from ai_mem.repo_context import GLOBAL_COLLECTION, WORKSPACE_COLLECTION, detect_repo_context
     from ai_mem.session_stats import record_injection
@@ -30,6 +34,7 @@ except ImportError:
     title_of = None  # type: ignore[assignment]
     build_repository = None  # type: ignore[assignment]
     records_dir_for_root = None  # type: ignore[assignment]
+    find_area = None  # type: ignore[assignment]
     GLOBAL_COLLECTION = "global"
     WORKSPACE_COLLECTION = "workspace"
     detect_repo_context = None  # type: ignore[assignment]
@@ -147,11 +152,50 @@ def _records_pointer(ctx) -> str | None:
             return None
     except Exception:
         return None
+    return _pointer_to(records)
+
+
+def _pointer_to(records: Path) -> str:
     focus = "FOCUS.md = current focus, " if (records / "FOCUS.md").is_file() else ""
     return (
         f"Records: {records} ({focus}INDEX.md = catalogue of decisions, learnings, todos). "
         "Read them on demand; for \"why is it like this / was this tried before?\" ask the librarian agent."
     )
+
+
+_DOCTOR_INTERVAL_DAYS = 14
+
+
+def _doctor_interval_days() -> float:
+    """The plugin option `doctor_cadence_days` (env `CLAUDE_PLUGIN_OPTION_DOCTOR_CADENCE_DAYS`), else the default."""
+    try:
+        days = float(os.environ.get("CLAUDE_PLUGIN_OPTION_DOCTOR_CADENCE_DAYS", ""))
+    except ValueError:
+        return _DOCTOR_INTERVAL_DAYS
+    return days if math.isfinite(days) and days > 0 else _DOCTOR_INTERVAL_DAYS
+
+
+def _doctor_pointer(db_path: Path, now: float) -> str:
+    """Pointer line only, never findings; `mem doctor` writes the timestamp (epoch seconds) when it runs."""
+    try:
+        age = now - float((db_path / DOCTOR_STAMP).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        age = math.nan
+    if not math.isfinite(age):
+        return "Run mem doctor (not run yet)."
+    return f"Run mem doctor (last run {int(age // 86400)} days ago)." if age > _doctor_interval_days() * 86400 else ""
+
+
+def _area_lines() -> list[str]:
+    """`Area: <path>` and the Records pointer for the nearest area above the cwd, plus the doctor pointer when due."""
+    try:
+        area = find_area(Path.cwd())
+        if area is None:
+            return []
+        lines = [f"Area: {area.root}", _pointer_to(area.records_dir), _doctor_pointer(DB_PATH, time.time())]
+        return [line for line in lines if line]
+    except Exception:
+        return []
 
 
 def main():
@@ -163,7 +207,7 @@ def main():
     if (detect_for_session_start is None or write_to_env_file is None
             or build_repository is None or GetMemoryUseCase is None
             or ListCollectionsUseCase is None or title_of is None
-            or detect_repo_context is None or record_injection is None):
+            or detect_repo_context is None or record_injection is None or find_area is None):
         return
 
     agent_type: str | None = None
@@ -175,9 +219,6 @@ def main():
             return
     except Exception:
         pass
-
-    if not DB_PATH.exists():
-        return
 
     try:
         _SESSION_START_FILE.write_text(str(time.time()))
@@ -218,9 +259,13 @@ def main():
                 f'Pass collection="{ctx.collection}" to mem_add and mem_query in this session.'
             )
 
-        records_line = _records_pointer(ctx)
-        if records_line:
-            parts.append(records_line)
+        area_lines = _area_lines()
+        if area_lines:
+            parts.extend(area_lines)
+        else:
+            records_line = _records_pointer(ctx)
+            if records_line:
+                parts.append(records_line)
 
         # The default path touches no storage. Build the repo only for verbose mode, and never
         # let a failing build swallow the routing lines.

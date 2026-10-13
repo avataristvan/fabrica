@@ -11,7 +11,9 @@ from dataclasses import dataclass, field
 from ai_mem.infrastructure.adr_paths import DEFAULT_AREA
 
 _FRONTMATTER_SEPARATOR = "\n---\n\n"
-KNOWN_KEYS = frozenset({"id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges", "cue"})
+# Order `serialize` writes the known keys in; unknown keys follow, `cue` is last. Lint's normaliser reuses it.
+KEY_ORDER = ("id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges")
+KNOWN_KEYS =frozenset({"id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges", "cue"})
 # Telemetry that is never persisted: dropped from a file's frontmatter, never carried as an extra key.
 _VOLATILE_KEYS = frozenset({"confidence", "access_count", "boost_count", "last_accessed_at", "expires_at"})
 EXTRA_FRONTMATTER = "extra_frontmatter"  # metadata slot carrying unknown frontmatter keys through a rewrite

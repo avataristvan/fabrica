@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added: Claude Code plugin package (`ai-mem@ai-mem`)
+
+- `.claude-plugin/plugin.json` and `marketplace.json`; `agents/` (`librarian`, `archivist`, `anchor-lint`, moved from `examples/agents/`), `skills/reflect/SKILL.md` (was `skills/examples/reflect.md`), `skills/handoff-protocol/`, `hooks/hooks.json` (all four hooks through `hooks/run.py`), `bin/mem` and `bin/mem-dream` (sh shims, system `python3`, no `pip install`). Names are namespaced: `ai-mem:librarian`, `/ai-mem:reflect`.
+- Plugin options `retro_roles` and `doctor_cadence_days` reach the hooks as `CLAUDE_PLUGIN_OPTION_*`; the files and defaults of before stay the fallback. `retro_check` lists `ai-mem:anchor-lint`, not the bare name.
+- SessionStart no longer stays silent when `~/.local/share/ai-mem` does not exist, so the `Area:` line works on a plugin-only machine.
+- `install.py` no longer registers hooks, copies `/reflect` or links agents, skills and the navigation reference; `install.py --plugin-switch` and `uninstall.py` remove what older versions left in `~/.claude`. `UPGRADING.md` has part 1 of "MCP server -> plugin".
+
 ### Added: upgrade path for auto-updating installations (`UPGRADING.md`)
 
 - `UPGRADING.md` walks an unattended agent through each breaking step with exact commands and
@@ -63,7 +70,7 @@ retrieving anything else is a deliberate `mem_query`/`mem_get` call the agent ma
 in `~/.config/ai-mem/agents.yaml` (see `agents.yaml.example`).
 
 This pairs with the `UserPromptSubmit`/`PreToolUse` push hooks retired earlier
-(2026-09-12/13, see `docs/hooks.md`) — SessionStart was the last remaining hook that
+(2026-09-12/13, see `docs/reference/hooks.md`) — SessionStart was the last remaining hook that
 pushed memory *content* rather than routing.
 
 `~/.config/ai-mem/agents.yaml`'s `inject_agents` no longer implies "this agent should

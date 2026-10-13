@@ -1,0 +1,3 @@
+Now: going public. The records become a blueprint (archivist pass under `../fabrica:domain_clear_dead_weight_keep_reasons_2026_10_10`: reasons stay, dead weight such as machine paths, private project names, stale pointers and counts goes). Internal working material (raw eval transcripts, chunk plan, target picture, handoffs) stays local via `.git/info/exclude`. Then the unpushed commits are squashed (backup tag `pre-cleanup-2026-10-13`) and the user pushes.
+
+Later, needs budget: archivist acceptance (recall of hand-set edges 11/33), librarian search scope and the Relied-on parser, uninstall markers for old `reflect.md` copies.

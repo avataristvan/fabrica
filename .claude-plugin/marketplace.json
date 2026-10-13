@@ -1,0 +1,14 @@
+{
+  "name": "ai-mem",
+  "owner": {
+    "name": "Istvan Lovas"
+  },
+  "plugins": [
+    {
+      "name": "ai-mem",
+      "source": "./",
+      "description": "Git-native memory for agents: record files, librarian and archivist agents, the mem CLI and enforcing hooks."
+    }
+  ],
+  "description": "Git-native memory for agents."
+}
