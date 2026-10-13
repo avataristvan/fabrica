@@ -209,21 +209,16 @@
 | todo_archivist_flag_cross_area_duplicates_2026_10_13 | architecture | todo | TODO: The archivist does not look for duplicates of a candidate in other areas.  | active |
 | todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: Make the archivist's search of the records home (ai-mem-records/global, wo | active |
 | todo_bibliothekar_haiku_retrieval_agent_2026_09_25 | general | learning | RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09- | active |
-| todo_chunk4c_retro_log_dedupe_and_doctor_constant_2026_10_11 | plugin | todo | TODO: (1) Deduplicate retro_log.jsonl by agent_id, since a blocked agent logs tw | active |
 | todo_confidence_decay_adsr_design | general | learning | Design and implement a confidence-decay mechanism modeled on an ADSR envelope (A | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_detect_skipped_reflect_gate_2026_10_11 | architecture | todo | TODO: Make `mem doctor` detect a skipped reflect gate, e.g. commits on main sinc | active |
 | todo_doctor_reads_environment_records_2026_10_11 | architecture | todo | TODO: make `mem doctor` (Wiring) read environment records (e.g. "external team,  | active |
 | todo_doctor_retired_system_check_sidestepped_by_softer_wording_2026_10_12 | architecture | todo | TODO (user confirmed): The doctor's retired-system check can be sidestepped by s | active |
 | todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13 | records | todo | TODO: A `mem doctor` (or `mem lint`) check that lists hits in docs/records and d | active |
-| todo_doctor_wiring_deferred_from_4c_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the doctor): (1) hooks registered only | active |
+| todo_doctor_wiring_deferred_from_4c_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the doctor): hooks registered only in  | active |
 | todo_dream_area_refs_refactor | workflow | todo | TODO (from the mem-dream area-mode review): replace AreaRefResolver.resolve(..., | active |
-| todo_dream_guard_before_llm_calls | workflow | todo | TODO (from the mem-dream area-mode review): in mem-dream area mode the migration | active |
 | todo_dream_maintenance_batch_2026_09_25 | general | learning | RESULT (worked off 2026-09-26): mem_dream maintenance batch of 2026-09-25 on rep | active |
-| todo_dream_neighbourhood_unknown_id_message | workflow | todo | TODO (from the mem-dream area-mode review): with mem-dream --neighbourhood, a LI | active |
 | todo_dream_trigger_candidates_not_count_2026_09_25 | general | learning | RESULT (implemented): Idea of 2026-09-25 -- the mem_dream trigger in /reflect co | superseded_by: domain_dream_after_every_reflect_2026_09_26 |
-| todo_drop_chromadb_dependency | architecture | todo | TODO: Remove the Chroma rollback: chromadb dependency, chroma_repository, markdo | superseded_by: domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12 |
 | todo_fix_broken_memPalace_link_in_epistemology_framework_2026_10_12 | architecture | todo | TODO: Fix the broken link to ai-mem-vs-memPalace.md in docs/epistemology-framewo | active |
-| todo_frontmatter_value_injection | workflow | todo | TODO (push security review 2026-10-10): adr_markdown.serialize writes superseded | active |
 | todo_holistic_opus_review_adr_migration_2026_09_25 | workflow | learning | Observed: The holistic Opus review of the ADR migration (b7548a1, carried out 20 | active |
 | todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
 | todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |

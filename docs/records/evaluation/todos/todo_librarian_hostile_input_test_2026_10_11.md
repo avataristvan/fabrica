@@ -7,4 +7,4 @@ edges: [{"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "e
 cue: I am deciding how far to harden the librarian against hostile input or paths outside its area
 ---
 
-TODO: Write a hostile-input test for the librarian, and decide whether to harden its scope or keep it prompt-only. Read/Grep/Glob accept `..` and any path; there is no write or network channel. From the review of the files-only librarian.
+TODO: Write a hostile-input test for the librarian, and decide whether to harden its scope beyond the prompt. Read/Grep/Glob accept `..` and any path; there is no write or network channel. agents/librarian.md "Scope your reads" now limits it by prompt to docs/records, docs/reference and docs/sources and held once (2026-10-13), but no hostile-input test exists. From the review of the files-only librarian.
