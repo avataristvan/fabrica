@@ -1,3 +1,12 @@
+---
+type: design-doc
+date: 2026-09-26
+origin: docs/epistemology-framework.md, the first account of the method (first written 2026-05-08, last edited 2026-09-26, ChromaDB/MCP era); its surviving ideas moved to docs/fabrica/core.md and the patterns on 2026-10-14
+status: processed
+---
+
+## What the source says
+
 # The Epistemology Framework
 
 ai-mem is a memory tool, but memory alone does not produce knowledge. What turns stored entries into genuine agent expertise is the methodology around it. Together they form an **epistemology framework** — a system that determines how an agent comes to know things, not just how it stores them.

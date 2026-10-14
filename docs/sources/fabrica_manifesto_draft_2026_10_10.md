@@ -1,3 +1,12 @@
+---
+type: design-doc
+date: 2026-10-10
+origin: ~/workspace/fabrica/MANIFESTO.md (draft v0.1), briefly docs/fabrica/MANIFESTO.md; folded into docs/fabrica/core.md and the patterns on 2026-10-14
+status: processed
+---
+
+## What the source says
+
 # The Fabrica Manifesto
 
 *Draft v0.1, 2026-10-10. Written from the user's material (`ai-mem/docs/epistemology-framework.md`, the ai-mem session of 2026-10-10, Chelsea Troy's practices). It is the user's to own and change.*

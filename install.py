@@ -196,7 +196,7 @@ def main():
     print("     claude plugin marketplace add " + str(REPO_ROOT) + " && claude plugin install ai-mem@ai-mem")
     print("                 — agents, /ai-mem:reflect, /ai-mem:setup, the mem command and the hooks")
     print("     /ai-mem:setup   — wire your teams and CLAUDE.md to ai-mem (proposes, applies on your approval)")
-    print(f"\n   How the framework works: {REPO_ROOT / 'docs' / 'epistemology-framework.md'}")
+    print(f"\n   How the method works: {REPO_ROOT / 'docs' / 'fabrica' / 'core.md'}")
 
 
 if __name__ == "__main__":

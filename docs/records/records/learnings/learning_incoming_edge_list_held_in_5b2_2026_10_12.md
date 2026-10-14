@@ -3,7 +3,7 @@ type: learning
 area: records
 perspective: agent
 created: 1791786665.841492
-edges: [{"target_id": "pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12", "edge_type": "confirms"}, {"target_id": "todo_fix_broken_memPalace_link_in_epistemology_framework_2026_10_12", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12", "edge_type": "confirms"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}]
 cue: Reviewing a docs move chunk for dangling paths in records
 ---
 

@@ -54,6 +54,7 @@
 | domain_drop_confidence_for_evidence_and_librarian_2026_09_26 | architecture | domain | Decision: ai-mem drops confidence and access_count as a trust signal. In their p | active |
 | domain_drop_mcp_server_for_cli_plugin_2026_10_10 | architecture | domain | Decision: The MCP server (server.py, mem_* tools) is dropped. ai-mem becomes a C | active |
 | domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13 | architecture | domain | Decision: Fabrica is the method level: the framework, including the human-agent  | active |
+| domain_fabrica_practice_not_process_pattern_language_2026_10_14 | architecture | domain | Decision: Fabrica is a practice, not a process. Definition: "Fabrica is a practi | active |
 | domain_fabrica_records_public_as_self_proof_2026_10_10 | architecture | domain | Decision: Records about the framework itself are published with Fabrica. Fabrica | active |
 | domain_file_backend_replaces_chroma_2026_10_04 | architecture | domain | Decision: The record files are ai-mem's only store. FileMemoryRepository impleme | active |
 | domain_framework_named_fabrica_2026_10_10 | architecture | domain | Decision: The framework is called Fabrica. ai-mem keeps its name and is the memo | active |
@@ -221,7 +222,6 @@
 | todo_dream_area_refs_refactor | workflow | todo | TODO (from the mem-dream area-mode review): replace AreaRefResolver.resolve(..., | active |
 | todo_dream_maintenance_batch_2026_09_25 | general | learning | RESULT (worked off 2026-09-26): mem_dream maintenance batch of 2026-09-25 on rep | active |
 | todo_dream_trigger_candidates_not_count_2026_09_25 | general | learning | RESULT (implemented): Idea of 2026-09-25 -- the mem_dream trigger in /reflect co | superseded_by: domain_dream_after_every_reflect_2026_09_26 |
-| todo_fix_broken_memPalace_link_in_epistemology_framework_2026_10_12 | architecture | todo | TODO: Fix the broken link to ai-mem-vs-memPalace.md in docs/epistemology-framewo | active |
 | todo_holistic_opus_review_adr_migration_2026_09_25 | workflow | learning | Observed: The holistic Opus review of the ADR migration (b7548a1, carried out 20 | active |
 | todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
 | todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
@@ -232,7 +232,7 @@
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
-| todo_split_manifest_and_name_framework | architecture | todo | TODO (with the user, not via dev-team): Rework docs/epistemology-framework.md in | active |
+| todo_split_manifest_and_name_framework | architecture | todo | TODO (with the user, not via dev-team): finish the Fabrica documentation in the  | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
 | todo_symlink_following_delete | workflow | todo | TODO (push security review 2026-10-10): adr_paths.iter_record_files uses rglob,  | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |

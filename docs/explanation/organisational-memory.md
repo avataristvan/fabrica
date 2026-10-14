@@ -19,7 +19,7 @@ ai-mem remembers like an organisation does: through rituals at boundaries (decis
 - **Fixed call points at context boundaries.** A session start, a chunk handoff and a review are where knowledge is read in and written out.
 - **Judgment instead of scores.** A librarian agent reads the catalogue and the `cue:` of each record and decides what applies. Nothing is ranked by a number.
 
-It is the memory plugin of Fabrica, the framework of conventions, roles and rituals for humans and agents learning together (manifesto: link to follow once it is published). Fabrica's values are practices over tools, judgment over scores, knowledge at the right moment over knowledge at every moment, reasons over rules, and superseding over forgetting. The longer argument about how an agent comes to know things is in the [epistemology framework](../epistemology-framework.md); parts of it predate the file-based model and describe the earlier design.
+It is the reference implementation of [Fabrica](../fabrica/core.md), the practice that lets humans and agents learn from their own work. Fabrica's values are practices over tools, judgment over scores, knowledge at the right moment over knowledge at every moment, reasons over rules, mutual learning over silent automation, and superseding over forgetting. The first, longer account of the method is kept as the source [epistemology framework](../sources/epistemology_framework.md); it predates the file-based model.
 
 ## Roles
 
