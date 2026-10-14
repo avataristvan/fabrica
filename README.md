@@ -19,7 +19,15 @@ Read more: [Organisational memory](docs/explanation/organisational-memory.md) ·
 
 ### Fabrica
 
-Fabrica is the framework of conventions, roles and rituals that ai-mem supports. Its manifesto is not published yet; the link will be added here when it is.
+Fabrica is the practice ai-mem implements. If you know Lean, you know its shape: it is Kaizen for teams of humans and agents.
+
+| Kaizen | Fabrica |
+|---|---|
+| Hansei: reflect after the work | Taskly: what was learned, what blocked, what next |
+| Yokoten: spread a lesson sideways | the librarian brings a record to the place that needs it |
+| Standard work, replaced when something better is found | decisions with their reasons, superseded, never deleted |
+
+The difference: in a Toyota team, experience lives in people's heads. Agents start every session without one. So the seniority comes from the record itself: like the lodge book of a cathedral workshop, carried from generation to generation of builders, it is carried from session to session and keeps, with its reasons, what a team otherwise carries implicitly. → [Fabrica: the core](docs/fabrica/core.md)
 
 ## Install
 

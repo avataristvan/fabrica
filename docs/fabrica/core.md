@@ -86,6 +86,21 @@ A team practises Fabrica when:
 
 Everything else is a pattern: useful, named, and optional.
 
+## Fabrica and Kaizen
+
+Fabrica has the shape of Kaizen, the continuous improvement of the Toyota Production System. Like Kaizen, it is not a production process: it runs alongside the work and is carried by those who do it.
+
+| Kaizen | Fabrica |
+|---|---|
+| **Hansei:** structured reflection after a piece of work, including what went wrong | **Taskly:** what was learned, what blocked, what comes next |
+| **Yokoten:** a lesson is passed sideways to other teams | **Librarian and areas:** a record kept in one place is brought to the place that needs it |
+| **Standard work:** the current best way is written down and replaced when a better one is found | **Decisions with their reasons,** superseded instead of deleted; work is reviewed against them |
+| **5 Whys:** to the cause, not the symptom | **The why travels with the work:** a record names the cause and the reason |
+| **A3 report:** problem, cause and countermeasure on one page | **The record:** Decision / Why / Scope, Rule / When / Why |
+| **PDCA** | Charter (plan), the work (do), review against the record (check), Taskly and consolidation (act) |
+
+The difference is where experience lives. In a Toyota team it lives in people's heads, and the standard writes down the part that must be shared. Agents start every session without that memory; sideways spreading and reflection do not happen by themselves. So in Fabrica, seniority comes from the record itself. Like the lodge book of a cathedral workshop, carried from one generation of builders to the next, the record is carried from session to session, and keeps explicitly, with its reasons, what a human team carries implicitly.
+
 ## What Fabrica is not
 
 - Not a tool. Tools can support it, and any of them can be replaced.
@@ -101,4 +116,4 @@ Fabrica is young. Some of its practices are shown to work in use, some are on pr
 
 ## Lineage
 
-The form of the Agile Manifesto. Christopher Alexander's pattern language. Architecture Decision Records (Nygard). Chelsea Troy's *The Curse of Unbounded Contexts* (DDD Europe 2026): charter, one conversation one domain, carry-only-conclusions handoffs, the third-time rule. Domain-Driven Design's bounded contexts and context maps. Team Topologies. The cathedral workshops, the *fabricae* and *Bauhütten*.
+Kaizen and the Toyota Production System (hansei, yokoten, standard work, PDCA). The form of the Agile Manifesto. Christopher Alexander's pattern language. Architecture Decision Records (Nygard). Chelsea Troy's *The Curse of Unbounded Contexts* (DDD Europe 2026): charter, one conversation one domain, carry-only-conclusions handoffs, the third-time rule. Domain-Driven Design's bounded contexts and context maps. Team Topologies. The cathedral workshops, the *fabricae* and *Bauhütten*.

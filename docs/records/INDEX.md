@@ -53,9 +53,11 @@
 | domain_dream_proposes_never_applies_2026_10_13 | workflow | domain | Decision: mem-dream proposes, it never applies. The auto-apply path of DreamMemo | active |
 | domain_drop_confidence_for_evidence_and_librarian_2026_09_26 | architecture | domain | Decision: ai-mem drops confidence and access_count as a trust signal. In their p | active |
 | domain_drop_mcp_server_for_cli_plugin_2026_10_10 | architecture | domain | Decision: The MCP server (server.py, mem_* tools) is dropped. ai-mem becomes a C | active |
+| domain_fabrica_kinship_with_kaizen_2026_10_14 | architecture | domain | Decision: Fabrica is positioned by its kinship with Kaizen (Toyota Production Sy | active |
 | domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13 | architecture | domain | Decision: Fabrica is the method level: the framework, including the human-agent  | active |
 | domain_fabrica_practice_not_process_pattern_language_2026_10_14 | architecture | domain | Decision: Fabrica is a practice, not a process. Definition: "Fabrica is a practi | active |
 | domain_fabrica_records_public_as_self_proof_2026_10_10 | architecture | domain | Decision: Records about the framework itself are published with Fabrica. Fabrica | active |
+| domain_fabrica_seniority_from_the_record_2026_10_14 | architecture | domain | Decision: In Fabrica, seniority comes from the record itself, not from the agent | active |
 | domain_file_backend_replaces_chroma_2026_10_04 | architecture | domain | Decision: The record files are ai-mem's only store. FileMemoryRepository impleme | active |
 | domain_framework_named_fabrica_2026_10_10 | architecture | domain | Decision: The framework is called Fabrica. ai-mem keeps its name and is the memo | active |
 | domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the ai-mem hand | active |

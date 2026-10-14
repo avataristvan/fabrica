@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1790364318.133604
-edges: [{"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}]
+edges: [{"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}]
 ---
 
 Decision: The comparison of BMAD and the ai-mem framework converges on a three-layer picture instead of a 'winner framework': (1) planning artifacts (BMAD PRD/Architecture/Story, or spec-driven development), (2) decision records (ADR-style Markdown files for domain/pattern/anti-pattern), (3) the epistemic mechanism (/reflect Taskly + records + evidence edges + librarian, until 2026-09-26: confidence lifecycle -- see domain_drop_confidence_for_evidence_and_librarian_2026_09_26) — the latter creates the role of the 'project-accompanying developer' and cannot be replaced by either of the other two.
