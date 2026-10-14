@@ -48,7 +48,7 @@ Mixing them does damage: state overwrites reasons, or inference creeps into evid
 | **Navigator** | a human | Sets direction, states the charter, owns the decisions. |
 | **Orchestrator** | a human or an agent | Keeps the overview across a body of work; runs the Taskly and the handoffs. |
 | **Librarian** | an agent | Answers from the record by judgment. Reads only. "Not documented" is a valid answer. |
-| **Archivist** | an agent | Writes the record: integrates what is new with what is there, decides between new, update, supersede and confirm, sets the links. |
+| **Archivist** | an agent | Writes the record: integrates what is new with what is there, decides between new, update, supersede and confirm, sets the links. Reports what it put where; the Navigator can correct any placement. |
 | **Team members** | humans or agents | Do the work and report what they learned. Any team counts. |
 
 Only the Navigator and the Archivist write records. Everyone else delivers record candidates as plain text.

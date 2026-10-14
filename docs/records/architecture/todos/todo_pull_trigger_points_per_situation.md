@@ -3,10 +3,11 @@ type: todo
 area: architecture
 created: 1791138592.545231
 edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12", "edge_type": "related"}, {"target_id": "learning_pull_needs_situation_triggers_2026_10_04", "edge_type": "derived_from"}, {"target_id": "domain_why_travels_with_chunk_spec_2026_10_10", "edge_type": "related"}]
+cue: You are defining or testing a pull trigger point (review, session start, coding, bugfixing, operator) for the librarian.
 ---
 
 TODO: Define fixed pull trigger points per situation, one at a time, each tested like the reviewer template.
-- Review: done 2026-10-10. dev-team.md's reviewer asks the librarian against decisions/learnings and reports records_consulted / record_candidates (domain_librarian_at_review_handoff_2026_10_10). Not yet observed in a real run.
+- Review: done 2026-10-10. dev-team.md's reviewer asks the librarian against decisions/learnings and reports records_consulted / record_candidates (domain_librarian_at_review_handoff_2026_10_10). Not yet observed in a real run. Open: confirm reviewer -> librarian as a third spawn level in a real dev-team review run (never observed so far).
 - Session start: decided 2026-10-10. When the first message sets the scope, the orchestrator asks the librarian (~/.claude/CLAUDE.md, learning_trigger_must_name_observable_moment_2026_10_10). An explicit charter skill asks it itself.
 - Coding: decided 2026-10-10. The why travels in the chunk spec, and the coder asks the librarian at chunk start for experience with the touched files (domain_why_travels_with_chunk_spec_2026_10_10).
 - Bugfixing: before a fix, ask the librarian 'have we seen this symptom before?'. Open.

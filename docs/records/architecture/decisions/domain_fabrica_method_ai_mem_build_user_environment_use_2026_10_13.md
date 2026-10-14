@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791928797.341307
-edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}]
+edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}]
 cue: I am deciding whether knowledge belongs to the method, to the tool ai-mem, or to the user environment it is used in
 ---
 

@@ -3,7 +3,7 @@ type: learning
 area: plugin
 perspective: the-coder
 created: 1791838321.007471
-edges: [{"target_id": "the-coder_stop_list_complete_both_directions", "edge_type": "related"}]
+edges: [{"target_id": "the-coder_stop_list_complete_both_directions", "edge_type": "related"}, {"target_id": "todo_record_chunk0_upgrade_acceptance_result_2026_10_15", "edge_type": "related"}]
 cue: I am editing UPGRADING.md or any other document an unattended agent follows
 ---
 

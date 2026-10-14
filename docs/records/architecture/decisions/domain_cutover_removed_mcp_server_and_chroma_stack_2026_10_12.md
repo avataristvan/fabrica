@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: the-coder
 created: 1791838318.005809
-edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13", "edge_type": "related"}, {"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13", "edge_type": "related"}, {"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}]
 cue: I am about to look for the MCP server, daemon, Chroma/BM25 backend or mem-adr-sync export/import and wonder whether they still exist
 ---
 

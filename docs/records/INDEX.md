@@ -34,6 +34,7 @@
 | domain_acceptance_checksum_skips_hook_written_paths_2026_10_13 | plugin | domain | Decision: scripts/upgrade_acceptance/run.sh skips reminded/, retro_log.jsonl, do | active |
 | domain_agents_learn_environment_never_edit_external_2026_10_11 | architecture | domain | Decision: ai-mem never edits externally installed agents/skills/plugins (e.g. th | active |
 | domain_archivist_acceptance_closed_fail_use_carries_2026_10_13 | evaluation | domain | Decision: The archivist acceptance (scripts/eval_archivist/; pass rule >= 80% of | active |
+| domain_archivist_integration_visible_to_navigator_2026_10_15 | architecture | domain | Decision: Mutual visibility is resolved: the archivist does not integrate silent | active |
 | domain_archivist_mechanism_mem_and_mem_dream_2026_10_11 | architecture | domain | Decision: `mem` and `mem-dream` are the archivist's tools, and it calls mem-drea | active |
 | domain_archivist_who_what_how_2026_10_10 | architecture | domain | Decision: The archivist is the default writer of records, not the only door. Han | active |
 | domain_area_path_is_the_address_of_knowledge_2026_10_10 | architecture | domain | Decision: Knowledge is addressed by the folder of its area: the nearest ancestor | active |
@@ -70,6 +71,7 @@
 | domain_mem_unlink_removes_edges_2026_10_13 | records | domain | Decision: `mem unlink SOURCE TARGET [--type T]` (RemoveEdgeUseCase, ai_mem/appli | active |
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
+| domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
 | domain_public_records_are_written_in_english_2026_10_12 | architecture | domain | Decision: Records that go public are written in English. German records are tran | active |
 | domain_records_home_stays_for_migration_2026_10_13 | architecture | domain | Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r | active |
 | domain_records_model_replaces_chroma_2026_10_04 | records | domain | Decision: ChromaDB is replaced. The source of truth is git-native files in four  | active |
@@ -232,10 +234,12 @@
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
+| todo_record_chunk0_upgrade_acceptance_result_2026_10_15 | architecture | todo | TODO: the chunk 0 acceptance (scripts/upgrade_acceptance/run.sh, UPGRADING.md fo | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_split_manifest_and_name_framework | architecture | todo | TODO (with the user, not via dev-team): finish the Fabrica documentation in the  | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
 | todo_symlink_following_delete | workflow | todo | TODO (push security review 2026-10-10): adr_paths.iter_record_files uses rglob,  | active |
+| todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |
