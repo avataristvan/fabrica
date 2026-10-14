@@ -1,6 +1,6 @@
 # Fabrica: the core
 
-> Draft. What has to be in place for a way of working to be Fabrica. The how is in the patterns. ai-mem is one implementation of it for Claude Code.
+> Draft. What has to be in place for a way of working to be Fabrica. The how is in the [patterns](patterns/README.md). ai-mem is one implementation of it for Claude Code.
 
 A *fabrica* was the workshop that built a cathedral and kept it standing, across more generations than any single builder lived. What it kept was not stone but knowledge: practices, handoffs, a lodge book of sketches and reasons, apprentices and masters learning from each other.
 
@@ -84,7 +84,7 @@ A team practises Fabrica when:
 3. decisions are kept with their reasons and superseded, not deleted;
 4. the Librarian is asked at the boundaries before a decision is made, not guessed around.
 
-Everything else is a pattern: useful, named, and optional.
+Everything else is a [pattern](patterns/README.md): useful, named, and optional.
 
 ## Fabrica and Kaizen
 
