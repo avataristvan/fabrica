@@ -1,12 +1,50 @@
-# ai-mem
+# Fabrica · ai-mem
 
-The memory plugin for [Fabrica](#fabrica), a framework for humans and AI agents that learn together. ai-mem keeps what a team decided, learned and tried as plain Markdown files next to the work, and gives agents fixed moments to read them and to hand back what they learned.
+**AI agents that grow more senior from session to session — not because they remember, but because the record they inherit gets better.**
 
-## The problem
+Fabrica is a practice for teams of humans and agents. ai-mem is its plugin for Claude Code.
 
-An agent starts every session cold. It does not know what was decided last week, what was already tried and failed, or why the code looks the way it does, and it has no cheap signal that says "I know this". Pushing memory into every prompt costs tokens on every message and drowns the one decision that matters. Hoping the agent queries a store when it needs to does not work either: it does not, unless something in its context points at it.
+```mermaid
+flowchart LR
+    subgraph N["Session n"]
+        direction TB
+        C["Charter<br/><i>scope · terms · mode</i>"] --> W["Work"]
+        W --> T["Taskly<br/><i>learned · blocked · next</i>"]
+    end
+    T -- record candidates --> A{{"Archivist<br/><i>integrates, supersedes</i>"}}
+    A --> R[("The record<br/><i>decisions and learnings<br/>with their reasons</i>")]
+    R -- "asked at the boundary" --> L{{"Librarian<br/><i>answers by judgment</i>"}}
+    L --> M
+    subgraph M["Session n+1"]
+        direction TB
+        C2["Charter"] --> W2["Work …"]
+    end
+```
 
-## The idea: an organisation's memory
+**The problem.** An agent starts every session cold: it does not know what was decided last week, what already failed, or why. Pushing memory into every prompt drowns the one decision that matters; waiting for the agent to look it up does not work either — it does not look.
+
+**The idea.** A cathedral workshop kept its knowledge in a lodge book that each generation of builders handed to the next. Fabrica does the same from session to session: experience is captured at the boundaries of the work, kept with its reasons, and brought back by a librarian when a situation calls for it. If you know Lean, you know the shape — it is Kaizen for teams of humans and agents.
+
+**An agent that knows why.** Asked *"Why doesn't ai-mem inject memory before every edit?"*, the librarian answers from the record:
+
+> It did. Measured over 50 sessions, 348 edits injected about 67k tokens — 92% of ai-mem's context footprint, whether relevant or not. Retired 2026-09-12.
+> *(arch_decision_pretool_push_removed_2026_09_12)*
+
+**Built with itself.** This repository was built the Fabrica way. Its own lodge book is in [`docs/records/`](docs/records/INDEX.md): 237 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. What is proven and what is still on probation is stated, not hidden.
+
+## Fabrica and Kaizen
+
+Fabrica has the shape of Kaizen, the continuous improvement of the Toyota Production System:
+
+| Kaizen | Fabrica |
+|---|---|
+| Hansei: reflect after the work | Taskly: what was learned, what blocked, what next |
+| Yokoten: spread a lesson sideways | the librarian brings a record to the place that needs it |
+| Standard work, replaced when something better is found | decisions with their reasons, superseded, never deleted |
+
+So in Fabrica, seniority is not in the agent. It is in the record. → [Fabrica: the core](docs/fabrica/core.md)
+
+## How ai-mem works
 
 ai-mem remembers the way an organisation does: through rituals at boundaries, not through a smarter index. The value lies in the practice:
 
@@ -16,18 +54,6 @@ ai-mem remembers the way an organisation does: through rituals at boundaries, no
 - **Hooks enforce that, roles decide how.** A few hooks check that the ritual happened. `mem doctor` tells you whether the practice is still alive.
 
 Read more: [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [Fabrica: the core](docs/fabrica/core.md) (the method ai-mem implements).
-
-### Fabrica
-
-Fabrica is the practice ai-mem implements. If you know Lean, you know its shape: it is Kaizen for teams of humans and agents.
-
-| Kaizen | Fabrica |
-|---|---|
-| Hansei: reflect after the work | Taskly: what was learned, what blocked, what next |
-| Yokoten: spread a lesson sideways | the librarian brings a record to the place that needs it |
-| Standard work, replaced when something better is found | decisions with their reasons, superseded, never deleted |
-
-The difference: in a Toyota team, experience lives in people's heads. Agents start every session without one. So the seniority comes from the record itself: like the lodge book of a cathedral workshop, carried from generation to generation of builders, it is carried from session to session and keeps, with its reasons, what a team otherwise carries implicitly. → [Fabrica: the core](docs/fabrica/core.md)
 
 ## Install
 
