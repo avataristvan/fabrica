@@ -3,7 +3,7 @@ type: todo
 area: architecture
 perspective: agent
 created: 1792016093.508677
-edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_three_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}]
 cue: You are about to claim the upgrade path (UPGRADING.md) works for an agent-driven upgrade.
 ---
 

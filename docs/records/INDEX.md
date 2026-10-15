@@ -56,6 +56,7 @@
 | domain_drop_mcp_server_for_cli_plugin_2026_10_10 | architecture | domain | Decision: The MCP server (server.py, mem_* tools) is dropped. ai-mem becomes a C | active |
 | domain_fabrica_kinship_with_kaizen_2026_10_14 | architecture | domain | Decision: Fabrica is positioned by its kinship with Kaizen (Toyota Production Sy | active |
 | domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13 | architecture | domain | Decision: Fabrica is the method level: the framework, including the human-agent  | active |
+| domain_fabrica_name_collision_checked_2026_10_15 | architecture | domain | Decision: The name Fabrica stands after a collision check (2026-10-15); no block | active |
 | domain_fabrica_practice_not_process_pattern_language_2026_10_14 | architecture | domain | Decision: Fabrica is a practice, not a process. Definition: "Fabrica is a practi | active |
 | domain_fabrica_records_public_as_self_proof_2026_10_10 | architecture | domain | Decision: Records about the framework itself are published with Fabrica. Fabrica | active |
 | domain_fabrica_seniority_from_the_record_2026_10_14 | architecture | domain | Decision: In Fabrica, seniority comes from the record itself, not from the agent | active |
@@ -73,10 +74,13 @@
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
 | domain_public_records_are_written_in_english_2026_10_12 | architecture | domain | Decision: Records that go public are written in English. German records are tran | active |
+| domain_rebuild_closing_scoped_to_three_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild is scoped to three items (user, 2026- | superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15 |
+| domain_rebuild_closing_scoped_to_two_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild needs two items (user, 2026-10-15): t | active |
 | domain_records_home_stays_for_migration_2026_10_13 | architecture | domain | Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r | active |
 | domain_records_model_replaces_chroma_2026_10_04 | records | domain | Decision: ChromaDB is replaced. The source of truth is git-native files in four  | active |
 | domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 | records | domain | Decision: Going public. Internal working material (raw eval transcripts, the chu | active |
 | domain_reflect_yields_handoff_and_record_candidates_2026_10_10 | architecture | domain | Decision: /reflect at a context boundary produces two things. (1) A carry-only-c | active |
+| domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15 | architecture | domain | Decision: The GitHub repo is renamed from avataristvan/ai-mem to avataristvan/fa | active |
 | domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12 | plugin | domain | Decision: The default retro roles of the SubagentStop hook retro_check are only  | active |
 | domain_review_is_skill_with_anchor_lint_agent_2026_10_12 | workflow | domain | Decision: ai-mem ships `anchor-lint`, an own agent for the linting part of a rev | active |
 | domain_setup_applies_claude_md_changes_only_on_approval_2026_10_12 | plugin | domain | Decision (user, 2026-10-12): the setup skill applies CLAUDE.md changes only on a | active |
@@ -142,6 +146,7 @@
 | learning_pretool_push_dominated_context_footprint_2026_09_12 | architecture | learning | Observed: Another Claude session (in another project) delivered a doctor scan ov | active |
 | learning_public_history_pushed_clean_2026_10_13 | records | learning | Observed: Going public is done. main (48fabdb) and the tag v0-last-mcp (60d85d8, | active |
 | learning_pull_needs_situation_triggers_2026_10_04 | evaluation | learning | Observed: In the Navigator's experience ranking and push brought misdirected noi | active |
+| learning_push_check_2026_10_15_was_clean | records | learning | Observed: The push check before the 2026-10-15 push (12 commits, 164 files) was  | active |
 | learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12 | plugin | learning | Observed: Rerun the UPGRADING.md acceptance run after every edit to UPGRADING.md | active |
 | learning_safe_entry_id_misses_control_chars_2026_10_10 | workflow | learning | Observed: `is_safe_entry_id` only rejects path and glob metacharacters. Ids with | active |
 | learning_setting_sources_drops_user_claude_md_for_claude_p_2026_10_12 | plugin | learning | Observed: `claude -p --setting-sources project,local` also drops the user's `~/. | active |
@@ -237,7 +242,6 @@
 | todo_record_chunk0_upgrade_acceptance_result_2026_10_15 | architecture | todo | TODO: the chunk 0 acceptance (scripts/upgrade_acceptance/run.sh, UPGRADING.md fo | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
-| todo_split_manifest_and_name_framework | architecture | todo | TODO (with the user, not via dev-team): finish the Fabrica documentation in the  | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
 | todo_symlink_following_delete | workflow | todo | TODO (push security review 2026-10-10): adr_paths.iter_record_files uses rglob,  | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |

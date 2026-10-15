@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1792016093.02779
-edges: [{"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "todo_split_manifest_and_name_framework", "edge_type": "related"}]
+edges: [{"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_name_collision_checked_2026_10_15", "edge_type": "related"}]
 cue: Someone worries the archivist changes the records without the human seeing it.
 ---
 

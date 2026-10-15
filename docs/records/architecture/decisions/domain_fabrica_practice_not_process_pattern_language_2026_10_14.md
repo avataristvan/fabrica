@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791931386.843539
-edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "related"}, {"target_id": "todo_split_manifest_and_name_framework", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}]
+edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_name_collision_checked_2026_10_15", "edge_type": "related"}]
 cue: You are writing or restructuring Fabrica documentation, or explaining how Fabrica relates to Scrum, BMAD or another method.
 ---
 

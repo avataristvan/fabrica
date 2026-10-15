@@ -3,7 +3,7 @@ type: todo
 area: records
 perspective: agent
 created: 1791889506.339908
-edges: [{"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "learning_push_check_2026_10_15_was_clean", "edge_type": "related"}]
 cue: I am about to push an area to a public remote and need to scan its records and sources for private material
 ---
 
