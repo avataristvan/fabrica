@@ -5,7 +5,7 @@ perspective: user
 created: 1792061047.277119
 superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15
 valid_until: 1792061274.140043
-edges: [{"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "todo_record_chunk0_upgrade_acceptance_result_2026_10_15", "edge_type": "related"}, {"target_id": "todo_symlink_following_delete", "edge_type": "related"}, {"target_id": "todo_verify_external_installation_migration_and_plugin_switch_2026_10_15", "edge_type": "related"}]
+edges: [{"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "todo_verify_external_installation_migration_and_plugin_switch_2026_10_15", "edge_type": "related"}]
 cue: You are asked what is still needed to call the rebuild done, or you pick the next todo.
 ---
 

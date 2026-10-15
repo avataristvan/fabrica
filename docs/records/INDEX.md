@@ -112,6 +112,7 @@
 | learning_banner_label_and_paraphrase_pass_retired_check_2026_10_12 | architecture | learning | Observed: (1) The README label "retired, kept until removal" for the rollback do | active |
 | learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12 | plugin | learning | Observed: Claude Code's Bash sandbox masks protected paths in its cwd (.bashrc,  | active |
 | learning_bm25_minmax_floors_irrelevant_top_hit_2026_07_31 | architecture | learning | Observed: Empirically against the live DB (the production ai-mem store, global + | active |
+| learning_chunk0_upgrade_acceptance_passed_2026_10_15 | plugin | learning | Observed: The chunk 0 upgrade acceptance ran on 2026-10-15 against code d5b73b1  | active |
 | learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12 | plugin | learning | Observed: `claude -p --output-format json` `result` holds only the last assistan | active |
 | learning_config_rewrite_keeps_file_mode_and_backs_up_once_2026_10_12 | plugin | learning | Observed: Rewriting `~/.claude.json` (mode 0600, holds credentials) via `write_t | active |
 | learning_context_boundary_is_read_and_write_point_2026_10_10 | architecture | learning | Observed: Chelsea Troy's practices (DDD Europe 2026, distilled in the records of | active |
@@ -153,6 +154,7 @@
 | learning_skill_model_frontmatter_honored_eval_under_real_model_2026_10_12 | plugin | learning | Observed: A plugin skill's `model:` frontmatter is honored (Claude Code 2.1.x).  | active |
 | learning_subagents_no_sessionstart_output_2026_10_04 | general | learning | Observed: Subagents receive no SessionStart output at all in practice, contradic | active |
 | learning_subagentstop_fires_for_nested_subagents_2026_10_11 | plugin | learning | Observed: SubagentStop fires for nested subagents too. On 2026-10-11 an Explore  | active |
+| learning_symlink_following_walk_fixed_python_312_2026_10_15 | workflow | learning | Observed: The symlink-following delete is fixed in commit dee347c. iter_record_f | active |
 | learning_temp_home_cannot_run_claude_p_2026_10_12 | plugin | learning | Observed: Temp-HOME tests cannot run `claude -p` (copying credentials into the t | active |
 | learning_temp_home_record_held_again_in_6b_2026_10_12 | plugin | learning | Observed: learning_temp_home_cannot_run_claude_p_2026_10_12 held again in the se | active |
 | learning_trigger_must_name_observable_moment_2026_10_10 | architecture | learning | Observed: In the session of 2026-10-10 the orchestrator did not consult memory w | active |
@@ -239,11 +241,9 @@
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
-| todo_record_chunk0_upgrade_acceptance_result_2026_10_15 | architecture | todo | TODO: the chunk 0 acceptance (scripts/upgrade_acceptance/run.sh, UPGRADING.md fo | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
-| todo_symlink_following_delete | workflow | todo | TODO (push security review 2026-10-10): adr_paths.iter_record_files uses rglob,  | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |

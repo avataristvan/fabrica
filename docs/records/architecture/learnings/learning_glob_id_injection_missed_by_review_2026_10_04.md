@@ -2,7 +2,7 @@ id: learning_glob_id_injection_missed_by_review_2026_10_04
 type: learning
 area: architecture
 created: 1791138589.146879
-edges: [{"target_id": "todo_holistic_opus_review_adr_migration_2026_09_25", "edge_type": "confirms"}, {"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}]
+edges: [{"target_id": "todo_holistic_opus_review_adr_migration_2026_09_25", "edge_type": "confirms"}, {"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}, {"target_id": "learning_symlink_following_walk_fixed_python_312_2026_10_15", "edge_type": "related"}]
 cue: Ids or names from tool input become file names, paths or glob patterns, or I am writing a review prompt.
 ---
 
