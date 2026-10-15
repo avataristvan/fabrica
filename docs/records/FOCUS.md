@@ -2,4 +2,6 @@ The long-running rebuild is closed: the plugin target picture (domain_plugin_tar
 
 Not blocking: the on-site check of the external installation's migration and plugin switch (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15). User, in person, whenever.
 
-Next: no fixed focus. Candidates: the seniority measurement (plan local, `docs/plan_seniority_measurement.md`); the product backlog in todos/ (doctor checks, archivist observability, librarian evals, CLI simplifications); the 6 unprocessed sources.
+Now: the seniority measurement. The plan is local (`docs/plan_seniority_measurement.md`) and frozen; its sha256 is 45b702a916f83aec9d1420d3b46773bd280ea5fd42c579a9f0bc7eb9f9fd7620. Only the mechanics may change, once, after the pilot; the runner refuses to start on a different hash.
+
+Later: the product backlog in todos/ (doctor checks, archivist observability, librarian evals, CLI simplifications); the 6 unprocessed sources.
