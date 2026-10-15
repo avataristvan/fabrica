@@ -168,19 +168,39 @@ def plain_file_content(text: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+def _walk_markdown(adr_dir: Path):
+    """Every `*.md` below `adr_dir`, without entering symlinked directories.
+
+    Not `rglob`: up to Python 3.12 it descends into symlinked directories, so callers that
+    delete could reach files outside the area. Symlinked files are still yielded: lint reports
+    them and `mem move` refuses them (`is_contained`).
+    """
+    for root, _dirs, filenames in os.walk(adr_dir, followlinks=False):
+        for name in filenames:
+            if name.endswith(".md"):
+                yield Path(root, name)
+
+
 def iter_record_files(adr_dir: Path) -> list[Path]:
     """Every record file below `adr_dir`, sorted -- all `*.md` except the top-level INDEX/README/FOCUS."""
     if not adr_dir.is_dir():
         return []
     return sorted(
-        path for path in adr_dir.rglob("*.md")
+        path for path in _walk_markdown(adr_dir)
         if not (path.parent == adr_dir and path.name in NON_ADR_FILENAMES)
     )
 
 
 def remove_files(adr_dir: Path, files) -> None:
-    """Delete `files` and prune the `<area>/<kind>` folders they leave empty (never `adr_dir` itself)."""
+    """Delete `files` and prune the `<area>/<kind>` folders they leave empty (never `adr_dir` itself).
+
+    A file whose folder resolves outside `adr_dir` (reached through a symlinked folder) is
+    skipped. A symlinked file inside the area is unlinked; that never touches its target.
+    """
+    root = adr_dir.resolve()
     for file_path in files:
+        if not file_path.parent.resolve().is_relative_to(root):
+            continue
         file_path.unlink(missing_ok=True)
         for parent in (file_path.parent, file_path.parent.parent):
             if parent != adr_dir and parent.is_dir() and not any(parent.iterdir()):
@@ -239,4 +259,4 @@ def find_adr_files(adr_dir: Path, entry_id: str) -> list[Path]:
     if not is_safe_entry_id(entry_id) or not adr_dir.is_dir():
         return []
     filename = f"{entry_id}.md"
-    return sorted(path for path in adr_dir.rglob("*.md") if path.name == filename)
+    return sorted(path for path in _walk_markdown(adr_dir) if path.name == filename)

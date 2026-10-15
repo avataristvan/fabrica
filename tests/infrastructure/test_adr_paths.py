@@ -11,9 +11,11 @@ from ai_mem.infrastructure.adr_paths import (
     adr_dir_for,
     adr_file_path,
     find_adr_files,
+    iter_record_files,
     is_safe_area,
     is_safe_entry_id,
     record_collection_root,
+    remove_files,
     resolve_repo_root_for_collection,
 )
 from ai_mem.repo_context import RepoContext
@@ -263,3 +265,42 @@ def test_find_adr_files_finds_matches_across_subfolders(tmp_path):
 def test_find_adr_files_empty_for_unsafe_id_or_missing_dir(tmp_path):
     assert find_adr_files(tmp_path, "../a") == []
     assert find_adr_files(tmp_path / "nope", "a") == []
+
+
+def _area_with_symlinks(tmp_path):
+    """records/ with one real record, a symlinked dir and a symlinked file pointing outside."""
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "a.md").write_text("victim")
+    records = tmp_path / "records"
+    (records / "general/decisions").mkdir(parents=True)
+    (records / "general/decisions/a.md").write_text("real")
+    (records / "general/linked").symlink_to(outside, target_is_directory=True)
+    (records / "general/decisions/b.md").symlink_to(outside / "a.md")
+    return records, outside
+
+
+def test_record_walk_does_not_enter_symlinked_dirs(tmp_path):
+    # Bites on Python <= 3.12, where rglob followed symlinked dirs; 3.13 rglob already skips them.
+    records, _ = _area_with_symlinks(tmp_path)
+
+    # The symlinked file stays visible: lint reports it and mem move refuses it.
+    assert iter_record_files(records) == [records / "general/decisions/a.md", records / "general/decisions/b.md"]
+    assert find_adr_files(records, "a") == [records / "general/decisions/a.md"]
+
+
+def test_remove_files_never_deletes_through_a_symlinked_folder(tmp_path):
+    records, outside = _area_with_symlinks(tmp_path)
+
+    remove_files(records, [records / "general/linked/a.md"])
+
+    assert (outside / "a.md").read_text() == "victim"
+
+
+def test_remove_files_unlinks_a_symlinked_record_not_its_target(tmp_path):
+    records, outside = _area_with_symlinks(tmp_path)
+
+    remove_files(records, [records / "general/decisions/b.md"])
+
+    assert not (records / "general/decisions/b.md").is_symlink()
+    assert (outside / "a.md").read_text() == "victim"
