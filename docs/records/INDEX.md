@@ -5,6 +5,7 @@
 | ai_mem_redesign_2026_06_13 | general | domain | # ai-mem architecture redesign: confidence lifecycle model (2026-06-13) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | anti-pattern-patch-object-requires-existing-attr | general | anti-pattern | Tried: removing an unused import (e.g. WORKSPACE_COLLECTION) from a module after | active |
 | anti_pattern_convention_fragility_ai_mem_2026_10_04 | general | learning | Observed: Primary operational risk of ai-mem (assessed 2026-05-08) is convention | active |
+| anti_pattern_eval_loads_repo_under_test_as_plugin_blocks_edits_2026_10_18 | evaluation | anti-pattern | Tried: Running the arm with --plugin-dir pointing at the arm (the repo under tes | active |
 | anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12 | plugin | anti-pattern | Tried: A shim that starts the CLI with `python3 -m <pkg>`. | active |
 | antipattern-partial-fix-of-minmax-normalization-in-hybrid-fusion | general | anti-pattern | Anti-pattern: min-max normalization anywhere in a hybrid-scoring fusion pipeline | active |
 | antipattern_ai_mem_path_via_mcp_env_misses_hooks | evaluation | anti-pattern | Tried: Setting `env: {AI_MEM_PATH: /tmp/blind}` in the MCP server entry of `~/.c | active |
@@ -96,6 +97,8 @@
 | eval_librarian_2026_09_26 | evaluation | learning | Observed: The librarian (Haiku) solved 5/6 gap cases, both controls correctly 'n | active |
 | eval_librarian_rerun_records_layout_2026_09_29 | evaluation | learning | Observed: Librarian repetition after the migration to docs/records/<area>/<kind> | active |
 | eval_pull_gap_test_2026_09_20 | evaluation | learning | Observed: In all 7 gap cases 0 mem_query calls; only the ID pointer in CLAUDE.md | active |
+| eval_seniority_available_not_used_confirms_pull_gap_2026_10_18 | evaluation | learning | Observed: With all records in the repo (arm A2), the agent read docs/records/ in | active |
+| eval_seniority_main_run_result_2026_10_18 | evaluation | learning | Observed: The seniority measurement (docs/plan_seniority_measurement.md, frozen  | active |
 | feedback_current_focus_stale_after_limit_abort_2026_09_26 | workflow | learning | Observed: The session started with 'continue'; current_focus reported 'uncommitt | active |
 | feedback_dilemma_frame_leverage | general | learning | The dilemma frame has a surprisingly large leverage in practice: instead of choo | active |
 | feedback_install_py_user_only | general | pattern | install.py is interactive and to be run by the user only (who briefly ends the s | active |
@@ -133,6 +136,7 @@
 | learning_hooks_do_not_inherit_mcp_env_2026_07_03 | architecture | learning | Observed: Hook subprocesses (hook.py / userprompt_hook.py / posttool_hook.py) do | active |
 | learning_incoming_edge_list_held_in_5b2_2026_10_12 | records | learning | Observed: In the docs-move chunk the coder followed the rule to list referrers b | active |
 | learning_index_status_stale_after_supersede_2026_09_27 | architecture | learning | Observed: A parallel session in another project (migrating its collections to AD | active |
+| learning_knowledge_loses_against_the_order_2026_10_18 | evaluation | learning | Observed: Where the record was read, the agent often built the rejected thing an | active |
 | learning_librarian_files_only_eval_chunk3_2026_10_11 | evaluation | learning | Observed: Chunk 3 (librarian without mem_* tools, Read/Grep/Glob only): the libr | active |
 | learning_librarian_matched_out_of_scope_files_again_2026_10_12 | evaluation | learning | Observed: The librarian again matched out-of-scope files (plan, handoff) by grep | active |
 | learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12 | evaluation | learning | Observed: The librarian read plan and handoff files outside its permitted scope  | active |
@@ -178,6 +182,7 @@
 | pattern_delayed_outcome_needs_log_not_counter_2026_10_04 | general | pattern | Rule: A live rolling counter cannot measure a result whose outcome is still unkn | active |
 | pattern_doctor_exit_criterion_check_scanner_covers_destination_2026_10_12 | architecture | pattern | Rule: After moving docs or changing the doc layout, verify that the scanner behi | active |
 | pattern_duplicate_ids_delete_covered_copy_2026_10_12 | records | pattern | Rule: When an id exists in two areas, delete the copy whose substance is covered | active |
+| pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18 | architecture | pattern | Rule: A duty ("always do X after Y") belongs in an enforcing mechanism (hook or  | active |
 | pattern_english_output_strings | workflow | pattern | Rule: Keep all user-facing strings in ai-mem code in English. | active |
 | pattern_error_hint_checks_error_concerns_argument_2026_10_11 | plugin | pattern | Rule: A hint attached to a use-case error must first check that the error concer | active |
 | pattern_eval_artifacts_outside_agent_readable_corpus | evaluation | pattern | Rule: Eval cases, gold IDs and discriminators are not stored where the tested ag | active |
@@ -195,6 +200,7 @@
 | pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12 | records | pattern | Rule: Before moving or merging a doc, list every record that points at it (edges | active |
 | pattern_load_bearing_entries_require_maintenance_discipline | workflow | pattern | Rule: When a change alters observable system behavior (thresholds, renamed conce | active |
 | pattern_local_adaptive_learning_from_behavior_2026_10_04 | general | domain | Decision: ai-mem keeps record data local and uses no pretrained embedding model. | active |
+| pattern_look_up_records_when_task_feels_trivial_2026_10_18 | architecture | pattern | Rule: An agent should get curious whenever it would decide differently than a re | active |
 | pattern_lookup_refs_use_consumer_validation_2026_10_11 | plugin | pattern | Rule: A lookup that emits references for another command must use that command's | active |
 | pattern_persistence_migration_bypasses_mcp | workflow | pattern | Rule: A migration that changes ai-mem's persistence layer or file layout runs vi | active |
 | pattern_planner_run_exit_criterion_greps_on_current_tree_2026_10_12 | workflow | pattern | Rule: A chunk that adds an agent to a symlink-deployed set lists install.py and  | active |
@@ -205,8 +211,10 @@
 | pattern_retrieval_needs_fixed_trigger_in_role_prompt | general | pattern | Rule: A retrieval aid (records, the librarian, user records) only gets used when | active |
 | pattern_retro_learned_nothing_is_valid_2026_10_11 | plugin | pattern | Rule: `learned: nothing` is a valid retro answer. retro_check must block a missi | active |
 | pattern_rewiring_grep_old_collection_names_2026_10_11 | plugin | pattern | Rule: After rewiring memory writes to record candidates, grep every old collecti | active |
+| pattern_rubric_levels_defined_with_boundary_examples_2026_10_18 | evaluation | pattern | Rule: Define every rubric level with an example of where it ends, and keep the s | active |
 | pattern_runtime_lookup_for_patchable_path_constants_2026_10_12 | general | pattern | Rule: Do not compute a second module-level constant from a path constant (`X = D | active |
 | pattern_saturating_transform_nonnegativity_precondition | general | pattern | Rule: Before applying a saturating rescale of the form raw / (raw + k) as a pool | active |
+| pattern_spot_check_transcripts_use_tilde_fences_2026_10_18 | evaluation | pattern | Rule: In a spot-check file use ~~~~ fences for embedded transcripts, not ```. Dr | active |
 | pattern_stale_by_neighbouring_retirement | workflow | pattern | Rule: Entries written or last edited shortly before a retirement commit silently | active |
 | pattern_status_markers_rot_in_memory | workflow | pattern | Rule: Never embed mutable status strings ("NOT YET COMMITTED", "not started", "s | active |
 | pattern_sync_commands_only_from_main_checkout_2026_10_11 | workflow | pattern | Rule: Run install.py --sync-commands and install.py --plugin-switch only from th | active |
@@ -244,6 +252,8 @@
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
+| todo_test_coverage_hook_in_dev_team_flow_2026_10_18 | architecture | todo | TODO: Add a test/coverage hook to the dev-team flow: tests run deterministically | active |
+| todo_upgrading_md_rerun_duty_into_enforcing_mechanism_2026_10_18 | plugin | todo | TODO: Move the duty "rerun the UPGRADING.md acceptance after every edit to UPGRA | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |

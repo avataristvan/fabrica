@@ -2,6 +2,8 @@ The long-running rebuild is closed: the plugin target picture (domain_plugin_tar
 
 Not blocking: the on-site check of the external installation's migration and plugin switch (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15). User, in person, whenever.
 
-Now: the seniority measurement. The plan (`docs/plan_seniority_measurement.md`) is committed and frozen; its sha256 is 5f43d06e3cb984e0d44f24dc509fd8de2c356fbb181732d7f06cb3ff5c8cde48. Only the mechanics may change, once, after the pilot; the runner refuses to start on a different hash. The main run (harness 54a2b5a) stopped at 55 of 96 runs to save usage, with no errors; finish it with `python3 scripts/eval_seniority/run.py --out scripts/eval_seniority/results/main-2026-10-16 --commit 54a2b5a --resume` (results stay local). Then the user's spot-check, then the result goes to the archivist.
+Done: the seniority measurement (plan `docs/plan_seniority_measurement.md`, frozen at sha256 5f43d06e3cb984e0d44f24dc509fd8de2c356fbb181732d7f06cb3ff5c8cde48; harness 54a2b5a). All 96 runs graded, spot-check passed; pattern 9 stays a hypothesis. No v2 of this measurement; the result and its lessons are in the records. Raw results stay local in `scripts/eval_seniority/results/`.
+
+Next candidates from it: a deterministic test/coverage hook in the dev-team flow, and moving the UPGRADING.md rerun duty from a learning into an enforcing mechanism.
 
 Later: the product backlog in todos/ (doctor checks, archivist observability, librarian evals, CLI simplifications); the 6 unprocessed sources.

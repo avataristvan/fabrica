@@ -3,7 +3,7 @@ type: learning
 area: evaluation
 perspective: agent
 created: 1789925355.433306
-edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "pattern_gap_test_evaluation", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "confirms"}]
+edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "pattern_gap_test_evaluation", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "confirms"}, {"target_id": "eval_seniority_available_not_used_confirms_pull_gap_2026_10_18", "edge_type": "related"}, {"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}]
 cue: I am about to claim that continuity or stored knowledge automatically saves tokens or gets used
 ---
 

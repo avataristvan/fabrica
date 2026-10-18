@@ -3,6 +3,7 @@ type: pattern
 area: general
 perspective: agent
 created: 1791140685.017904
+edges: [{"target_id": "pattern_look_up_records_when_task_feels_trivial_2026_10_18", "edge_type": "related"}]
 ---
 
 Rule: A retrieval aid (records, the librarian, user records) only gets used when the prompt of the role that needs it names the trigger: a fixed call point such as 'before reviewing, read the user records' or '/chunk-plan asks the librarian'.
