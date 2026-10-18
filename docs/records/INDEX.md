@@ -214,6 +214,7 @@
 | pattern_rubric_levels_defined_with_boundary_examples_2026_10_18 | evaluation | pattern | Rule: Define every rubric level with an example of where it ends, and keep the s | active |
 | pattern_runtime_lookup_for_patchable_path_constants_2026_10_12 | general | pattern | Rule: Do not compute a second module-level constant from a path constant (`X = D | active |
 | pattern_saturating_transform_nonnegativity_precondition | general | pattern | Rule: Before applying a saturating rescale of the form raw / (raw + k) as a pool | active |
+| pattern_spot_check_form_separates_grader_and_expectation_2026_10_19 | evaluation | pattern | Rule: A spot-check form for an LLM-graded eval has two separate fields per item: | active |
 | pattern_spot_check_transcripts_use_tilde_fences_2026_10_18 | evaluation | pattern | Rule: In a spot-check file use ~~~~ fences for embedded transcripts, not ```. Dr | active |
 | pattern_stale_by_neighbouring_retirement | workflow | pattern | Rule: Entries written or last edited shortly before a retirement commit silently | active |
 | pattern_status_markers_rot_in_memory | workflow | pattern | Rule: Never embed mutable status strings ("NOT YET COMMITTED", "not started", "s | active |
@@ -252,7 +253,6 @@
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
-| todo_test_coverage_hook_in_dev_team_flow_2026_10_18 | architecture | todo | TODO: Add a test/coverage hook to the dev-team flow: tests run deterministically | active |
 | todo_upgrading_md_rerun_duty_into_enforcing_mechanism_2026_10_18 | plugin | todo | TODO: Move the duty "rerun the UPGRADING.md acceptance after every edit to UPGRA | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |

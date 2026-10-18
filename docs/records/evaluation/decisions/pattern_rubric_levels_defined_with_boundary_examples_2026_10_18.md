@@ -3,7 +3,7 @@ type: pattern
 area: evaluation
 perspective: agent
 created: 1792360317.160346
-edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "pattern_blindtest_methodik", "edge_type": "related"}]
+edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "pattern_blindtest_methodik", "edge_type": "related"}, {"target_id": "pattern_spot_check_form_separates_grader_and_expectation_2026_10_19", "edge_type": "related"}]
 cue: I am writing a rubric for an LLM-graded eval.
 ---
 

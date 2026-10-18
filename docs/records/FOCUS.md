@@ -4,6 +4,6 @@ Not blocking: the on-site check of the external installation's migration and plu
 
 Done: the seniority measurement (plan `docs/plan_seniority_measurement.md`, frozen at sha256 5f43d06e3cb984e0d44f24dc509fd8de2c356fbb181732d7f06cb3ff5c8cde48; harness 54a2b5a). All 96 runs graded, spot-check passed; pattern 9 stays a hypothesis. No v2 of this measurement; the result and its lessons are in the records. Raw results stay local in `scripts/eval_seniority/results/`.
 
-Next candidates from it: a deterministic test/coverage hook in the dev-team flow, and moving the UPGRADING.md rerun duty from a learning into an enforcing mechanism.
+Next here: moving the UPGRADING.md rerun duty from a learning into an enforcing mechanism. Changes to the team flow drawn from the measurement live in the workspace area, not here.
 
 Later: the product backlog in todos/ (doctor checks, archivist observability, librarian evals, CLI simplifications); the 6 unprocessed sources.

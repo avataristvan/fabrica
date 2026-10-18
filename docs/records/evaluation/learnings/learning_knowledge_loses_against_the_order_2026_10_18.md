@@ -3,7 +3,7 @@ type: learning
 area: evaluation
 perspective: user
 created: 1792360315.821311
-edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}]
+edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "..:domain_dev_team_stops_on_contradiction_blocked_2026_10_19", "edge_type": "related"}]
 cue: I am designing how records reach agents, or judging why a record did not work although the agent read it.
 ---
 
