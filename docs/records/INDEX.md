@@ -38,6 +38,7 @@
 | domain_archivist_integration_visible_to_navigator_2026_10_15 | architecture | domain | Decision: Mutual visibility is resolved: the archivist does not integrate silent | active |
 | domain_archivist_mechanism_mem_and_mem_dream_2026_10_11 | architecture | domain | Decision: `mem` and `mem-dream` are the archivist's tools, and it calls mem-drea | active |
 | domain_archivist_who_what_how_2026_10_10 | architecture | domain | Decision: The archivist is the default writer of records, not the only door. Han | active |
+| domain_archivist_write_threshold_2026_10_19 | architecture | domain | Decision: The archivist applies a write threshold. A candidate becomes a record  | active |
 | domain_area_path_is_the_address_of_knowledge_2026_10_10 | architecture | domain | Decision: Knowledge is addressed by the folder of its area: the nearest ancestor | active |
 | domain_bmad_vs_ai_mem_epistemology_2026_09_25 | architecture | domain | Decision: The comparison of BMAD and the ai-mem framework converges on a three-l | active |
 | domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13 | architecture | domain | Decision: DreamMemoryUseCase works on areas only (area_refs required; collection | active |
@@ -63,6 +64,8 @@
 | domain_fabrica_seniority_from_the_record_2026_10_14 | architecture | domain | Decision: In Fabrica, seniority comes from the record itself, not from the agent | active |
 | domain_file_backend_replaces_chroma_2026_10_04 | architecture | domain | Decision: The record files are ai-mem's only store. FileMemoryRepository impleme | active |
 | domain_framework_named_fabrica_2026_10_10 | architecture | domain | Decision: The framework is called Fabrica. ai-mem keeps its name and is the memo | active |
+| domain_glossary_is_state_per_area_2026_10_19 | architecture | domain | Decision: Each area may keep a glossary at docs/reference/glossary.md (ai-mem ha | active |
+| domain_handoff_points_instead_of_copying_2026_10_19 | workflow | domain | Decision: The /reflect handoff points instead of copying: anything already in a  | active |
 | domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the ai-mem hand | active |
 | domain_hooks_enforce_that_roles_decide_how_2026_10_10 | architecture | domain | Decision: Hooks enforce THAT a ritual happens. Roles decide HOW. Planned hooks:  | active |
 | domain_internal_records_stay_out_of_public_areas_2026_10_12 | architecture | domain | Decision: Records are a blueprint, and the freedom to clean them is kept. Intern | active |

@@ -3,6 +3,7 @@ type: pattern
 area: workflow
 perspective: agent
 created: 1791821372.671895
+edges: [{"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}]
 cue: I am updating a docs/handoff file at the end of a session
 ---
 

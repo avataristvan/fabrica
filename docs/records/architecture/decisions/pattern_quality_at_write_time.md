@@ -2,7 +2,7 @@ id: pattern_quality_at_write_time
 type: pattern
 area: architecture
 created: 1789255454.224921
-edges: [{"target_id": "pattern_lightweight_as_feature", "edge_type": "related"}]
+edges: [{"target_id": "pattern_lightweight_as_feature", "edge_type": "related"}, {"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]
 ---
 
 Rule: Memory quality is determined at write time (type tagging, anti-pattern format, TTL, reflect ritual, evidence edges) — not by learned re-ranking at retrieval time.

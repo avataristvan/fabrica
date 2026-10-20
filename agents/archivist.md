@@ -69,7 +69,13 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
 
 1. **Candidates.** Split the input into single claims. Drop what is state (what is being
    done now, next steps; that belongs in `FOCUS.md` or a handoff) and what is not worth a
-   record; say so in the report. Give every kept candidate its id now
+   record; say so in the report. **Write threshold:** a candidate is worth a record only
+   when it is not derivable from the code, the docs or another record, and someone
+   without its context would be surprised by it. A decision must also come from a real
+   trade-off (an alternative was weighed or rejected); a choice without an alternative is
+   not a decision record. Being hard to reverse raises a decision's weight but is not
+   required. Keep bodies as short as the claim allows; one to three sentences per field
+   is typical. Give every kept candidate its id now
    (`<type-prefix>_<slug>_<yyyy_mm_dd>`, lowercase, `[a-z0-9_-]`, no `:`), so the batch's
    records can point at each other.
 2. **Map the areas, once.** `mem context --map --root <workspace root>`, the folder that holds

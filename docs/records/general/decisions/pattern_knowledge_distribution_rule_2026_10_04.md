@@ -3,6 +3,7 @@ type: pattern
 area: general
 perspective: user
 created: 1791067532.967105
+edges: [{"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]
 ---
 
 Rule: Distribute knowledge by relevance and derivability.

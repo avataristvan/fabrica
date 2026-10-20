@@ -67,7 +67,9 @@ Ask: **"What is your next focus?"** (or derive it from the confirmed todos if ob
 Write the handoff yourself, as plain files in the area — this is state, overwritten each time; git keeps the history, so no dates or status words that will rot inside the text:
 
 - `docs/records/FOCUS.md` — what is being worked on now and what comes next (a few lines, plain text, no frontmatter). Always update it.
-- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points**. No history of how you got there — the reasons go into record candidates, not into the handoff.
+- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points**, **Start with** (the skill or command the next session loads first, with the file it takes, e.g. `/dev-team` on a plan path). No history of how you got there — the reasons go into record candidates, not into the handoff.
+- Point, don't copy: what already stands in a spec, plan, record, commit or source is named by its path or id, not restated in the focus or the handoff.
+- The glossary (`docs/reference/glossary.md` in the area, when it has one): when this session coined a term or changed what one means, edit its line now. It is state like the focus; the reason for the change is a record candidate.
 
 ---
 
