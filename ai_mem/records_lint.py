@@ -2,8 +2,9 @@
 
 Records are read as plain files, not through the repository: `get_by_ids` silently skips a record it
 cannot parse, and lint exists to name exactly those (learning_handwritten_records_drift_from_format_2026_10_10).
-`--fix` rewrites only the frontmatter shape of files inside the given area; the body is never touched and
-a content-preservation guard refuses any rewrite that would lose a frontmatter value or a byte of body.
+`--fix` rewrites only the frontmatter shape of files inside the given area, and repoints edge targets whose id
+lives in exactly one area; the body is never touched and a content-preservation guard refuses any rewrite that
+would lose a frontmatter value or a byte of body.
 
 Exit codes: 0 clean, 1 findings remain, 2 usage or invalid input, 3 migration pending (`--fix` only).
 Stdlib only.
@@ -19,7 +20,7 @@ import sys
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
-from typing import get_args
+from typing import Callable, get_args
 
 from ai_mem import upgrade_guard
 from ai_mem.domain.memory import EdgeType, parse_edges
@@ -36,7 +37,7 @@ from ai_mem.infrastructure.adr_paths import (
     sources_dir,
     write_atomic,
 )
-from ai_mem.infrastructure.areas import Area, find_area, parse_ref, resolve_ref
+from ai_mem.infrastructure.areas import Area, ancestor_areas, discover_areas, find_area, parse_ref, qualify, resolve_ref
 
 OK, FINDINGS, USAGE, PENDING = 0, 1, 2, 3
 
@@ -191,6 +192,22 @@ def _stems(area: Area, cache: dict[Path, set[str]]) -> set[str]:
     return cache[area.root]
 
 
+def _edge_problem(area: Area, target: str, cache: dict[Path, set[str]]) -> tuple[str, str] | None:
+    """`(code, message)` when an edge target is invalid or leads nowhere, else None."""
+    try:
+        rel, _ = parse_ref(target)
+    except ValueError:
+        return Code.EDGE_TARGET_INVALID, f"edge target {target!r} is not a valid id or <area-path>:<id> reference"
+    if rel is None:
+        return None if target in _stems(area, cache) else (Code.EDGE_DANGLING, f"edge target {target!r} does not exist in this area")
+    resolved = resolve_ref(area, target)
+    if resolved is None:
+        return Code.EDGE_UNRESOLVED, f"edge target {target!r} points at no area"
+    if resolved[1] not in _stems(resolved[0], cache):
+        return Code.EDGE_DANGLING_XAREA, f"edge target {target!r} does not exist in the area it points at"
+    return None
+
+
 def _check_edges(area: Area, record: RawRecord, add, cache: dict[Path, set[str]]) -> None:
     raw = record.value("edges")
     if not raw:
@@ -201,23 +218,51 @@ def _check_edges(area: Area, record: RawRecord, add, cache: dict[Path, set[str]]
         add(Code.EDGES_JSON, f"{exc} ({exc.__class__.__name__})")
         return
     for edge in edges:
-        target, edge_type = edge["target_id"], edge["edge_type"]
-        if edge_type not in _EDGE_TYPES:
-            add(Code.EDGE_TYPE, f"edge type {edge_type!r} is not one of {sorted(_EDGE_TYPES)}")
+        if edge["edge_type"] not in _EDGE_TYPES:
+            add(Code.EDGE_TYPE, f"edge type {edge['edge_type']!r} is not one of {sorted(_EDGE_TYPES)}")
+        problem = _edge_problem(area, edge["target_id"], cache)
+        if problem is not None:
+            add(*problem)
+
+
+def _search_root(area: Area) -> Path:
+    """Where `--fix` looks for a lost edge target: $AI_MEM_WORKSPACE_ROOT, else the outermost area above, else the parent folder."""
+    root = os.environ.get("AI_MEM_WORKSPACE_ROOT")
+    if root:
+        return Path(root).expanduser().resolve()
+    above = ancestor_areas(area, Path(area.root.anchor))
+    return above[-1].root if above else area.root.parent
+
+
+def _repoint_edges(area: Area, record: RawRecord, cache: dict[Path, set[str]], areas: Callable[[], list[Area]]) -> tuple[str, list[str]]:
+    """The `edges` value with each lost target repointed to the one area that holds its id (an area moved, a prefix went stale).
+
+    A target whose id is in no area, or in more than one, stays as it is and lint keeps reporting it.
+    """
+    raw = record.value("edges")
+    try:
+        edges = parse_edges(raw) if raw else []
+    except ValueError:
+        return raw, []
+    changes = []
+    for edge in edges:
+        problem = _edge_problem(area, edge["target_id"], cache)
+        if problem is None or problem[0] == Code.EDGE_TARGET_INVALID:
+            continue
+        entry_id = parse_ref(edge["target_id"])[1]
+        holders = [candidate for candidate in areas() if entry_id in _stems(candidate, cache)]
+        if len(holders) != 1:
+            continue
+        target = qualify(area, holders[0], entry_id)
         try:
-            rel, _ = parse_ref(target)
+            parse_ref(target)
         except ValueError:
-            add(Code.EDGE_TARGET_INVALID, f"edge target {target!r} is not a valid id or <area-path>:<id> reference")
             continue
-        if rel is None:
-            if target not in _stems(area, cache):
-                add(Code.EDGE_DANGLING, f"edge target {target!r} does not exist in this area")
-            continue
-        resolved = resolve_ref(area, target)
-        if resolved is None:
-            add(Code.EDGE_UNRESOLVED, f"edge target {target!r} points at no area")
-        elif resolved[1] not in _stems(resolved[0], cache):
-            add(Code.EDGE_DANGLING_XAREA, f"edge target {target!r} does not exist in the area it points at")
+        changes.append(f"edge {edge['target_id']} -> {target}")
+        edge["target_id"] = target
+    if not changes:
+        return raw, []
+    return json.dumps([{"target_id": e["target_id"], "edge_type": e["edge_type"]} for e in edges]), changes
 
 
 def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]]) -> None:
@@ -311,14 +356,16 @@ def _created_from_history(area: Area, path: Path) -> str:
     return str(float(stamps[-1])) if stamps else str(path.stat().st_mtime)
 
 
-def _normalise(area: Area, record: RawRecord) -> tuple[str, list[str]] | str:
-    """`(new_text, changes)` for a readable record, or the reason it is not fixable."""
+def _normalise(area: Area, record: RawRecord, edges: str) -> tuple[str, list[str]] | str:
+    """`(new_text, changes)` for a readable record with `edges` as its edges value, or the reason it is not fixable."""
     assert record.fields is not None
     fields = list(record.fields)
     values = dict(fields)
     if any(_has_control(value, allow_tab=True) for _, value in fields):
         return "a frontmatter value contains control characters"
     changes: list[str] = []
+    if edges != values.get("edges", ""):
+        fields = [(key, edges if key == "edges" else value) for key, value in fields]
 
     def put(key: str, value: str) -> None:
         for i, (existing, _) in enumerate(fields):
@@ -351,8 +398,19 @@ def _normalise(area: Area, record: RawRecord) -> tuple[str, list[str]] | str:
     return new_text, changes
 
 
-def _preserved(record: RawRecord, new_text: str) -> bool:
-    """Content-preservation guard: every original frontmatter value and the whole body survive the rewrite."""
+def _same_edges_but_targets(old: str, new: str) -> bool:
+    try:
+        before, after = parse_edges(old), parse_edges(new)
+    except ValueError:
+        return False
+    return [e["edge_type"] for e in before] == [e["edge_type"] for e in after]
+
+
+def _preserved(record: RawRecord, new_text: str, edges: str) -> bool:
+    """Content-preservation guard: every original frontmatter value and the whole body survive the rewrite.
+
+    The one allowed change is `edges` becoming `edges` with the same edge types in the same order (repointed targets).
+    """
     assert record.fields is not None
     again = _split(new_text)
     if isinstance(again, str):
@@ -367,7 +425,11 @@ def _preserved(record: RawRecord, new_text: str) -> bool:
         adr_markdown.parse(new_text)
     except ValueError:
         return False
-    return all(new_values.get(key) == value and (not value or value in new_text) for key, value in record.fields if value)
+    old_edges = record.value("edges")
+    if edges != old_edges and not (new_values.get("edges") == edges and _same_edges_but_targets(old_edges, edges)):
+        return False
+    return all(new_values.get(key) == value and (not value or value in new_text)
+               for key, value in record.fields if value and not (key == "edges" and edges != old_edges))
 
 
 def _emit(args: argparse.Namespace, area: Area, **payload) -> None:
@@ -380,20 +442,31 @@ def _emit(args: argparse.Namespace, area: Area, **payload) -> None:
 
 
 def _fix(area: Area, args: argparse.Namespace) -> list[RawRecord]:
-    """Normalise the records, then regenerate INDEX.md if it is stale. Returns the records as they are now."""
+    """Normalise the records and repoint lost edge targets, then regenerate INDEX.md if it is stale. Returns the records as they are now."""
     records = read_area(area)
     changed = False
+    cache: dict[Path, set[str]] = {}
+    found: list[Area] = []
+
+    def areas() -> list[Area]:  # scanned once, and only when an edge is lost
+        if not found:
+            found.append(area)
+            found.extend(a for a in discover_areas(_search_root(area)) if a.root != area.root)
+        return found
+
     for record in records:
         if record.fields is None:
             continue
-        outcome = _normalise(area, record)
+        edges, repointed = _repoint_edges(area, record, cache, areas)
+        outcome = _normalise(area, record, edges)
         if isinstance(outcome, str):
             _emit(args, area, action="skipped", file=str(record.path), message=f"not fixable: {outcome}")
             continue
         new_text, changes = outcome
+        changes = [c for c in changes if c != "field order / spacing" or not repointed] + repointed
         if new_text == record.text:
             continue
-        if not _preserved(record, new_text):
+        if not _preserved(record, new_text, edges):
             _emit(args, area, action="skipped", file=str(record.path), message="not fixable: content-preservation guard refused the rewrite")
             continue
         write_atomic(record.path, new_text)
@@ -409,7 +482,7 @@ def _fix(area: Area, args: argparse.Namespace) -> list[RawRecord]:
 
 def configure(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--area", metavar="PATH", help="area folder (default: nearest ancestor of cwd with docs/records/)")
-    parser.add_argument("--fix", action="store_true", help="normalise frontmatter shape and regenerate INDEX.md (writes inside the area only)")
+    parser.add_argument("--fix", action="store_true", help="normalise frontmatter shape, repoint edges whose id lives in exactly one area, regenerate INDEX.md (writes inside the area only)")
     parser.add_argument("--json", action="store_true", help="one JSON object per finding / change")
 
 

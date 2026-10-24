@@ -132,6 +132,17 @@ def _team_files(home: Path) -> list[Path]:
     return found[:_MAX_FILES]
 
 
+def _is_external(path: Path) -> bool:
+    """A skill installed by a tool (git checkout, or a `.<name>_version`/`VERSION` marker): never edited, so listed apart."""
+    folder = path.parent
+    if path.name != "SKILL.md" or folder.parent.name != "skills":
+        return False
+    try:
+        return (folder / ".git").exists() or (folder / "VERSION").is_file() or any(folder.glob(".*_version"))
+    except OSError:
+        return False
+
+
 def _hook_commands(hooks: object, event: str) -> list[str]:
     groups = hooks.get(event) if isinstance(hooks, dict) else None
     if not isinstance(groups, list):
@@ -154,14 +165,15 @@ def _registered_hooks(settings: object) -> tuple[list[str], bool]:
 
 def collect_wiring(home: Path) -> dict:
     """Teams (commands, agents, skills that spawn agents or name memory) lacking the hand-off marker, and the registered hooks."""
-    without, scanned = [], 0
+    without, external, scanned = [], [], 0
     for path in _team_files(home):
         text = _read_text(path)
         if text is None or not _TEAM_SIGNALS.search(text):
             continue
         scanned += 1
         if _HOOK_IN not in text:
-            without.append(_printable(path.relative_to(home / ".claude").as_posix(), 200))
+            name = _printable(path.relative_to(home / ".claude").as_posix(), 200)
+            (external if _is_external(path) else without).append(name)
     settings_text = _read_text(home / ".claude" / "settings.json")
     try:
         settings = json.loads(settings_text) if settings_text else None
@@ -169,7 +181,8 @@ def collect_wiring(home: Path) -> dict:
         settings = None
     registered, plugin = _registered_hooks(settings)
     # TODO(chunk 6): also scan the skills/agents of enabled ai-mem@... plugins (needs the plugin cache layout).
-    return {"claude_dir": (home / ".claude").is_dir(), "teams": scanned, "teams_without_hook_in": without, "plugin_enabled": plugin,
+    return {"claude_dir": (home / ".claude").is_dir(), "teams": scanned, "teams_without_hook_in": without,
+            "teams_external": external, "plugin_enabled": plugin,
             "hooks_registered": registered, "hooks_missing": [m for _, m in _EXPECTED_HOOKS if m not in registered]}
 
 
@@ -302,10 +315,15 @@ def _render_wiring(wiring: dict) -> list[str]:
         out = [f"  hooks: all {len(_EXPECTED_HOOKS)} registered in settings.json"]
     if not wiring["claude_dir"]:
         return out + ["  no .claude directory under the home that was checked: nothing scanned"]
-    without = wiring["teams_without_hook_in"]
-    out.append(f"  teams without `{_HOOK_IN}` ({len(without)} of {wiring['teams']} that spawn agents or name memory):" if without
-               else f"  all {wiring['teams']} teams that spawn agents or name memory carry `{_HOOK_IN}`")
-    return out + [f"    {name}" for name in without]
+    without, external = wiring["teams_without_hook_in"], wiring["teams_external"]
+    own = wiring["teams"] - len(external)
+    out.append(f"  teams without `{_HOOK_IN}` ({len(without)} of {own} that spawn agents or name memory):" if without
+               else f"  all {own} teams that spawn agents or name memory carry `{_HOOK_IN}`")
+    out += [f"    {name}" for name in without]
+    if external:
+        out.append(f"  external skills without `{_HOOK_IN}` (installed by a tool, not edited; {len(external)}):")
+        out += [f"    {name}" for name in external]
+    return out
 
 
 def _render_effect(effect: dict, base: Path) -> list[str]:

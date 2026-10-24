@@ -92,8 +92,8 @@ def ancestor_areas(home: Area, root: Path) -> list[Area]:
 def search_order(home: Area, root: Path) -> list[Area]:
     """Where to look for an id: the home area, then bubble-up to `root`, then every other area below `root`.
 
-    The last stage is temporary: it reaches the records home, a sibling; chunk 5x moves root knowledge to
-    `<root>/docs/records/` and drops it (plan D5).
+    The last stage also reaches the records home, a sibling, which stays as a migration fallback
+    (domain_records_home_stays_for_migration_2026_10_13).
     """
     ordered, seen = [home], {home.root}
     for area in (*ancestor_areas(home, root), *discover_areas(root)):

@@ -64,7 +64,7 @@ There are no runtime dependencies (`dependencies = []`): everything uses the sta
 - **Sources**: sources nothing points to, sources with a missing field, and current docs that still describe a retired system as current.
 - **State**: handoff or `FOCUS.md` behind the newest change.
 - **Migration**: a pending upgrade step.
-- **Wiring**: commands, agents and skills under `<home>/.claude` that spawn agents or name memory but lack `handoff-protocol`; whether the four ai-mem hooks are registered in `settings.json` or the plugin is enabled.
+- **Wiring**: commands, agents and skills under `<home>/.claude` that spawn agents or name memory but lack `handoff-protocol` (skills installed by a tool, i.e. a folder with `.git`, `VERSION` or a `.*_version` marker, are listed apart as external: they are never edited); whether the four ai-mem hooks are registered in `settings.json` or the plugin is enabled.
 - **Effect**: per agent type over the last N days of `retro_log.jsonl` (deduplicated by `agent_id`, last entry wins), the share with `records_consulted` / `record_candidates` given and with missing retro fields; records with at least three incoming `confirms` edges as cue-sharpening candidates.
 
 Everything under `~/.claude` and the log is treated as untrusted input: size-capped regular-file reads, malformed lines and unreadable files skipped, no path built from file content.

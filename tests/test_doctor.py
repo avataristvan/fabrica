@@ -214,6 +214,22 @@ def test_wiring_survives_garbage(tmp_path, monkeypatch, capsys):
     assert _doctor_json(tmp_path, home, capsys)["wiring"]["teams_without_hook_in"] == ["agents/bin.md"]
 
 
+def test_wiring_lists_external_skills_apart(tmp_path, monkeypatch, capsys):
+    home, _ = _home(tmp_path, monkeypatch)
+    skills = home / ".claude" / "skills"
+    for name, marker in (("own", None), ("versioned", ".tool_version"), ("cloned", ".git"), ("plain", "VERSION")):
+        (skills / name).mkdir(parents=True)
+        (skills / name / "SKILL.md").write_text('Agent(subagent_type="x")')
+        if marker:
+            (skills / name / marker).mkdir() if marker == ".git" else (skills / name / marker).write_text("1")
+    wiring = _doctor_json(tmp_path, home, capsys)["wiring"]
+    assert wiring["teams_without_hook_in"] == ["skills/own/SKILL.md"]
+    assert sorted(wiring["teams_external"]) == ["skills/cloned/SKILL.md", "skills/plain/SKILL.md", "skills/versioned/SKILL.md"]
+    main(["doctor", "--root", str(tmp_path / "a"), "--home", str(home)])
+    out = capsys.readouterr().out
+    assert "teams without `handoff-protocol` (1 of 1 " in out and "external skills without `handoff-protocol`" in out
+
+
 def _entry(agent_id, agent_type="the-coder", age_days=1, **fields):
     return {"ts": time.time() - age_days * 86400, "session_id": "s", "agent_type": agent_type, "agent_id": agent_id,
             "has_retro": True, "missing": [], "records_consulted": "none", "record_candidates": "none", "learned": None, **fields}

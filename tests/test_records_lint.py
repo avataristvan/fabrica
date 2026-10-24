@@ -122,6 +122,31 @@ def test_edges_checks(tmp_path):
     assert not any("learning_o'" in f.message and f.code == "edge-dangling-xarea" and "gone" not in f.message for f in findings)
 
 
+def test_fix_repoints_edges_whose_id_lives_in_exactly_one_area(tmp_path):
+    area = _clean_area(tmp_path)
+    for name, ids in (("moved/deeper", ["learning_m"]), ("one", ["learning_twice"]), ("two", ["learning_twice"])):
+        other = _area(tmp_path / name)
+        for entry_id in ids:
+            _write(other, f"general/learnings/{entry_id}.md", _record(entry_id))
+        main(["lint", "--fix", "--area", str(other.root)])
+    edges = [
+        {"target_id": "../moved:learning_m", "edge_type": "confirms"},      # area moved one level down
+        {"target_id": "learning_m", "edge_type": "related"},                # bare id, lives elsewhere
+        {"target_id": "../one:learning_a", "edge_type": "derived_from"},    # lives in this very area
+        {"target_id": "../x:learning_twice", "edge_type": "related"},       # ambiguous: two areas
+        {"target_id": "learning_nowhere", "edge_type": "related"},          # in no area
+    ]
+    path = _write(area, "general/learnings/learning_b.md", _record("learning_b", extra=f"edges: {json.dumps(edges)}\n", body="Body\n"))
+    main(["lint", "--fix", "--area", str(area.root)])
+    text = path.read_text()
+    assert [e["target_id"] for e in json.loads(text.split("edges: ", 1)[1].split("\n", 1)[0])] == [
+        "../moved/deeper:learning_m", "../moved/deeper:learning_m", "learning_a", "../x:learning_twice", "learning_nowhere"]
+    assert [e["edge_type"] for e in json.loads(text.split("edges: ", 1)[1].split("\n", 1)[0])] == [e["edge_type"] for e in edges]
+    assert text.endswith("---\n\nBody\n")
+    assert sorted(f.message for f in records_lint.lint(area) if f.code.startswith("edge")) == [
+        "edge target '../x:learning_twice' points at no area", "edge target 'learning_nowhere' does not exist in this area"]
+
+
 def test_user_record_needs_perspective_user(tmp_path):
     area = _clean_area(tmp_path)
     _write(area, "general/user/user_a.md", _record("user_a", "user"))
