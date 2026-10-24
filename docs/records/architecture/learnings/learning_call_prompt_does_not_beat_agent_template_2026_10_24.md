@@ -3,7 +3,7 @@ type: learning
 area: architecture
 perspective: agent
 created: 1792868399.374574
-edges: [{"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "confirms"}, {"target_id": "pattern_archivist_report_is_an_interim_message_2026_10_24", "edge_type": "related"}]
+edges: [{"target_id": "pattern_archivist_report_is_an_interim_message_2026_10_24", "edge_type": "related"}, {"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "related"}]
 cue: I want to change an agent's output format and consider only saying so in the call prompt.
 ---
 
