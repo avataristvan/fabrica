@@ -17,11 +17,13 @@ Seniority is placed in what the agent inherits: the record, carried from session
 
 ## Status
 
-Hypothesis. Nothing measures competence across sessions yet. The next useful evidence is simple: the same question, once with the record and once without.
+Hypothesis. A preregistered measurement (2026-10-16/17, 96 runs) gave the same tasks to agents without the record, with decisions only, and with the whole record. It did not reach probation: the whole record did not beat decisions alone, and agents that read the reason for a rejected design often built it anyway. The plan forbids a second version of this measurement; the result and its lessons are in [What we measured](../../explanation/what-we-measured.md#5-seniority-lives-in-the-record-not-confirmed).
 
 ## Evidence
 
 - [`domain_fabrica_seniority_from_the_record_2026_10_14`](../../records/architecture/decisions/domain_fabrica_seniority_from_the_record_2026_10_14.md): the decision, marked unmeasured.
+- [`eval_seniority_main_run_result_2026_10_18`](../../records/evaluation/learnings/eval_seniority_main_run_result_2026_10_18.md): the measurement, not confirmed; plan in [`plan_seniority_measurement.md`](../../plan_seniority_measurement.md).
+- [`learning_knowledge_loses_against_the_order_2026_10_18`](../../records/evaluation/learnings/learning_knowledge_loses_against_the_order_2026_10_18.md): where the record was read, the agent often built the rejected thing anyway.
 - [`domain_bmad_vs_ai_mem_epistemology_2026_09_25`](../../records/architecture/decisions/domain_bmad_vs_ai_mem_epistemology_2026_09_25.md): ADRs, graphify and BMAD deliver artifacts at a point in time; the contribution is judgment that matures instead of arising anew in every cycle.
 - [`epistemology_framework.md`](../../sources/epistemology_framework.md), section "The Junior → Senior Effect": the first account of the claim.
 

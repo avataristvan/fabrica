@@ -1,6 +1,6 @@
 # Fabrica · ai-mem
 
-**AI agents that grow more senior from session to session — not because they remember, but because the record they inherit gets better.**
+**A practice for letting AI agents inherit experience from session to session — kept in a record, not in the agent. Whether that makes them more senior is still a hypothesis: [what we measured so far](docs/explanation/what-we-measured.md).**
 
 Fabrica is a practice for teams of humans and agents. ai-mem is its plugin for Claude Code.
 The name is the *fabrica ecclesiae*, the workshop that built and kept a cathedral across generations — not a factory ([the core](docs/fabrica/core.md)).
@@ -31,7 +31,7 @@ flowchart LR
 > It did. Measured over 50 sessions, 348 edits injected about 67k tokens — 92% of ai-mem's context footprint, whether relevant or not. Retired 2026-09-12.
 > *(arch_decision_pretool_push_removed_2026_09_12)*
 
-**Built with itself.** This repository was built the Fabrica way. Its own lodge book is in [`docs/records/`](docs/records/INDEX.md): 237 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. What is proven and what is still on probation is stated, not hidden.
+**Built with itself.** This repository was built the Fabrica way. Its own lodge book is in [`docs/records/`](docs/records/INDEX.md): 237 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. Nothing in it is proven yet; what is on probation, what is a hypothesis and what failed is stated, not hidden ([what we measured](docs/explanation/what-we-measured.md)).
 
 ## Fabrica and Kaizen
 
@@ -43,7 +43,7 @@ Fabrica has the shape of Kaizen, the continuous improvement of the Toyota Produc
 | Yokoten: spread a lesson sideways | the librarian brings a record to the place that needs it |
 | Standard work, replaced when something better is found | decisions with their reasons, superseded, never deleted |
 
-So in Fabrica, seniority is not in the agent. It is in the record. → [Fabrica: the core](docs/fabrica/core.md) · [the patterns](docs/fabrica/patterns/README.md), each with its status and evidence
+So in Fabrica, seniority is meant to live in the record, not in the agent. That is the claim; a first measurement did not confirm it. → [Fabrica: the core](docs/fabrica/core.md) · [the patterns](docs/fabrica/patterns/README.md), each with its status and evidence
 
 ## How ai-mem works
 
@@ -97,7 +97,7 @@ Organised by [Diátaxis](https://diataxis.fr/).
 | **Tutorial** | [Your first records](docs/tutorial/first-records.md) |
 | **How-to** | [Set up your teams and CLAUDE.md](docs/how-to/set-up.md) · [Manage records](docs/how-to/manage-records.md) · [Wire skills and agents](docs/how-to/wire-skills-and-agents.md) · [Develop ai-mem](docs/how-to/develop.md) · [Migrate an old installation](docs/how-to/migrate-to-records.md) |
 | **Reference** | [Command-line reference](docs/reference/cli.md) · [Record format](docs/reference/record-format.md) · [Hooks](docs/reference/hooks.md) · [Architecture](docs/reference/architecture.md) · [Glossary](docs/reference/glossary.md) · [The removed Chroma stack](docs/reference/chroma_rollback_backend.md) (historical) |
-| **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [Fabrica: the core](docs/fabrica/core.md) · [Fabrica: patterns](docs/fabrica/patterns/README.md) |
+| **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [What we measured](docs/explanation/what-we-measured.md) · [Fabrica: the core](docs/fabrica/core.md) · [Fabrica: patterns](docs/fabrica/patterns/README.md) |
 | **Evidence and history** | [`docs/sources/`](docs/sources/) (dated, frozen evidence: measurements, past designs, retired systems) · [CHANGELOG](CHANGELOG.md) · [UPGRADING](UPGRADING.md) |
 | **For agents** | [`CLAUDE.md`](CLAUDE.md) (what is true now) · [`skills/handoff-protocol/SKILL.md`](skills/handoff-protocol/SKILL.md) (the boundary contract) · [`agents/`](agents/) · [`examples/agents/`](examples/agents/README.md) · [`reference/navigating_records.md`](reference/navigating_records.md) |
 
