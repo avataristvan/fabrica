@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791756496.674797
-edges: [{"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_public_face_experience_report_not_launch_2026_10_24", "edge_type": "related"}]
 cue: I am placing a record that documents internals or private history, and the target area has or will have a public remote
 ---
 

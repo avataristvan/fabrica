@@ -4,7 +4,9 @@ Not blocking: the on-site check of the external installation's migration and plu
 
 Done: the seniority measurement (plan `docs/plan_seniority_measurement.md`, frozen at sha256 5f43d06e3cb984e0d44f24dc509fd8de2c356fbb181732d7f06cb3ff5c8cde48; harness 54a2b5a). All 96 runs graded, spot-check passed; pattern 9 stays a hypothesis. No v2 of this measurement; the result and its lessons are in the records. Raw results stay local in `scripts/eval_seniority/results/`.
 
-Uncommitted: agents/archivist.md and record-format.md carry the Observed/Cause rule and the short interim report (pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24, pattern_archivist_report_is_an_interim_message_2026_10_24). After commit and a Claude Code restart, the first real archivist run shows whether the report got shorter.
+Committed, awaiting a real run: agents/archivist.md and record-format.md carry the Observed/Cause rule and the short interim report (pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24, pattern_archivist_report_is_an_interim_message_2026_10_24). After a Claude Code restart, the first real archivist run shows whether the report got shorter.
+
+Public face: the README calls seniority-from-the-record a hypothesis and links docs/explanation/what-we-measured.md, the experience report of every measurement so far. The outreach strategy (who, where, in which order) is private and lives outside this repo.
 
 Next here: moving the UPGRADING.md rerun duty from a learning into an enforcing mechanism. Changes to the team flow drawn from the measurement live in the workspace area, not here.
 

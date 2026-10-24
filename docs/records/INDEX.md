@@ -81,6 +81,7 @@
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
+| domain_public_face_experience_report_not_launch_2026_10_24 | architecture | domain | Decision: The public face of Fabrica is an experience report, not a tool launch. | active |
 | domain_public_records_are_written_in_english_2026_10_12 | architecture | domain | Decision: Records that go public are written in English. German records are tran | active |
 | domain_rebuild_closing_scoped_to_three_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild is scoped to three items (user, 2026- | superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15 |
 | domain_rebuild_closing_scoped_to_two_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild needs two items (user, 2026-10-15): t | active |
@@ -150,6 +151,7 @@
 | learning_index_status_stale_after_supersede_2026_09_27 | architecture | learning | Observed: A parallel session in another project (migrating its collections to AD | active |
 | learning_knowledge_loses_against_the_order_2026_10_18 | evaluation | learning | Observed: Where the record was read, the agent often built the rejected thing an | active |
 | learning_librarian_files_only_eval_chunk3_2026_10_11 | evaluation | learning | Observed: Chunk 3 (librarian without mem_* tools, Read/Grep/Glob only): the libr | active |
+| learning_librarian_grepped_outside_scope_again_2026_10_24 | evaluation | learning | Observed: In the session of 2026-10-24 the librarian ran one Grep into docs/fabr | active |
 | learning_librarian_matched_out_of_scope_files_again_2026_10_12 | evaluation | learning | Observed: The librarian again matched out-of-scope files (plan, handoff) by grep | active |
 | learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12 | evaluation | learning | Observed: The librarian read plan and handoff files outside its permitted scope  | active |
 | learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12 | plugin | learning | Observed: In a normal interactive session with the installed plugin, the librari | active |
@@ -178,6 +180,7 @@
 | learning_undoing_supersede_removes_both_fields_2026_10_12 | records | learning | Observed: Undoing a supersede means removing both `superseded_by` and `valid_unt | active |
 | learning_upsert_hook_command_identity_vs_value_equality_2026_07_31 | architecture | learning | Observed: `entries.remove(entry)` in install.py's `_upsert_hook_command` deleted | active |
 | learning_upsert_hook_command_matcher_overwrite_2026_07_31 | architecture | learning | Observed: install.py's `_upsert_hook_command` unconditionally overwrote `entry[" | active |
+| learning_whole_record_not_better_than_decisions_alone_2026_10_24 | evaluation | learning | Observed: In the seniority measurement the whole record (A2) was not better than | active |
 | learning_workspace_collection_catchall_dumped_unrelated_entries_2026_07_31 | architecture | learning | Observed: If a directory had its own CLAUDE.md but lay outside `AI_MEM_WORKSPACE | active |
 | learning_workspace_root_hook_prefix_lost_on_reinstall_2026_09_27 | architecture | learning | Observed: A parallel session in another project reported that the SessionStart h | active |
 | memory_validation_neutral | general | pattern | Memory validation is neutral — neither code nor memory is authoritative. Code ca | active |
@@ -250,6 +253,7 @@
 | todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: Make the archivist's search of the records home (ai-mem-records/global, wo | active |
 | todo_bibliothekar_haiku_retrieval_agent_2026_09_25 | general | learning | RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09- | active |
 | todo_confidence_decay_adsr_design | general | learning | Design and implement a confidence-decay mechanism modeled on an ADSR envelope (A | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
+| todo_decide_librarian_core_or_optional_2026_10_24 | evaluation | todo | TODO: Settle whether the librarian is the core of Fabrica or too much, since an  | active |
 | todo_detect_skipped_reflect_gate_2026_10_11 | architecture | todo | TODO: Make `mem doctor` detect a skipped reflect gate, e.g. commits on main sinc | active |
 | todo_doctor_reads_environment_records_2026_10_11 | architecture | todo | TODO: make `mem doctor` (Wiring) read environment records (e.g. "external team,  | active |
 | todo_doctor_retired_system_check_sidestepped_by_softer_wording_2026_10_12 | architecture | todo | TODO (user confirmed): The doctor's retired-system check can be sidestepped by s | active |
@@ -270,6 +274,7 @@
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
+| todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
 | todo_upgrading_md_rerun_duty_into_enforcing_mechanism_2026_10_18 | plugin | todo | TODO: Move the duty "rerun the UPGRADING.md acceptance after every edit to UPGRA | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |

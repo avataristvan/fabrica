@@ -3,7 +3,7 @@ type: todo
 area: evaluation
 perspective: reviewer
 created: 1791725662.654372
-edges: [{"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "edge_type": "derived_from"}, {"target_id": "todo_librarian_scope_and_relied_on_parser_2026_10_11", "edge_type": "related"}]
+edges: [{"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "edge_type": "derived_from"}, {"target_id": "todo_librarian_scope_and_relied_on_parser_2026_10_11", "edge_type": "related"}, {"target_id": "learning_librarian_grepped_outside_scope_again_2026_10_24", "edge_type": "related"}]
 cue: I am deciding how far to harden the librarian against hostile input or paths outside its area
 ---
 
