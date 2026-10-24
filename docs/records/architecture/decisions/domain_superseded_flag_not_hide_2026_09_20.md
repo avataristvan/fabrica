@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1789927320.601691
-edges: [{"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}]
+edges: [{"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}, {"target_id": "domain_doctor_lists_external_skills_apart_2026_10_23", "edge_type": "related"}]
 ---
 
 Decision: An entry that has been superseded via 'supersedes' is marked on retrieval (superseded_by, valid_until) and its current successor is attached — it is not hidden and not deleted automatically.

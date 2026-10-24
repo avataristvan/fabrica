@@ -3,7 +3,7 @@ type: pattern
 area: architecture
 perspective: user
 created: 1791926513.704019
-edges: [{"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_rewiring_grep_old_collection_names_2026_10_11", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_rewiring_grep_old_collection_names_2026_10_11", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}]
 cue: I am integrating candidates from an ai-mem session, or moving a record between the method, the build and the use level.
 ---
 

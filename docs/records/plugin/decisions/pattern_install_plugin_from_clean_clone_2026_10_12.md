@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: user
 created: 1791821370.407105
-edges: [{"target_id": "learning_plugin_from_local_marketplace_loads_in_place_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "learning_plugin_from_local_marketplace_loads_in_place_2026_10_12", "edge_type": "related"}, {"target_id": "../briefing-interviewer:domain_install_plugin_from_area_folder_for_now_2026_10_21", "edge_type": "related"}]
 cue: I am installing or updating a plugin that I develop locally in a checkout with git-excluded private files
 ---
 

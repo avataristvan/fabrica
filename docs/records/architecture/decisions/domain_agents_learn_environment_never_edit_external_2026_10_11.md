@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791744737.225885
-edges: [{"target_id": "todo_doctor_reads_environment_records_2026_10_11", "edge_type": "related"}, {"target_id": "domain_doctor_diagnoses_ritual_erosion_2026_10_10", "edge_type": "related"}, {"target_id": "domain_review_is_skill_with_anchor_lint_agent_2026_10_12", "edge_type": "related"}, {"target_id": "domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "todo_doctor_reads_environment_records_2026_10_11", "edge_type": "related"}, {"target_id": "domain_doctor_diagnoses_ritual_erosion_2026_10_10", "edge_type": "related"}, {"target_id": "domain_review_is_skill_with_anchor_lint_agent_2026_10_12", "edge_type": "related"}, {"target_id": "domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "domain_doctor_lists_external_skills_apart_2026_10_23", "edge_type": "related"}]
 cue: Doctor or setup assistant meets an external agent/skill (graphify) as an exception and you are tempted to edit it or hard-code a list.
 ---
 

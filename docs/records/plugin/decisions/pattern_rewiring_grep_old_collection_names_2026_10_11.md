@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: the-coder
 created: 1791745727.636475
-edges: [{"target_id": "../ai-architecture:pattern_retirement_leaves_stale_consumers", "edge_type": "confirms"}]
+edges: [{"target_id": "..:pattern_retirement_leaves_stale_consumers", "edge_type": "confirms"}]
 cue: I am rewiring agents or skills from memory writes to record candidates
 ---
 

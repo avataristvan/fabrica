@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791926219.342161
-edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}]
+edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}]
 cue: I want to remove the ai-mem-records fallback from ai-mem code because the user's own ai-mem-records is gone.
 ---
 

@@ -36,9 +36,11 @@
 | domain_agents_learn_environment_never_edit_external_2026_10_11 | architecture | domain | Decision: ai-mem never edits externally installed agents/skills/plugins (e.g. th | active |
 | domain_archivist_acceptance_closed_fail_use_carries_2026_10_13 | evaluation | domain | Decision: The archivist acceptance (scripts/eval_archivist/; pass rule >= 80% of | active |
 | domain_archivist_integration_visible_to_navigator_2026_10_15 | architecture | domain | Decision: Mutual visibility is resolved: the archivist does not integrate silent | active |
+| domain_archivist_may_retype_weak_confirms_2026_10_23 | architecture | domain | Decision: The archivist may retype a `confirms` edge on its own judgment when it | active |
 | domain_archivist_mechanism_mem_and_mem_dream_2026_10_11 | architecture | domain | Decision: `mem` and `mem-dream` are the archivist's tools, and it calls mem-drea | active |
 | domain_archivist_who_what_how_2026_10_10 | architecture | domain | Decision: The archivist is the default writer of records, not the only door. Han | active |
 | domain_archivist_write_threshold_2026_10_19 | architecture | domain | Decision: The archivist applies a write threshold. A candidate becomes a record  | active |
+| domain_archivist_writes_home_and_ancestors_only_2026_10_23 | architecture | domain | Decision: The archivist writes only into its home area and the areas above it, u | active |
 | domain_area_path_is_the_address_of_knowledge_2026_10_10 | architecture | domain | Decision: Knowledge is addressed by the folder of its area: the nearest ancestor | active |
 | domain_bmad_vs_ai_mem_epistemology_2026_09_25 | architecture | domain | Decision: The comparison of BMAD and the ai-mem framework converges on a three-l | active |
 | domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13 | architecture | domain | Decision: DreamMemoryUseCase works on areas only (area_refs required; collection | active |
@@ -50,6 +52,7 @@
 | domain_direction_judgment_over_scores_2026_09_20 | architecture | domain | Decision: Direction for ai-mem (2026-09-20): judgment instead of score. The epis | active |
 | domain_docs_split_into_documentation_and_sources_2026_10_10 | architecture | domain | Decision: Every file under docs/ and docs/reference/ is classified as one of thr | active |
 | domain_doctor_diagnoses_ritual_erosion_2026_10_10 | architecture | domain | Decision: ai-mem gets a doctor, similar to Claude Code's /doctor. It diagnoses w | active |
+| domain_doctor_lists_external_skills_apart_2026_10_23 | architecture | domain | Decision: mem doctor lists skills installed by a tool (folder with .git, VERSION | active |
 | domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12 | architecture | domain | Decision: The doctor's "retired system in current doc" check is a keyword heuris | active |
 | domain_domain_decisions_immediate_capture_2026_10_04 | general | domain | Decision: Domain/business decisions should be captured immediately when they sur | active |
 | domain_dream_after_every_reflect_2026_09_26 | workflow | domain | Decision: mem_dream runs after every /reflect (step 6), limited to the active ar | active |
@@ -74,12 +77,14 @@
 | domain_librarian_replaces_experience_index_2026_10_04 | architecture | domain | Decision: SessionStart pushes no memory content anymore. The experience index bl | active |
 | domain_mem_delete_names_dangling_edges_2026_10_13 | records | domain | Decision: `mem delete` prints `dangling: REF --TYPE--> ID` for every same-area e | active |
 | domain_mem_unlink_removes_edges_2026_10_13 | records | domain | Decision: `mem unlink SOURCE TARGET [--type T]` (RemoveEdgeUseCase, ai_mem/appli | active |
+| domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23 | architecture | domain | Decision: Rejected (user, 2026-10-23): a PreToolUse hook on Bash that greps reco | active |
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
 | domain_public_records_are_written_in_english_2026_10_12 | architecture | domain | Decision: Records that go public are written in English. German records are tran | active |
 | domain_rebuild_closing_scoped_to_three_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild is scoped to three items (user, 2026- | superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15 |
 | domain_rebuild_closing_scoped_to_two_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild needs two items (user, 2026-10-15): t | active |
+| domain_record_edges_single_line_json_with_ids_2026_10_23 | records | domain | Decision: Record edges are stored as single-line JSON in the frontmatter (`edges | active |
 | domain_records_home_stays_for_migration_2026_10_13 | architecture | domain | Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r | active |
 | domain_records_model_replaces_chroma_2026_10_04 | records | domain | Decision: ChromaDB is replaced. The source of truth is git-native files in four  | active |
 | domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 | records | domain | Decision: Going public. Internal working material (raw eval transcripts, the chu | active |
@@ -113,11 +118,14 @@
 | fix_workspace_focus_false_negative | architecture | learning | Observed: hook.py wrongly reported 'No focus entry found' although an active cur | active |
 | glob-loop-breaks-on-new-sibling-artifact-file | general | anti-pattern | Tried: Adding a new sibling artifact file (e.g. INDEX.md) into a directory that  | active |
 | learning_abstraction_vs_verbatim_tradeoff_2026_10_04 | general | domain | Decision: ai-mem bets on abstracted, distilled knowledge rather than verbatim se | active |
+| learning_agent_selfreport_about_subagent_output_can_be_confabulated_2026_10_23 | evaluation | learning | Observed: A coding agent, asked in a /btw how valuable the librarian's message w | active |
+| learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23 | records | learning | Observed: After ai-mem moved under ai-architecture/, 11 cross-area edges dangled | active |
 | learning_autoinject_disable_never_took_effect_2026_09_13 | architecture | learning | Observed: The user noticed that a deactivation of ai-mem's 'auto-inject' that th | active |
 | learning_bang_commands_have_no_stdin_2026_10_12 | plugin | learning | Observed: `!` commands in Claude Code get no stdin, so `input()` in install.py r | active |
 | learning_banner_label_and_paraphrase_pass_retired_check_2026_10_12 | architecture | learning | Observed: (1) The README label "retired, kept until removal" for the rollback do | active |
 | learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12 | plugin | learning | Observed: Claude Code's Bash sandbox masks protected paths in its cwd (.bashrc,  | active |
 | learning_bm25_minmax_floors_irrelevant_top_hit_2026_07_31 | architecture | learning | Observed: Empirically against the live DB (the production ai-mem store, global + | active |
+| learning_call_prompt_does_not_beat_agent_template_2026_10_24 | architecture | learning | Observed: A request in the call prompt ("keep the report short") did not beat th | active |
 | learning_chunk0_upgrade_acceptance_passed_2026_10_15 | plugin | learning | Observed: The chunk 0 upgrade acceptance ran on 2026-10-15 against code d5b73b1  | active |
 | learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12 | plugin | learning | Observed: `claude -p --output-format json` `result` holds only the last assistan | active |
 | learning_config_rewrite_keeps_file_mode_and_backs_up_once_2026_10_12 | plugin | learning | Observed: Rewriting `~/.claude.json` (mode 0600, holds credentials) via `write_t | active |
@@ -130,6 +138,7 @@
 | learning_dream_failure_hid_cause_stale_model_tag_2026_09_12 | architecture | learning | Observed: `mem_dream(collection="repo.ai-mem")` failed with only: "Task failed:  | active |
 | learning_e2e_file_backend_after_restart_2026_10_04 | evaluation | learning | Observed: After the restart on the file backend everything worked through the re | active |
 | learning_editable_install_python_i_resolves_main_checkout_not_worktree_2026_10_12 | workflow | learning | Observed: Under an editable pyenv install, a `python -I` subprocess resolves `ai | active |
+| learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24 | evaluation | learning | Observed: In hw-projekt-T, resuming on "weiter", FOCUS.md and the handoff gave t | active |
 | learning_gap_test_first_run_and_blindtest_2026_07_31 | evaluation | learning | Observed: First gap test (2026-05-29, WITH memory): candidate `origin_story`, qu | active |
 | learning_get_by_ids_hides_unparsable_records_2026_10_10 | workflow | learning | Observed: `FileMemoryRepository.get_by_ids` silently skips record files whose fr | active |
 | learning_glob_id_injection_missed_by_review_2026_10_04 | architecture | learning | Observed: find_adr_files built a glob from the entry id (`**/<id>.md`), so mem_d | active |
@@ -155,6 +164,7 @@
 | learning_public_history_pushed_clean_2026_10_13 | records | learning | Observed: Going public is done. main (48fabdb) and the tag v0-last-mcp (60d85d8, | active |
 | learning_pull_needs_situation_triggers_2026_10_04 | evaluation | learning | Observed: In the Navigator's experience ranking and push brought misdirected noi | active |
 | learning_push_check_2026_10_15_was_clean | records | learning | Observed: The push check before the 2026-10-15 push (12 commits, 164 files) was  | active |
+| learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23 | evaluation | learning | Observed: In an audio-driver session the librarian was asked only at session sta | active |
 | learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12 | plugin | learning | Observed: Rerun the UPGRADING.md acceptance run after every edit to UPGRADING.md | active |
 | learning_safe_entry_id_misses_control_chars_2026_10_10 | workflow | learning | Observed: `is_safe_entry_id` only rejects path and glob metacharacters. Ids with | active |
 | learning_setting_sources_drops_user_claude_md_for_claude_p_2026_10_12 | plugin | learning | Observed: `claude -p --setting-sources project,local` also drops the user's `~/. | active |
@@ -172,6 +182,8 @@
 | learning_workspace_root_hook_prefix_lost_on_reinstall_2026_09_27 | architecture | learning | Observed: A parallel session in another project reported that the SessionStart h | active |
 | memory_validation_neutral | general | pattern | Memory validation is neutral — neither code nor memory is authoritative. Code ca | active |
 | pattern_always_parse_agent_type_2026_10_04 | general | pattern | Rule: SessionStart must parse the transcript to detect agent type; never trust i | active |
+| pattern_archivist_report_is_an_interim_message_2026_10_24 | architecture | pattern | Rule: The archivist's integration report is an interim message to the caller: on | active |
+| pattern_ask_selfreport_with_provenance_marks_2026_10_24 | evaluation | pattern | Rule: When asking an agent (other session, subagent) for a self-report on concre | active |
 | pattern_auto_mode_rewrite_as_new_branch_and_tag_user_runs_overwrite_2026_10_13 | workflow | pattern | Rule: Build the rewritten target as a new branch and a new tag (git commit-tree  | active |
 | pattern_batch_move_builds_destination_map_first_2026_10_12 | records | pattern | Rule: Build the destination map for all rows of a batch first, before planning a | active |
 | pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12 | records | pattern | Rule: A batch move rewrites referrers only in versioned source areas. Referrers  | active |
@@ -205,6 +217,7 @@
 | pattern_local_adaptive_learning_from_behavior_2026_10_04 | general | domain | Decision: ai-mem keeps record data local and uses no pretrained embedding model. | active |
 | pattern_look_up_records_when_task_feels_trivial_2026_10_18 | architecture | pattern | Rule: An agent should get curious whenever it would decide differently than a re | active |
 | pattern_lookup_refs_use_consumer_validation_2026_10_11 | plugin | pattern | Rule: A lookup that emits references for another command must use that command's | active |
+| pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24 | architecture | pattern | Rule: The Observed field of a record holds only what was seen. Every attribution | active |
 | pattern_persistence_migration_bypasses_mcp | workflow | pattern | Rule: A migration that changes ai-mem's persistence layer or file layout runs vi | active |
 | pattern_planner_run_exit_criterion_greps_on_current_tree_2026_10_12 | workflow | pattern | Rule: A chunk that adds an agent to a symlink-deployed set lists install.py and  | active |
 | pattern_prospective_plan_validation | general | pattern | Rule: Prospective thinking as plan validation — name the dilemma before implemen | active |
@@ -246,12 +259,14 @@
 | todo_dream_maintenance_batch_2026_09_25 | general | learning | RESULT (worked off 2026-09-26): mem_dream maintenance batch of 2026-09-25 on rep | active |
 | todo_dream_trigger_candidates_not_count_2026_09_25 | general | learning | RESULT (implemented): Idea of 2026-09-25 -- the mem_dream trigger in /reflect co | superseded_by: domain_dream_after_every_reflect_2026_09_26 |
 | todo_holistic_opus_review_adr_migration_2026_09_25 | workflow | learning | Observed: The holistic Opus review of the ADR migration (b7548a1, carried out 20 | active |
+| todo_librarian_cannot_read_handoffs_2026_10_20 | general | todo | TODO (Hinweis aus ai-architecture, dort nicht zu entscheiden): Der Bibliothekar  | active |
 | todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
 | todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
 | todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
 | todo_mem_link_and_find_resolve_source_slugs_2026_10_12 | records | todo | TODO: Make `mem link` and `mem find` resolve source slugs (docs/sources/<slug>.m | active |
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
+| todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24 | architecture | todo | TODO: Settle the rule. docs/reference/record-format.md "Sources" allows pseudony | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |

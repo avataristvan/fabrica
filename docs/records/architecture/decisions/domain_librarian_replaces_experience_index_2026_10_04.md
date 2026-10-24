@@ -3,7 +3,7 @@ type: domain
 area: architecture
 created: 1791109782.687738
 edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "arch_decision_sessionstart_pull_based_2026_09_16", "edge_type": "related"}, {"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "derived_from"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}]
-cue: I am about to make SessionStart print an experience index, cue lines or record content again
+cue: I am about to push records, an index or cue lines into SessionStart (or other always-loaded context) instead of a pointer to the librarian
 ---
 
 Decision: SessionStart pushes no memory content anymore. The experience index block (situation -> entry lines from cues) is removed; instead the hook prints one line pointing at <repo>/docs/records/ (FOCUS.md, INDEX.md) and the librarian agent. The librarian reads the record files by judgment, including each record's `cue:` frontmatter line (cues persisted to files since 2026-10-04), and only falls back to mem_* tools for collections without record files.

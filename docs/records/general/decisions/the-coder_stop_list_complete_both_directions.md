@@ -3,7 +3,7 @@ type: pattern
 area: general
 perspective: the-coder
 created: 1791666541.707247
-edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "..:domain_dev_team_stops_on_contradiction_blocked_2026_10_19", "edge_type": "related"}]
+edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "../..:domain_dev_team_stops_on_contradiction_blocked_2026_10_19", "edge_type": "related"}]
 ---
 
 Rule: Instructions for an unattended agent (UPGRADING.md, runbooks) name every STOP condition and say explicitly that everything else is decided and must not be second-guessed.

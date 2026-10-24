@@ -2,7 +2,7 @@ id: eval_librarian_2026_09_26
 type: learning
 area: evaluation
 created: 1790413679.919859
-edges: [{"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "confirms"}]
+edges: [{"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "confirms"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}, {"target_id": "learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24", "edge_type": "related"}]
 ---
 
 Observed: The librarian (Haiku) solved 5/6 gap cases, both controls correctly 'not documented'; plain retrieval hit@1 2/6.

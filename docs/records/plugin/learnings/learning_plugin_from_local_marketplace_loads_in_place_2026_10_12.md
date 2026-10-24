@@ -3,7 +3,7 @@ type: learning
 area: plugin
 perspective: orchestrator
 created: 1791834841.912628
-edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_install_plugin_from_clean_clone_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_install_plugin_from_clean_clone_2026_10_12", "edge_type": "related"}, {"target_id": "../briefing-interviewer:learning_plugin_cache_copy_is_dead_loads_in_place_2026_10_21", "edge_type": "related"}]
 cue: After pulling the plugin clone I wonder if a restart, version bump or plugin update is needed, or what installed_plugins.json means
 ---
 

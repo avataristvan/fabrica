@@ -3,7 +3,7 @@ type: pattern
 area: workflow
 perspective: agent
 created: 1785517815.038957
-cue: A record or focus text is about to state what is being worked on right now or where things stand
+cue: I am writing a record or FOCUS line with a status (uncommitted, running, open) or a commit SHA, or trusting one after an abort or amend
 ---
 
 Rule: Never embed mutable status strings ("NOT YET COMMITTED", "not started", "still open") directly in memory entry text. Reference the commit SHA or ticket ID instead once it exists, and update the entry the moment it does.

@@ -3,7 +3,7 @@ type: learning
 area: architecture
 perspective: user
 created: 1791725662.051604
-edges: [{"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "confirms"}, {"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "confirms"}]
+edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "confirms"}, {"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "related"}]
 cue: I am asked why ai-mem moved from Chroma similarity search to record files, or what the librarian actually changed
 ---
 

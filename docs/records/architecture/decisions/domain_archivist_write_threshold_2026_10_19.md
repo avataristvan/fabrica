@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: agent
 created: 1792419303.538902
-edges: [{"target_id": "pattern_knowledge_distribution_rule_2026_10_04", "edge_type": "related"}, {"target_id": "pattern_quality_at_write_time", "edge_type": "derived_from"}]
+edges: [{"target_id": "pattern_knowledge_distribution_rule_2026_10_04", "edge_type": "related"}, {"target_id": "pattern_quality_at_write_time", "edge_type": "derived_from"}, {"target_id": "domain_archivist_may_retype_weak_confirms_2026_10_23", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}]
 cue: I am deciding whether a reflect candidate deserves a record at all, or why the archivist dropped one
 ---
 

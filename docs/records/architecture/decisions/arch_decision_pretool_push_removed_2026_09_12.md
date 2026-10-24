@@ -2,7 +2,7 @@ id: arch_decision_pretool_push_removed_2026_09_12
 type: domain
 area: architecture
 created: 1789228434.240356
-edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "learning_pretool_push_dominated_context_footprint_2026_09_12", "edge_type": "derived_from"}, {"target_id": "arch_redesign_sketch_pull_based_2026_07_31", "edge_type": "related"}]
+edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "learning_pretool_push_dominated_context_footprint_2026_09_12", "edge_type": "derived_from"}, {"target_id": "arch_redesign_sketch_pull_based_2026_07_31", "edge_type": "related"}, {"target_id": "domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23", "edge_type": "related"}]
 cue: Someone proposes that ai-mem inject something again before file edits (PreToolUse)
 ---
 

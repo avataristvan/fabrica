@@ -3,7 +3,7 @@ type: pattern
 area: plugin
 perspective: reviewer
 created: 1791745727.181161
-edges: [{"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}, {"target_id": "../ai-architecture:pattern_tool_argument_ids_are_hostile_input", "edge_type": "related"}]
+edges: [{"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}, {"target_id": "..:pattern_tool_argument_ids_are_hostile_input", "edge_type": "related"}]
 cue: I am parsing JSON or frontmatter edges from a file or payload I do not control
 ---
 

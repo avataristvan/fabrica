@@ -3,7 +3,7 @@ type: pattern
 area: records
 perspective: the-coder
 created: 1791756496.958505
-edges: [{"target_id": "../ai-architecture:pattern_bulk_changes_as_deterministic_plan_apply_command_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "..:pattern_bulk_changes_as_deterministic_plan_apply_command_2026_10_12", "edge_type": "related"}]
 cue: I am planning a batch of record moves or edge rewrites whose rows may depend on each other
 ---
 
