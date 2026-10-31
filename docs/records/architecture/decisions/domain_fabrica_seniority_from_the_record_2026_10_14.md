@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1792003438.055328
-edges: [{"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}]
+edges: [{"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31", "edge_type": "related"}]
 cue: Someone explains where an agent's growing competence comes from, or proposes putting it into a model, ranker or per-agent profile.
 ---
 

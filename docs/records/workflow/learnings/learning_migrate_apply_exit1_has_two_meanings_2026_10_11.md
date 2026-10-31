@@ -3,7 +3,7 @@ type: learning
 area: workflow
 perspective: the-coder
 created: 1791738301.237421
-edges: [{"target_id": "pattern_persistence_migration_bypasses_mcp", "edge_type": "related"}]
+edges: [{"target_id": "pattern_persistence_migration_bypasses_mcp", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: I am reading or wrapping the exit code of mem-adr-sync migrate --apply
 ---
 

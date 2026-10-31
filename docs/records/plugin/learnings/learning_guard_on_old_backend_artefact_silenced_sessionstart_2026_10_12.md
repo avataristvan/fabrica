@@ -3,7 +3,7 @@ type: learning
 area: plugin
 perspective: the-coder
 created: 1791821370.909383
-edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: I am removing or switching a storage backend and some code still checks for files of the old one
 ---
 

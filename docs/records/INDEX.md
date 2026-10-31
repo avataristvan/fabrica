@@ -71,7 +71,9 @@
 | domain_handoff_points_instead_of_copying_2026_10_19 | workflow | domain | Decision: The /reflect handoff points instead of copying: anything already in a  | active |
 | domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the ai-mem hand | active |
 | domain_hooks_enforce_that_roles_decide_how_2026_10_10 | architecture | domain | Decision: Hooks enforce THAT a ritual happens. Roles decide HOW. Planned hooks:  | active |
+| domain_internal_material_judged_by_content_and_references_2026_10_31 | records | domain | Decision: Internal material is judged by its content and by what points at it, n | active |
 | domain_internal_records_stay_out_of_public_areas_2026_10_12 | architecture | domain | Decision: Records are a blueprint, and the freedom to clean them is kept. Intern | active |
+| domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31 | architecture | domain | Decision: Before an upgrade, migration or cleanup path is removed from main, the | active |
 | domain_learning_decision_split_subfolders_2026_09_29 | architecture | domain | Decision: Decision records are not limited to software architecture (ADR, market | active |
 | domain_librarian_at_review_handoff_2026_10_10 | retrieval | domain | Decision: The librarian is firmly integrated at handoff points of the dev team i | active |
 | domain_librarian_replaces_experience_index_2026_10_04 | architecture | domain | Decision: SessionStart pushes no memory content anymore. The experience index bl | active |
@@ -81,6 +83,7 @@
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
+| domain_pseudonymisation_covers_the_whole_public_repo_2026_10_31 | records | domain | Decision: Pseudonymisation applies to the whole public repo, not only to records | active |
 | domain_public_face_experience_report_not_launch_2026_10_24 | architecture | domain | Decision: The public face of Fabrica is an experience report, not a tool launch. | active |
 | domain_public_records_are_written_in_english_2026_10_12 | architecture | domain | Decision: Records that go public are written in English. German records are tran | active |
 | domain_rebuild_closing_scoped_to_three_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild is scoped to three items (user, 2026- | superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15 |
@@ -100,6 +103,7 @@
 | domain_superseded_flag_not_hide_2026_09_20 | architecture | domain | Decision: An entry that has been superseded via 'supersedes' is marked on retrie | active |
 | domain_three_kinds_of_knowledge_age_differently_2026_10_10 | architecture | domain | Decision: Records distinguish three kinds of knowledge that age differently. Sta | active |
 | domain_todo_prefix_ambiguity_2026_10_04 | workflow | domain | Decision: The id prefix todo_ is ambiguous in repo.ai-mem and stays so. Older to | active |
+| domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31 | architecture | domain | Decision: The step-by-step upgrade instructions live in the tag that the README  | active |
 | domain_user_records_as_role_perspective_2026_10_04 | architecture | domain | Decision: 'user' stays a record type (docs/records/<area>/user/). Two kinds of u | active |
 | domain_why_travels_with_chunk_spec_2026_10_10 | architecture | domain | Decision: The why of a task reaches the coder through the handoff. /chunk-plan a | active |
 | eval_experience_index_ab_2026_09_21 | evaluation | learning | Observed: With the SessionStart cue block, 3/3 gap cases went directly to the go | active |
@@ -150,6 +154,7 @@
 | learning_incoming_edge_list_held_in_5b2_2026_10_12 | records | learning | Observed: In the docs-move chunk the coder followed the rule to list referrers b | active |
 | learning_index_status_stale_after_supersede_2026_09_27 | architecture | learning | Observed: A parallel session in another project (migrating its collections to AD | active |
 | learning_knowledge_loses_against_the_order_2026_10_18 | evaluation | learning | Observed: Where the record was read, the agent often built the rejected thing an | active |
+| learning_librarian_answer_must_be_in_before_first_edit_at_chunk_start_2026_10_31 | workflow | learning | Observed: At a chunk start the coder's first librarian call failed (a missing pa | active |
 | learning_librarian_files_only_eval_chunk3_2026_10_11 | evaluation | learning | Observed: Chunk 3 (librarian without mem_* tools, Read/Grep/Glob only): the libr | active |
 | learning_librarian_grepped_outside_scope_again_2026_10_24 | evaluation | learning | Observed: In the session of 2026-10-24 the librarian ran one Grep into docs/fabr | active |
 | learning_librarian_matched_out_of_scope_files_again_2026_10_12 | evaluation | learning | Observed: The librarian again matched out-of-scope files (plan, handoff) by grep | active |
@@ -166,6 +171,7 @@
 | learning_public_history_pushed_clean_2026_10_13 | records | learning | Observed: Going public is done. main (48fabdb) and the tag v0-last-mcp (60d85d8, | active |
 | learning_pull_needs_situation_triggers_2026_10_04 | evaluation | learning | Observed: In the Navigator's experience ranking and push brought misdirected noi | active |
 | learning_push_check_2026_10_15_was_clean | records | learning | Observed: The push check before the 2026-10-15 push (12 commits, 164 files) was  | active |
+| learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31 | architecture | learning | Observed: A briefing written in another session carried a wrong premise ("exactl | active |
 | learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23 | evaluation | learning | Observed: In an audio-driver session the librarian was asked only at session sta | active |
 | learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12 | plugin | learning | Observed: Rerun the UPGRADING.md acceptance run after every edit to UPGRADING.md | active |
 | learning_safe_entry_id_misses_control_chars_2026_10_10 | workflow | learning | Observed: `is_safe_entry_id` only rejects path and glob metacharacters. Ids with | active |
@@ -272,10 +278,15 @@
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24 | architecture | todo | TODO: Settle the rule. docs/reference/record-format.md "Sources" allows pseudony | active |
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
+| todo_readme_first_impression_problem_first_2026_10_31 | architecture | todo | TODO (user confirmed): Write the README for the first impression: the problem fi | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
+| todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31 | architecture | todo | TODO (user confirmed): After the push gate of the legacy-removal chunk, remove c | active |
+| todo_rename_folder_and_plugin_to_fabrica_2026_10_31 | architecture | todo | TODO (user confirmed): Rename the local folder ai-mem to fabrica, and the plugin | active |
+| todo_resolve_public_lodge_book_vs_handoffs_local_2026_10_31 | records | todo | TODO (user confirmed): Resolve the tension between domain_fabrica_records_public | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
+| todo_update_test_pointer_after_removal_chunk_merge_2026_10_31 | workflow | todo | TODO: When the legacy-removal chunk is merged, the test tests/test_upgrade_guard | active |
 | todo_upgrading_md_rerun_duty_into_enforcing_mechanism_2026_10_18 | plugin | todo | TODO: Move the duty "rerun the UPGRADING.md acceptance after every edit to UPGRA | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |

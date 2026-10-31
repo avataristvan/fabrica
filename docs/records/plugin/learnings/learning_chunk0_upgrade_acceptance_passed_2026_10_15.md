@@ -3,7 +3,7 @@ type: learning
 area: plugin
 perspective: agent
 created: 1792061619.972849
-edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "confirms"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}]
+edges: [{"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "confirms"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: You are asked whether UPGRADING.md works for an unattended agent, or you are about to ship the next breaking upgrade step.
 ---
 

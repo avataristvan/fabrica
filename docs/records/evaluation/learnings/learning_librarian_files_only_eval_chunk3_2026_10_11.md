@@ -3,7 +3,7 @@ type: learning
 area: evaluation
 perspective: the-coder
 created: 1791725662.248342
-edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12", "edge_type": "related"}, {"target_id": "domain_internal_material_judged_by_content_and_references_2026_10_31", "edge_type": "related"}]
 cue: I am hardening or re-measuring the librarian after it lost its mem_* tools, or reading its Relied on line
 ---
 

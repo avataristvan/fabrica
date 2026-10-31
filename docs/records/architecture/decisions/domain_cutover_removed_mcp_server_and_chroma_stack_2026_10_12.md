@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: the-coder
 created: 1791838318.005809
-edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13", "edge_type": "related"}, {"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}]
+edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13", "edge_type": "related"}, {"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31", "edge_type": "related"}]
 cue: I am about to look for the MCP server, daemon, Chroma/BM25 backend or mem-adr-sync export/import and wonder whether they still exist
 ---
 
@@ -11,3 +11,5 @@ Decision: The cutover (chunk 7 of the plugin plan) removed the MCP server, the d
 Why: Closes todo_drop_chromadb_dependency. The migration had to stay runnable on main because an external installation (auto-updating from git) ran on Chroma on 2026-10-10; that installation's state is still unknown, so the migration code stays until it is known to have migrated.
 Scope: ai-mem main after the cutover. The historical page resolves todo_decide_plan_and_rollback_docs_banner_or_sources_2026_10_12 for the rollback doc; the plan docs are local working material outside the repo, so nothing is left to decide there.
 Evidence: tag v0-last-mcp; docs/reference/chroma_rollback_backend.md.
+
+Addendum 2026-10-31: the clause "the migration code stays until it is known to have migrated" is replaced by domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31 (tag v1-last-upgrade-path, named in the README). It takes effect when the legacy-removal chunk is merged; that chunk is committed on a worktree branch, not merged or pushed. The reason for the clause (an auto-updating installation that may not have migrated) is what the tag answers; it stays the reason behind the tag.

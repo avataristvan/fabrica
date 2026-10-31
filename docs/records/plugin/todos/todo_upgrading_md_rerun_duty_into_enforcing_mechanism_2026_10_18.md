@@ -3,7 +3,7 @@ type: todo
 area: plugin
 perspective: user
 created: 1792360316.714376
-edges: [{"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "derived_from"}, {"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "derived_from"}, {"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: I am editing UPGRADING.md or deciding how the upgrade acceptance rerun is triggered.
 ---
 

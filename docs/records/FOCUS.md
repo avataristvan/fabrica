@@ -1,13 +1,15 @@
-The long-running rebuild is closed: the plugin target picture (domain_plugin_target_picture_implemented_and_closed_2026_10_15), the chunk 0 upgrade acceptance (PASS) and the symlink delete fix, per domain_rebuild_closing_scoped_to_two_todos_2026_10_15. The repo is public as avataristvan/fabrica; the local folder, plugin and marketplace stay ai-mem. The target picture, chunk plan and other internal working material stay local via `.git/info/exclude`; the local tags `pre-cleanup-*`, `pre-squash-*`, `v0-last-mcp-unclean` and the `worktree-agent-*` branch must never be pushed (push only `git push origin main`).
+Cleaning up the public repo avataristvan/fabrica for a first visit (hiring manager, customer), in small chunks. Briefing: the business area's briefing-aufraeumen-2026-10-31.md (outside this repo). One repo: Fabrica is the method (docs/fabrica/), ai-mem the plugin that implements it.
 
-Not blocking: the on-site check of the external installation's migration and plugin switch (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15). User, in person, whenever.
+Now: the legacy upgrade path is being removed on a worktree branch (install.py, uninstall.py, UPGRADING.md, records_v1 migration, upgrade guard, Chroma fixtures). Tag v1-last-upgrade-path (pushed) is the last version that carries it and the path for any installation not yet migrated. The removal is merged and pushed only after the external installation has migrated or switched to that tag (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15); main auto-updates there.
 
-Done: the seniority measurement (plan `docs/plan_seniority_measurement.md`, frozen at sha256 5f43d06e3cb984e0d44f24dc509fd8de2c356fbb181732d7f06cb3ff5c8cde48; harness 54a2b5a). All 96 runs graded, spot-check passed; pattern 9 stays a hypothesis. No v2 of this measurement; the result and its lessons are in the records. Raw results stay local in `scripts/eval_seniority/results/`.
+Next, in order:
+- after the push gate: collection mode and the records-home fallback go too (domain_records_home_stays_for_migration_2026_10_13).
+- rename the local folder ai-mem to fabrica and the plugin/marketplace to fabrica (agents become fabrica:<agent>); cross-area edges ../ai-mem:<id>, ~/.claude, CLAUDE.md files, skills, hooks and the dev-team plugin follow. Whether "ai-mem" stays as the name of the memory part is the user's call.
+- README for the first impression: problem first, then practice, plugin, the measurement report (docs/explanation/what-we-measured.md).
+- resolve the tension between domain_fabrica_records_public_as_self_proof_2026_10_10 (publish the lodge book) and domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 (handoffs stay local).
 
-Committed, awaiting a real run: agents/archivist.md and record-format.md carry the Observed/Cause rule and the short interim report (pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24, pattern_archivist_report_is_an_interim_message_2026_10_24). After a Claude Code restart, the first real archivist run shows whether the report got shorter.
+Rules that hold: pseudonymise in place, paths area-relative, `<workspace>` in docs and fixtures, no person named in ids or bodies. Push is the user's; never push the local tags pre-cleanup-*, pre-squash-*, v0-last-mcp-unclean or worktree-agent-* branches.
 
-Public face: the README calls seniority-from-the-record a hypothesis and links docs/explanation/what-we-measured.md, the experience report of every measurement so far. The outreach strategy (who, where, in which order) is private and lives outside this repo.
+Committed, awaiting a real run: the Observed/Cause rule and the short archivist interim report (pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24, pattern_archivist_report_is_an_interim_message_2026_10_24).
 
-Next here: moving the UPGRADING.md rerun duty from a learning into an enforcing mechanism. Changes to the team flow drawn from the measurement live in the workspace area, not here.
-
-Later: the product backlog in todos/ (doctor checks, archivist observability, librarian evals, CLI simplifications); the 6 unprocessed sources.
+Later: the product backlog in todos/; the 6 unprocessed sources.

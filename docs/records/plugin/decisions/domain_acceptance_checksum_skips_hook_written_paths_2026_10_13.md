@@ -3,6 +3,7 @@ type: domain
 area: plugin
 perspective: agent
 created: 1791869829.001687
+edges: [{"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: The upgrade acceptance run reports a real-data checksum mismatch and I must tell a leak from hook noise
 ---
 

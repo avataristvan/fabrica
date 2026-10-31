@@ -3,7 +3,7 @@ type: domain
 area: plugin
 perspective: agent
 created: 1791876534.034085
-edges: [{"target_id": "pattern_uninstall_matches_hooks_by_module_marker_2026_10_11", "edge_type": "related"}]
+edges: [{"target_id": "pattern_uninstall_matches_hooks_by_module_marker_2026_10_11", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: I want to deduplicate PLUGIN_HOOK_EVENTS in install/uninstall against hooks/hooks.json
 ---
 

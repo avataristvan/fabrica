@@ -3,7 +3,7 @@ type: learning
 area: records
 perspective: agent
 created: 1792747177.637129
-edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}]
+edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "todo_rename_folder_and_plugin_to_fabrica_2026_10_31", "edge_type": "related"}]
 cue: I am moving or renaming an area folder (or the repo) and assume mem and its records keep working afterwards.
 ---
 
