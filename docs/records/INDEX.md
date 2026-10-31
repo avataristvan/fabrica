@@ -70,6 +70,7 @@
 | domain_framework_named_fabrica_2026_10_10 | architecture | domain | Decision: The framework is called Fabrica. ai-mem keeps its name and is the memo | active |
 | domain_glossary_is_state_per_area_2026_10_19 | architecture | domain | Decision: Each area may keep a glossary at docs/reference/glossary.md (ai-mem ha | active |
 | domain_handoff_points_instead_of_copying_2026_10_19 | workflow | domain | Decision: The /reflect handoff points instead of copying: anything already in a  | active |
+| domain_handoffs_stay_local_records_and_sources_public_2026_11_01 | records | domain | Decision: Handoffs (docs/handoff-*.md) stay local and are not published. Records | active |
 | domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the ai-mem hand | active |
 | domain_hooks_enforce_that_roles_decide_how_2026_10_10 | architecture | domain | Decision: Hooks enforce THAT a ritual happens. Roles decide HOW. Planned hooks:  | active |
 | domain_internal_material_judged_by_content_and_references_2026_10_31 | records | domain | Decision: Internal material is judged by its content and by what points at it, n | active |

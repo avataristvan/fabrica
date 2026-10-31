@@ -4,10 +4,8 @@ Done: legacy upgrade path removed (last version: tag v1-last-upgrade-path), coll
 
 Next, in order:
 - tell the external installation that the plugin is now fabrica@fabrica (reinstall once); its migration is still unverified (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15).
-- resolve the tension between domain_fabrica_records_public_as_self_proof_2026_10_10 (publish the lodge book) and domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 (handoffs stay local).
+- the product backlog in todos/; the 6 unprocessed sources.
 
 Rules that hold: pseudonymise in place, paths area-relative, `<workspace>` in docs and fixtures, no person named in ids or bodies. Push is the user's; never push the local tags pre-cleanup-*, pre-squash-*, v0-last-mcp-unclean or worktree-agent-* branches.
 
 Committed, awaiting a real run: the Observed/Cause rule and the short archivist interim report (pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24, pattern_archivist_report_is_an_interim_message_2026_10_24).
-
-Later: the product backlog in todos/; the 6 unprocessed sources.
