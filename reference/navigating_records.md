@@ -16,7 +16,7 @@ not by a collection name, a git repo or a CLAUDE.md.
   be a git repo and need not have a CLAUDE.md.
 - **Nested areas** are separate areas. A folder with its own `docs/records/` below another
   area is not part of the outer one; its records are not the outer area's records.
-- **The caller names the area** as a path. A legacy collection name (`repo.<name>`, `global`,
+- **The caller names the area** as a path. A collection name (`repo.<name>`, `global`,
   `workspace`, `subagent.<name>`) is not an address any more: records that lived there now sit in
   the area of the topic they describe. Workspace-wide tooling and environment knowledge sits in the
   root area `<workspace root>/docs/records/`.

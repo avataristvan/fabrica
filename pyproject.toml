@@ -22,7 +22,6 @@ dev = [
 [project.scripts]
 mem = "ai_mem.mem_cli:main"
 mem-dream = "ai_mem.dream_cli:main"
-mem-adr-sync = "ai_mem.adr_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

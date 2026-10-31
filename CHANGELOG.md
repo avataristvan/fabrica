@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Removed: collection mode and the records home
+
+- Collection mode of `FileMemoryRepository` (the repository now takes only the area resolver `records_dir_for`; the `db_path` argument is gone), the mapping file `adr_collection_roots.json`, the records home (`$AI_MEM_RECORDS_HOME`, `$AI_MEM_WORKSPACE_ROOT/ai-mem-records/<collection>`), `repo_context.py` (`detect_repo_context`, `GLOBAL_COLLECTION`, `WORKSPACE_COLLECTION`; `_to_main_checkout` moved to `infrastructure/areas.py`), and the `legacy_collection` field of `mem context --json` and `mem doctor --json` with its doctor line.
+- The `mem-adr-sync` console script and `ai_mem/adr_cli.py`: `reindex --collection` was its last command. In an area, `mem lint --fix` rebuilds INDEX.md. `$AI_MEM_WORKSPACE_ROOT` stays as the default search root of `mem find` and `mem lint --fix`.
+
 ### Removed: the legacy upgrade path
 
 - `install.py`, `uninstall.py`, `UPGRADING.md` and `docs/how-to/migrate-to-records.md`; the records_v1 migration (`mem-adr-sync migrate`, `records_migration.py`, `chroma_sqlite_reader.py`); the upgrade guard (`upgrade_guard.py`: the SessionStart line, `mem` exit 3, the `mem doctor` "Migration" section and JSON key `migration`); `scripts/upgrade_acceptance/`; the `chromadb` entry of the `dev` extra. `mem-adr-sync reindex` (also `--collection`) stays.

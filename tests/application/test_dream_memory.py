@@ -163,7 +163,7 @@ def _seed_area(repo, key, ids, edges=None):
 
 @_pytest.fixture
 def area_setup(tmp_path):
-    repo = _Repo(tmp_path / "db", records_dir_for=_rd)
+    repo = _Repo(_rd)
     here = _mk_area(tmp_path / "ws" / "here")
     other = _mk_area(tmp_path / "ws" / "other")
     _seed_area(repo, here, ["learning_a", "learning_b", "learning_c", "learning_d"],
@@ -213,7 +213,6 @@ class TestAreaMode:
 class TestDreamCliArea:
     def _run(self, argv, tmp_path, monkeypatch):
         import ai_mem.dream_cli as cli
-        monkeypatch.setattr(cli, "_DB_PATH", tmp_path / "db")
         monkeypatch.setattr(_sys, "argv", ["mem-dream", *argv])
         cli.main()
 

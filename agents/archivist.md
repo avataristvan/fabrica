@@ -89,9 +89,7 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
    records can point at each other.
 2. **Map the areas, once.** `mem context --map --root <workspace root>`, the folder that holds
    the home area and its siblings (the home area's parent, unless the caller names another).
-   Without `--root` the map lists only areas below the working directory. The records home
-   counts too: `<workspace root>/ai-mem-records/<collection>` (`global`, `workspace`, ...);
-   if the map lacks them, `Glob` `<workspace root>/ai-mem-records/*/docs/records/INDEX.md`.
+   Without `--root` the map lists only areas below the working directory.
 3. **Neighbourhood, in every area of the map.** Run the reading procedure (INDEX, `^cue:`,
    then the candidates' text) in each area, not only the home area, and `Grep` the
    candidate's key terms across `<workspace root>/**/docs/records/`. Note for every hit

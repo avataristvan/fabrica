@@ -181,7 +181,7 @@ def _put(repo, key: str, entry_id: str, entry_type: str = "learning") -> None:
 
 @pytest.fixture
 def two_areas(tmp_path):
-    repo = FileMemoryRepository(tmp_path / "db", records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
     here = _area(tmp_path / "ws" / "here")
     other = _area(tmp_path / "ws" / "other")
     _put(repo, here, "learning_a")

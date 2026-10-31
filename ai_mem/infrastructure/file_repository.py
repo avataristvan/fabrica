@@ -27,16 +27,13 @@ from ai_mem.infrastructure.adr_paths import (
     FOCUS_ID,
     FOCUS_TYPE,
     REFERENCE_TYPE,
-    adr_dir_for,
     find_adr_files,
     focus_path,
     is_safe_area,
     is_safe_entry_id,
     iter_record_files,
     plain_file_content,
-    read_mapping,
     record_file_path,
-    records_home,
     reference_dir,
     remove_files,
     write_atomic,
@@ -59,31 +56,18 @@ def _read_or_none(path: Path) -> str | None:
 
 
 class FileMemoryRepository:
-    """Two modes. Default: `collection` is a collection name, resolved through the mapping file,
-    cwd detection and the records home (collection names only survive for `mem-adr-sync reindex --collection`). With `records_dir_for`:
-    `collection` is an area key (the area root as an absolute path string) and only the resolver
-    maps it to a records directory -- the mapping file is never read or written.
-    """
+    """`collection` is an area key (the area root as an absolute path string); `records_dir_for` maps it to a records directory."""
 
-    def __init__(self, db_path: Path, records_dir_for: Callable[[str], Path | None] | None = None) -> None:
-        # db_path only locates the collection -> repo-root mapping file; nothing else lives there.
-        self._db_path = db_path
+    def __init__(self, records_dir_for: Callable[[str], Path | None]) -> None:
         self._records_dir_for = records_dir_for
 
     def _records_dir(self, collection: str) -> Path | None:
-        if self._records_dir_for is not None:
-            return self._records_dir_for(collection)
-        return adr_dir_for(self._db_path, collection)
+        return self._records_dir_for(collection)
 
     def _require_records_dir(self, collection: str) -> Path:
         records_dir = self._records_dir(collection)
         if records_dir is None:
-            if self._records_dir_for is not None:
-                raise ValueError(f"no records directory for area {collection!r}")
-            raise ValueError(
-                f"no directory for collection {collection!r}: start the session inside its repo once, "
-                f"or create the records home for global/workspace/subagent collections"
-            )
+            raise ValueError(f"no records directory for area {collection!r}")
         return records_dir
 
     @staticmethod
@@ -150,17 +134,11 @@ class FileMemoryRepository:
         return [entry for entry in entries if entry is not None]
 
     def _collection_names(self) -> set[str]:
-        if self._records_dir_for is not None:
-            area = find_area(Path.cwd())
-            return {str(area.root)} if area is not None else set()
-        names = set(read_mapping(self._db_path))
-        home = records_home()
-        if home is not None:
-            names |= {path.name for path in home.iterdir() if (path / "docs").is_dir()}
-        return names
+        area = find_area(Path.cwd())
+        return {str(area.root)} if area is not None else set()
 
     def list_collections(self) -> list[CollectionInfo]:
-        """Default mode: every known collection with records. Resolver mode: the area of the cwd, named by its root."""
+        """The area of the cwd, named by its root."""
         names = self._collection_names()
         infos = []
         for name in sorted(names):

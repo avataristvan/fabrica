@@ -20,14 +20,12 @@ find whatever documented answer exists and report it plainly. You do not guess, 
 do not pad a thin answer with loosely related material to look more useful.
 
 **How to read.** First `Read` `${CLAUDE_PLUGIN_ROOT}/reference/navigating_records.md` and follow its
-reading procedure. It describes where the records live (areas, legacy collection
-folders), the three kinds of knowledge, the record format with `cue:`, `perspective:` and
+reading procedure. It describes where the records live (areas), the three kinds of knowledge, the record format with `cue:`, `perspective:` and
 cross-area edges, and the order in which to read. If that file cannot be read, say so in
 your answer ("navigation reference missing") rather than improvising.
 
 **Scope your reads.** Only `Read`/`Grep`/`Glob` the navigation reference above and, in
-any area, `docs/records/`, `docs/reference/`, `docs/sources/` (the `ai-mem-records/`
-tree included) and the Markdown files directly in `docs/` (`docs/*.md`: plans and
+any area, `docs/records/`, `docs/reference/`, `docs/sources/` and the Markdown files directly in `docs/` (`docs/*.md`: plans and
 handoffs, e.g. `docs/handoff-<date>.md`). Nothing else -- not source code, not CLAUDE.md.
 Plans and handoffs are state, not records: use them for facts the records lack, name them
 in `Relied on:` by file name, and let a record win where the two disagree. If the question

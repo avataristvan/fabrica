@@ -35,7 +35,6 @@ from ai_mem.infrastructure.adr_paths import (
     iter_record_files,
     record_file_path,
     reference_dir,
-    records_home,
 )
 from ai_mem.infrastructure.areas import (
     Area,
@@ -60,12 +59,8 @@ class CliError(Exception):
         self.code = code
 
 
-def _db_path() -> Path:
-    return Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
-
-
 def _repository() -> MemoryRepository:
-    return FileMemoryRepository(_db_path(), records_dir_for=area_records_dir)
+    return FileMemoryRepository(area_records_dir)
 
 
 def _refuse_hand_kept_index(*areas: Area) -> None:
@@ -489,14 +484,11 @@ def _context(args: argparse.Namespace) -> int:
     if args.map:
         return _context_map(args)
     area = _area(args.path)
-    home = records_home()
-    legacy = area.root.name if home is not None and area.root.parent == home.resolve() else None
     info = {
         "area_root": str(area.root),
         "records_dir": str(area.records_dir),
         "index": str(area.records_dir / "INDEX.md"),
         "focus": str(focus_path(area.records_dir)),
-        "legacy_collection": legacy,
     }
     if args.json:
         print(json.dumps(info, ensure_ascii=False))

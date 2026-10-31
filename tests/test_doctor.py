@@ -54,12 +54,6 @@ def test_dangling_edges_bare_and_cross_area(tmp_path, capsys):
     assert len(dangling) == 3 and a.root.name == "a"
 
 
-def test_legacy_collection_folders_are_listed(tmp_path, capsys):
-    _area(tmp_path / "ai-mem-records" / "global", [("learning_a", "Observed: x", "")])
-    assert _report(tmp_path, capsys)["areas"][0]["legacy_collection"] is True
-    assert "ai-mem-records/global" in _doctor(tmp_path, capsys)
-
-
 def test_hand_written_not_adopted(tmp_path, capsys):
     area = _area(tmp_path / "a", [("learning_a", "Observed: x", "")])
     (area.records_dir / "INDEX.md").write_text("| [learning_a](general/learnings/learning_a.md) |\n")

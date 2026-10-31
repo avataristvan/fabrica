@@ -31,7 +31,7 @@ def two_areas(tmp_path):
     for name in ("src", "dst", "far"):
         (tmp_path / name / "docs" / "records").mkdir(parents=True)
         keys.append(str((tmp_path / name).resolve()))
-    repo = FileMemoryRepository(tmp_path, records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
     return repo, MoveToAreaUseCase(repo, _AreaAddressing()), *keys
 
 

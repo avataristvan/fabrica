@@ -58,10 +58,6 @@ mem-dream --area PATH --neighbourhood ID...               # only these records a
 
 Modes: `--mode single-haiku | single-sonnet | hier | team` (default `hier`). It calls the `claude` CLI with bare model aliases (`sonnet`, `haiku`), never versioned tags, and prints the CLI's stderr on failure. Results go to `dream-log/` unless `--no-save`.
 
-## `mem-adr-sync`
-
-`mem-adr-sync reindex` rebuilds `docs/records/INDEX.md`. The records_v1 migration (`migrate`) lives in the tag `v1-last-upgrade-path`; the Chroma round trip (`export`, `import`) was removed with the Chroma backend and lives in the tag `v0-last-mcp` ([facts](chroma_rollback_backend.md)).
-
 ## Environment
 
 | Variable | Default | Meaning |

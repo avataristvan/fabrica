@@ -16,8 +16,6 @@ ai_mem/
   hook.py            SessionStart hook: Area: line, Records: pointer, doctor pointer
   hooks/             enforcing hooks: retro_check, lint_after_write, reflect_reminder
   dream_cli.py       `mem-dream`: consolidates an area's records with the claude CLI
-  adr_cli.py         `mem-adr-sync`: reindex
-  repo_context.py    collection naming, kept for `reindex --collection`
 ```
 
 The tool server, the warm query process, the vector-store backend and the prompt/tool push hooks were removed at the plugin cutover; the last commit that has them is the tag `v0-last-mcp`.
@@ -48,8 +46,8 @@ One use case per file, each with a single public `execute()`.
 
 | File | Role |
 |---|---|
-| `file_repository.py` | `FileMemoryRepository`: the store. Records are the files; area mode (`records_dir_for=`) resolves each area by folder |
-| `areas.py` | area resolution (nearest ancestor with `docs/records/`), area discovery, cross-area reference parsing |
+| `file_repository.py` | `FileMemoryRepository`: the store. Records are the files; `records_dir_for` resolves each area by folder |
+| `areas.py` | area resolution (nearest ancestor with `docs/records/`, linked worktrees mapped to the main checkout), area discovery, cross-area reference parsing |
 | `adr_markdown.py`, `adr_paths.py`, `adr_index.py` | record serialisation, path conventions, INDEX.md generation ([record format](record-format.md)) |
 
 There are no runtime dependencies (`dependencies = []`): everything uses the standard library. The `dev` extra holds `pytest`; `tests/test_stdlib_only.py` checks the promise.

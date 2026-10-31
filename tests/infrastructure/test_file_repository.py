@@ -8,7 +8,8 @@ import pytest
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.domain.memory import MemoryEdge, MemoryEntry
-from ai_mem.infrastructure import adr_markdown, adr_paths
+from ai_mem.infrastructure import adr_markdown
+from ai_mem.infrastructure.adr_paths import records_dir_for_root
 from ai_mem.infrastructure.areas import area_records_dir
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 
@@ -23,10 +24,8 @@ def root(tmp_path):
 
 
 @pytest.fixture
-def repo(tmp_path, root):
-    db_path = tmp_path / "db"
-    adr_paths.record_collection_root(db_path, COLLECTION, root)
-    return FileMemoryRepository(db_path)
+def repo(root):
+    return FileMemoryRepository(lambda key: records_dir_for_root(root) if key == COLLECTION else None)
 
 
 def _records(root):
@@ -74,7 +73,7 @@ def test_unsafe_id_and_area_are_rejected(repo):
 
 
 def test_unknown_collection_cannot_be_written_but_reads_empty(repo):
-    with pytest.raises(ValueError, match="no directory"):
+    with pytest.raises(ValueError, match="no records directory"):
         repo.upsert("repo.unknown", [_entry("x", "x", type="domain")])
     assert repo.get_all("repo.unknown") == [] and repo.get_by_ids("repo.unknown", ["x"]) == []
 
@@ -104,7 +103,6 @@ def test_get_all_and_list_collections(repo, root):
                              _entry("r", "R", type="reference")])
 
     assert sorted(entry.id for entry in repo.get_all(COLLECTION)) == ["a", "current_focus", "r"]
-    assert [(info.name, info.count) for info in repo.list_collections()] == [(COLLECTION, 3)]
 
 
 def test_query_is_lexical_and_respects_type_filter(repo):
@@ -177,16 +175,6 @@ def test_glob_like_ids_never_select_other_records(repo, root, pattern):
         repo.upsert(COLLECTION, [_entry(pattern, "x", type="domain")])
 
 
-@pytest.mark.parametrize("collection", ["subagent.x/../../escape", "subagent.*"])
-def test_rootless_collection_names_cannot_leave_the_records_home(tmp_path, monkeypatch, collection):
-    home = tmp_path / "home"
-    home.mkdir()
-    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(home))
-
-    assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", collection) is None
-    assert adr_paths.resolve_repo_root_for_collection(tmp_path / "db", "subagent.ok") == home / "subagent.ok"
-
-
 def test_perspective_and_unknown_keys_survive_a_rewrite_through_the_repository(repo, root):
     path = _records(root) / "arch" / "decisions" / "domain_x.md"
     path.parent.mkdir(parents=True)
@@ -215,9 +203,8 @@ def test_invalid_perspective_and_extra_keys_are_rejected_before_writing(repo, ro
 
 
 @pytest.fixture
-def area_repo(tmp_path):
-    db_path = tmp_path / "db"
-    return db_path, FileMemoryRepository(db_path, records_dir_for=area_records_dir)
+def area_repo():
+    return FileMemoryRepository(area_records_dir)
 
 
 def _area_key(path):
@@ -225,8 +212,8 @@ def _area_key(path):
     return str(path.resolve())
 
 
-def test_resolver_mode_writes_records_focus_and_references_without_the_mapping_file(tmp_path, area_repo, monkeypatch):
-    db_path, repo = area_repo
+def test_area_repository_writes_records_focus_and_references(tmp_path, area_repo, monkeypatch):
+    repo = area_repo
     key = _area_key(tmp_path / "proj")
     monkeypatch.chdir(tmp_path / "proj")
 
@@ -241,24 +228,20 @@ def test_resolver_mode_writes_records_focus_and_references_without_the_mapping_f
     assert {e.id for e in repo.get_all(key)} == {"domain_x", "current_focus", "ref_a"}
     assert [(c.name, c.count) for c in repo.list_collections()] == [(key, 3)]
     assert repo.delete(key, ["current_focus", "domain_x"]) == 2
-    assert not db_path.exists()
 
 
-def test_resolver_mode_ignores_collection_names_and_the_mapping_file(tmp_path, area_repo, root, monkeypatch):
-    db_path, repo = area_repo
-    adr_paths.record_collection_root(db_path, COLLECTION, root)
-    mapping = (db_path / "adr_collection_roots.json").read_text()
+def test_area_repository_ignores_collection_names(tmp_path, area_repo, root, monkeypatch):
+    repo = area_repo
     monkeypatch.chdir(tmp_path)
 
     assert repo.get_all(COLLECTION) == [] and repo.list_collections() == []
     with pytest.raises(ValueError, match="no records directory for area"):
         repo.upsert(COLLECTION, [_entry("d", "x", type="domain")])
     assert not _records(root).exists()
-    assert (db_path / "adr_collection_roots.json").read_text() == mapping
 
 
 def test_qualified_ids_are_never_looked_up_locally(tmp_path, area_repo):
-    _, repo = area_repo
+    repo = area_repo
     key = _area_key(tmp_path / "proj")
     repo.upsert(key, [_entry("domain_x", "Decision: X", type="domain")])
 

@@ -34,7 +34,6 @@ def env(tmp_path, monkeypatch):
     db = tmp_path / "db"
     db.mkdir()
     monkeypatch.setenv("AI_MEM_PATH", str(db))
-    monkeypatch.delenv("AI_MEM_RECORDS_HOME", raising=False)
     monkeypatch.delenv("AI_MEM_WORKSPACE_ROOT", raising=False)
     proj = _make_area(tmp_path / "ws" / "proj")
     other = _make_area(tmp_path / "ws" / "other")
@@ -340,20 +339,13 @@ def test_area_flag_selects_the_area(env, tmp_path):
     assert list(other.records_dir.rglob("learning_a.md")) and not list(proj.records_dir.rglob("learning_a.md"))
 
 
-def test_context_reports_paths_and_legacy_collection(env, tmp_path, monkeypatch, capsys):
+def test_context_reports_paths(env, capsys):
     _, _, proj, _ = env
-    home = tmp_path / "ai-mem-records"
-    coll = _make_area(home / "workspace")
-    monkeypatch.setenv("AI_MEM_RECORDS_HOME", str(home))
 
     assert main(["context", "--json"]) == 0
     info = json.loads(capsys.readouterr().out)
-    assert info["area_root"] == str(proj.root) and info["legacy_collection"] is None
+    assert info["area_root"] == str(proj.root)
     assert info["index"].endswith("docs/records/INDEX.md") and info["focus"].endswith("docs/records/FOCUS.md")
-
-    assert main(["context", str(coll.records_dir)]) == 0
-    assert "legacy_collection: workspace" in capsys.readouterr().out
-    assert find_area(coll.root) == coll
 
 
 def test_importing_the_cli_loads_no_third_party_module():

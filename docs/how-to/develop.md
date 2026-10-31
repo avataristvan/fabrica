@@ -10,7 +10,7 @@ python -m pytest tests/ -q          # all tests
 python -m pytest tests/test_doctor.py -q   # one file
 ```
 
-Fixtures are in `tests/conftest.py`: it points `AI_MEM_PATH` at a temp dir, and unsets `AI_MEM_RECORDS_HOME` and `AI_MEM_WORKSPACE_ROOT`. Infrastructure tests use `FileMemoryRepository` on temp dirs (`tests/infrastructure/test_file_repository.py`); use-case tests use the in-memory repository in `conftest.py`. `tests/test_stdlib_only.py` imports every `ai_mem` module with `python -I -S`, the check for `dependencies = []`. Run the count yourself rather than trusting a number in a doc: `python -m pytest tests/ -q | tail -1`.
+Fixtures are in `tests/conftest.py`: it points `AI_MEM_PATH` at a temp dir, and unsets `AI_MEM_WORKSPACE_ROOT`. Infrastructure tests use `FileMemoryRepository` on temp dirs (`tests/infrastructure/test_file_repository.py`); use-case tests use the in-memory repository in `conftest.py`. `tests/test_stdlib_only.py` imports every `ai_mem` module with `python -I -S`, the check for `dependencies = []`. Run the count yourself rather than trusting a number in a doc: `python -m pytest tests/ -q | tail -1`.
 
 ## Add a use case
 

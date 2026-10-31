@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"refused: git checkouts among the areas ({', '.join(checkouts)}); run on a scratch mirror", file=sys.stderr)
         return 2
 
-    repo = FileMemoryRepository(scratch / ".no-db", records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
     total_files = total_diffs = 0
     for area in areas:
         diffs = text_diffs(area.records_dir)

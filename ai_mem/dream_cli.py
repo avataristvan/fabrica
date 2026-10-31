@@ -6,7 +6,6 @@ record files; this is the archivist's entry point. Proposals are reported, never
 from __future__ import annotations
 
 import argparse
-import os
 import subprocess
 import sys
 from datetime import datetime
@@ -16,7 +15,6 @@ from ai_mem.application.dream_memory import DreamMemoryUseCase, MODES, select_ne
 from ai_mem.infrastructure.areas import AreaRefResolver, area_records_dir, find_area
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 
-_DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local/share/ai-mem"))
 _LOG_DIR = Path.home() / ".claude/dream-log"
 
 def _save_log(result: str, label: str, no_save: bool) -> None:
@@ -35,7 +33,7 @@ def _run_area(args: argparse.Namespace) -> None:
         print(f"Error: no area (folder with docs/records/) at or above {args.area}", file=sys.stderr)
         sys.exit(1)
     key = str(area.root)
-    repo = FileMemoryRepository(_DB_PATH, records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
 
     if args.dry_run:
         try:

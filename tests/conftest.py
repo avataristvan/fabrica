@@ -14,8 +14,7 @@ import pytest
 _TEST_DB_PATH = tempfile.mkdtemp(prefix="ai-mem-test-")
 atexit.register(shutil.rmtree, _TEST_DB_PATH, ignore_errors=True)
 os.environ["AI_MEM_PATH"] = _TEST_DB_PATH
-# Never resolve the real private records repo from a test run.
-os.environ.pop("AI_MEM_RECORDS_HOME", None)
+# Never search the real workspace from a test run.
 os.environ.pop("AI_MEM_WORKSPACE_ROOT", None)
 
 from ai_mem.domain.memory import CollectionInfo, MemoryEdge, MemoryEntry

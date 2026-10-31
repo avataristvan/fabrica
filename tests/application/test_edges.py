@@ -116,7 +116,7 @@ def test_add_edge_derived_from_rejects_self_link(tmp_repo, tmp_path):
 @pytest.fixture
 def two_areas(tmp_path):
     """Areas `proj` (learning_src) and `records/workspace` (pattern_tgt), as area keys."""
-    repo = FileMemoryRepository(tmp_path / "db", records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
     keys = {}
     for name, rel, entry_id, entry_type in (("proj", "proj", "learning_src", "learning"),
                                             ("ws", "records/workspace", "pattern_tgt", "pattern")):

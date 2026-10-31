@@ -19,13 +19,12 @@ from pathlib import Path
 from ai_mem.doctor_sources import collect_sources
 from ai_mem.domain.memory import parse_edges
 from ai_mem.hooks import DOCTOR_STAMP, RETRO_LOG, state_dir
-from ai_mem.infrastructure.adr_paths import focus_path, records_home, write_atomic
+from ai_mem.infrastructure.adr_paths import focus_path, write_atomic
 from ai_mem.infrastructure.areas import Area, discover_areas, find_area, resolve_ref
 from ai_mem.records_lint import Code, RawRecord, edge_targets, git_output, lint_records, read_area
 
 _DANGLING = (Code.EDGE_DANGLING, Code.EDGE_UNRESOLVED, Code.EDGE_DANGLING_XAREA)
 _INDEX_CODES = (Code.INDEX_MISSING, Code.INDEX_STALE)
-_LEGACY_PARENT = "ai-mem-records"
 _TICKED = re.compile(r"`([^`\n]+)`")
 _REPO_PATH = re.compile(r"^[\w@+-][\w.@+-]*(?:/[\w.@+-]+)+$")
 _EXTENSION = re.compile(r"\.[A-Za-z][A-Za-z0-9]{0,4}$")
@@ -71,11 +70,6 @@ def _index_tokens(area: Area) -> set[str]:
         return set(re.split(r"[\s|\[\]()]+", index.read_text(encoding="utf-8")))
     except (OSError, UnicodeDecodeError):
         return set()
-
-
-def _is_legacy(area: Area) -> bool:
-    home = records_home()
-    return area.root.parent.name == _LEGACY_PARENT or (home is not None and area.root.parent == home.resolve())
 
 
 def _state(area: Area, records: list[RawRecord], versioned: bool) -> list[dict]:
@@ -285,7 +279,6 @@ def collect(areas: list[Area]) -> dict:
             "findings": counts,
             "fixable": sum(1 for f in findings if f.fixable),
             "dangling_edges": [f"{f.file.relative_to(area.records_dir).as_posix()}: {f.message}" for f in findings if f.code in _DANGLING],
-            "legacy_collection": _is_legacy(area),
             "hand_written": {"fix_would_change": fixable_files, "missing_from_index": not_in_index,
                              "index_differs": any(f.code in _INDEX_CODES for f in findings)},
             "dead_weight": dead_weight,
@@ -375,9 +368,6 @@ def render(report: dict, base: Path) -> str:
     ):
         lines = [f"    {_label(a['root'], base)}: {line}" for a in areas for line in picked(a)]
         out += [f"  {title}:", *lines] if lines else []
-    legacy = [_label(a["root"], base) for a in areas if a["legacy_collection"]]
-    if legacy:
-        out += ["  records under collection names (legacy folders under ai-mem-records/):", *(f"    {name}" for name in legacy)]
     adopt = []
     for a in areas:
         hand = a["hand_written"]

@@ -2,8 +2,7 @@
 
     python scripts/scratch_mirror.py <target> [--source ~/workspace] [--drop-suffix _2026_10_10]
 
-Copies `<area>/docs/records/` of every area below <source> (nested areas and every
-`ai-mem-records/<collection>/` included) to the same relative paths below <target>. The sources
+Copies `<area>/docs/records/` of every area below <source> (nested areas included) to the same relative paths below <target>. The sources
 are only read. <target> must not exist yet (or be empty) and must lie outside <source>.
 
 `--drop-suffix S` (for the archivist acceptance run): in the ai-mem copy, every record whose id
@@ -24,7 +23,6 @@ from ai_mem.infrastructure.adr_paths import ADR_TYPES, records_dir_for_root  # n
 from ai_mem.infrastructure.areas import area_records_dir, discover_areas, resolve_ref  # noqa: E402
 from ai_mem.infrastructure.file_repository import FileMemoryRepository  # noqa: E402
 
-RECORDS_HOME = "ai-mem-records"
 DROP_AREA = "ai-mem"
 
 
@@ -42,7 +40,7 @@ def mirror(source: Path, target: Path) -> list[str]:
 
 def drop_suffix(target: Path, suffix: str) -> tuple[list[str], int]:
     """Remove the ai-mem records whose id ends in `suffix`; strip references to them everywhere."""
-    repo = FileMemoryRepository(target / ".no-db", records_dir_for=area_records_dir)
+    repo = FileMemoryRepository(area_records_dir)
     areas = {str(area.root): area for area in discover_areas(target)}
     drop_area = (target / DROP_AREA).resolve()
     drop_key = str(drop_area)

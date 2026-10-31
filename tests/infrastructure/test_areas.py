@@ -60,6 +60,25 @@ def test_find_area_maps_a_worktree_copy_to_the_main_checkout(workspace):
     assert find_area(worktree / "src") == areas["proj"]
 
 
+def test_find_area_maps_a_linked_worktree_to_the_main_checkout(tmp_path):
+    import subprocess
+
+    def run(*args, cwd):
+        subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t", *args], cwd=cwd, check=True, capture_output=True)
+
+    main = tmp_path / "proj"
+    area = _make_area(main)
+    run("init", "-q", cwd=main)
+    (main / "f").write_text("x")
+    run("add", "f", cwd=main)
+    run("commit", "-q", "-m", "init", cwd=main)
+    worktree = tmp_path / "agent-abc"
+    run("worktree", "add", "-q", str(worktree), cwd=main)
+    (worktree / "docs" / "records").mkdir(parents=True)
+
+    assert find_area(worktree) == area
+
+
 def test_discover_areas_finds_nested_and_skips_hidden_dirs(workspace):
     ws, areas = workspace
     _make_area(ws / "proj" / ".claude" / "worktrees" / "agent-abc")

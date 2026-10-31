@@ -12,14 +12,52 @@ Every ref and area key is validated here before it reaches a path join; ids go t
 from __future__ import annotations
 
 import os
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
 from ai_mem.infrastructure.adr_paths import is_safe_entry_id, is_safe_path_segment, records_dir_for_root
-from ai_mem.repo_context import _to_main_checkout
 
 REF_SEPARATOR = ":"
 _SKIPPED_DIRS = frozenset({"node_modules"})
+
+
+def _run(cmd: list[str], cwd: Path) -> str | None:
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(cwd))
+        return proc.stdout.strip() if proc.returncode == 0 else None
+    except Exception:
+        return None
+
+
+def _to_main_checkout(cwd: Path) -> Path:
+    """Map a path inside a linked git worktree to the same path in the main checkout.
+
+    A worktree carries its own copy of docs/records/, so without this every agent worktree
+    (e.g. Claude Code's `<repo>/.claude/worktrees/agent-<hash>`) would be an area of its own.
+    Non-worktree paths are returned unchanged.
+    """
+    out = _run(
+        ["git", "rev-parse", "--path-format=absolute", "--git-common-dir", "--git-dir", "--show-toplevel"],
+        cwd=cwd,
+    )
+    if out:
+        lines = out.splitlines()
+        if len(lines) == 3:
+            common_dir, git_dir, toplevel = (Path(line) for line in lines)
+            if common_dir != git_dir and common_dir.name == ".git":
+                try:
+                    return common_dir.parent / cwd.resolve().relative_to(toplevel.resolve())
+                except ValueError:
+                    pass
+    # Fallback when git can't describe the worktree (e.g. a plain copy under .claude/worktrees)
+    parts = cwd.parts
+    for i in range(1, len(parts) - 2):
+        if parts[i] == ".claude" and parts[i + 1] == "worktrees":
+            main = Path(*parts[:i])
+            if main.is_dir():
+                return main.joinpath(*parts[i + 3:])
+    return cwd
 
 
 @dataclass(frozen=True)
@@ -90,11 +128,7 @@ def ancestor_areas(home: Area, root: Path) -> list[Area]:
 
 
 def search_order(home: Area, root: Path) -> list[Area]:
-    """Where to look for an id: the home area, then bubble-up to `root`, then every other area below `root`.
-
-    The last stage also reaches the records home, a sibling, which stays as a migration fallback
-    (domain_records_home_stays_for_migration_2026_10_13).
-    """
+    """Where to look for an id: the home area, then bubble-up to `root`, then every other area below `root`."""
     ordered, seen = [home], {home.root}
     for area in (*ancestor_areas(home, root), *discover_areas(root)):
         if area.root not in seen:

@@ -5,9 +5,9 @@ History and rationale live in `docs/records/` (start with `INDEX.md`, or ask the
 
 ## Map
 
-- `ai_mem/domain/` contracts (`MemoryRepository`) → `ai_mem/application/` one use case per file → `ai_mem/infrastructure/` storage. `mem_cli.py` (`mem`), `hook.py` (SessionStart; also `Area:` line and `mem doctor` pointer), `hooks/{retro_check,lint_after_write,reflect_reminder}.py` (enforcing SubagentStop/PostToolUse/Stop hooks, `docs/reference/hooks.md`), `dream_cli.py`, `adr_cli.py` (`mem-adr-sync`) are adapters.
+- `ai_mem/domain/` contracts (`MemoryRepository`) → `ai_mem/application/` one use case per file → `ai_mem/infrastructure/` storage. `mem_cli.py` (`mem`), `hook.py` (SessionStart; also `Area:` line and `mem doctor` pointer), `hooks/{retro_check,lint_after_write,reflect_reminder}.py` (enforcing SubagentStop/PostToolUse/Stop hooks, `docs/reference/hooks.md`), `dream_cli.py` are adapters.
 - Storage is the record files only: `FileMemoryRepository`. No database is opened, and there are no runtime dependencies (`dependencies = []`; extra `dev` = pytest). The MCP server, daemon and Chroma/BM25 backend are gone; the last commit with them is the tag `v0-last-mcp` (`docs/reference/chroma_rollback_backend.md`).
-- Areas: `infrastructure/areas.py` resolves the nearest ancestor with `docs/records/`; cross-area edges are `<relative-area-path>:<id>` (`docs/reference/record-format.md`). `FileMemoryRepository(records_dir_for=...)` is area mode; collection mode (no resolver) survives only for `mem-adr-sync reindex --collection`.
+- Areas: `infrastructure/areas.py` resolves the nearest ancestor with `docs/records/`; cross-area edges are `<relative-area-path>:<id>` (`docs/reference/record-format.md`). `FileMemoryRepository(records_dir_for)` takes the resolver `area_records_dir`; an area key is the area root as an absolute path. `areas.py` also maps a linked git worktree to its main checkout (`_to_main_checkout`).
 - Sources: `docs/sources/<slug>.md` is frozen evidence (frontmatter `type/date/origin/status`, format in `docs/reference/record-format.md` "Sources"); never edit a source body. `mem doctor` (Sources section, `ai_mem/doctor_sources.py`) lists sources nothing points to and current docs that still describe a retired system.
 - Docs follow Diátaxis: `docs/tutorial/`, `docs/how-to/`, `docs/reference/` (`cli.md`, `record-format.md`, `hooks.md`, `architecture.md`), `docs/explanation/`; `README.md` is concept-first and must link every current doc. `docs/sources/` is evidence, not documentation. A current doc may name a retired system (ChromaDB, MCP server, BM25, daemon, experience index) only with a top banner or `status: historical`; otherwise `mem doctor` flags it.
 - Fabrica, the method ai-mem implements, lives in `docs/fabrica/` (`core.md`, `patterns/` with one file per pattern, its status and evidence); its earlier drafts (`epistemology_framework.md`, the manifesto v0.1) are sources.
@@ -20,7 +20,6 @@ History and rationale live in `docs/records/` (start with `INDEX.md`, or ask the
 pip install -e ".[dev]"          # editable install (the plugin itself needs no pip install)
 python -m pytest tests/ -q       # run tests
 python3 -m ai_mem.hook           # SessionStart hook by hand (pipe a JSON payload on stdin)
-mem-adr-sync reindex --collection <c>   # rebuild docs/records/INDEX.md (collection mode, resolved via the mapping file / records home)
 mem add|link|unlink|delete|context ...   # write record files in the nearest area (docs/records/)
 mem-dream --area <path> --dry-run   # preview what mem-dream would read, no API calls
 python3 scripts/eval_setup/run.py --out <scratch> --model sonnet --repeats 3   # /ai-mem:setup exit check (fresh claude -p, real HOME, project settings only)
@@ -34,12 +33,11 @@ python3 scripts/eval_setup/run.py --out <scratch> --model sonnet --repeats 3   #
 ## Gotchas
 
 - `mem add` rejects types without a file (`feedback`, `project`, `fact`, `dilemma`, untyped). The id `current_focus` takes any type.
-- Collection mode (`mem-adr-sync reindex --collection`) resolves a collection to a directory through the mapping file `~/.local/share/ai-mem/adr_collection_roots.json`, cwd detection, or the records home `$AI_MEM_WORKSPACE_ROOT/ai-mem-records/<collection>/` (only if that directory exists) for `global`/`workspace`/`subagent.*`. Nothing writes the mapping file any more.
 - Delete without `ids` is refused (`mem delete`). `record_access`, `delete_expired`, `delete_stale` are no-ops; `boost_count`, `last_accessed_at`, `expires_at` are never stored. `FileMemoryRepository.query` is keyword overlap, not semantic.
 - `cue` is the last frontmatter line; `mem add --cue` rewrites the file, INDEX.md only changes when a row changes.
 - `get_by_ids` silently skips missing ids.
 - SessionStart pushes no content: the `Area:` line, one `Records:` pointer and the doctor pointer. Besides it only the enforcing hooks below are registered.
-- `detect_repo_context()` (`repo_context.py`) names collections from the CLAUDE.md path relative to `AI_MEM_WORKSPACE_ROOT`, before the git fallback; worktrees map to their main checkout (`_to_main_checkout`, also used by `areas.py`). Only `reindex --collection` still uses the names. The `Area:` line is found by walking up from the cwd, with no environment variable. Subagents get no SessionStart output; they ask the librarian or run `mem context`.
+- The `Area:` line is found by walking up from the cwd, with no environment variable. Subagents get no SessionStart output; they ask the librarian or run `mem context`.
 - `mem move` (area to area) bypasses `AddMemoryUseCase` (its merge would reset metadata); a differing id at the target is a conflict, and incoming edges to a moved record go dangling.
 - `mem-dream --area` calls the `claude` CLI with bare model aliases (`sonnet`, `haiku`), never versioned tags, and surfaces the CLI's stderr on failure.
 - Enforcing hooks (`ai_mem/hooks/`) are registered by the plugin's `hooks/hooks.json`; they check or remind, never raise, never write stderr, and `retro_check` blocks at most once (`stop_hook_active`). Plugin variables: `CLAUDE_PLUGIN_ROOT` reaches hooks (expanded in `hooks.json`, exported to hook processes) and agent/skill bodies, but NOT the Bash tool; `CLAUDE_PLUGIN_OPTION_<KEY>` reaches hooks only once a value is set (no default is exported), so every option has a file/default fallback; `${user_config.KEY}` is not substituted in agent bodies. A plugin skill's `model:` frontmatter is honored (the turn switches model); `skills/setup` sets none on purpose. `bin/` is on a subagent's Bash PATH. SubagentStop `agent_type` for a plugin agent is `ai-mem:<agent>`.
@@ -49,5 +47,5 @@ python3 scripts/eval_setup/run.py --out <scratch> --model sonnet --repeats 3   #
 ## Known noise
 
 - Agent definitions and hooks keep the code they started with — changes show up only after a Claude Code restart. Test changes with the modules or a fresh process.
-- `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir and unsets `AI_MEM_RECORDS_HOME`/`AI_MEM_WORKSPACE_ROOT`; `tmp_repo` is an in-memory repository.
+- `tests/conftest.py` sets `AI_MEM_PATH` to a temp dir and unsets `AI_MEM_WORKSPACE_ROOT`; `tmp_repo` is an in-memory repository.
 - A subprocess test that must see the worktree's code uses `python -I -S` with `sys.path.insert(0, root)`: under a pyenv editable install, plain `-I` still resolves `ai_mem` to the main checkout. `tests/test_stdlib_only.py` imports every `ai_mem` module that way, which is the STDLIB CHECK for `dependencies = []`.
