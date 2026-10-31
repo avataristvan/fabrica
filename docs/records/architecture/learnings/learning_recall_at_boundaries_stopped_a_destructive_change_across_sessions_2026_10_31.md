@@ -3,7 +3,7 @@ type: learning
 area: architecture
 perspective: user
 created: 1793470099.609578
-edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "todo_verify_external_installation_migration_and_plugin_switch_2026_10_15", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}]
+edges: [{"target_id": "todo_verify_external_installation_migration_and_plugin_switch_2026_10_15", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "confirms"}]
 cue: Someone asks whether recall at boundaries works across sessions and agents, or a briefing carries a premise I cannot check.
 ---
 
