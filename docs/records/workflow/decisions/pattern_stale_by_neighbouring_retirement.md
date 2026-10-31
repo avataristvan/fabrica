@@ -2,7 +2,7 @@ id: pattern_stale_by_neighbouring_retirement
 type: pattern
 area: workflow
 created: 1790409909.376447
-edges: [{"target_id": "pattern_load_bearing_entries_require_maintenance_discipline", "edge_type": "related"}]
+edges: [{"target_id": "pattern_load_bearing_entries_require_maintenance_discipline", "edge_type": "related"}, {"target_id": "learning_deleting_a_removed_modules_test_file_loses_tests_of_moved_functions_2026_10_31", "edge_type": "related"}]
 cue: A module or hook is being retired or disabled and neighbouring records should be checked for dead call paths or thresholds.
 ---
 

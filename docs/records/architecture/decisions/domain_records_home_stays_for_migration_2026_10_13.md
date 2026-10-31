@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791926219.342161
-edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}, {"target_id": "todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31", "edge_type": "related"}]
+edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}]
 cue: I want to remove the ai-mem-records fallback from ai-mem code because the user's own ai-mem-records is gone.
 ---
 
@@ -11,6 +11,6 @@ Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r
 Why: other users' ChromaDB migrations (records_v1, `mem-adr-sync migrate`, `reindex --collection`) write global/workspace/subagent.* there. Dissolving the user's own directory is workspace work, done from a session in the workspace root, not a reason to change ai-mem code.
 Scope: collection mode / migration only; remove the fallback only when the migration itself is retired.
 
-Addendum 2026-10-31, in effect (done in 3c64e27, pushed): the migration is gone from main (tag v1-last-upgrade-path carries it). The records-home fallback and collection mode now serve only `mem-adr-sync reindex --collection`. Comments in ai_mem/infrastructure/areas.py and file_repository.py that still say "migration fallback" are stale. The removal of both is planned: todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31.
+Closed, historical since fe8403f (2026-10-31, pushed, with a7ba267): the condition of the Scope line was met. The migration went with 3c64e27 (tag v1-last-upgrade-path carries it); fe8403f then removed the records-home fallback, collection mode, the collection mapping file, AI_MEM_RECORDS_HOME and `mem-adr-sync` altogether (the INDEX rebuild in area mode is `mem lint --fix` and the `mem` write commands). The planned todo for this removal is done and was deleted. See domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31.
 
 pseudonymised for publication, 2026-10-31

@@ -16,8 +16,8 @@
 | arch_decision_push_vs_pull_2026_07_31 | architecture | domain | # Push-vs-pull architecture: decision (2026-07-31) | active |
 | arch_decision_sessionstart_pull_based_2026_09_16 | architecture | domain | # SessionStart becomes pull-based by default (2026-09-16) | active |
 | arch_decision_userprompt_push_removed_2026_09_13 | architecture | domain | # UserPromptSubmit push removed (2026-09-13) | active |
-| arch_expert_agent_collections | architecture | domain | Decision: subagent.<name> collections serve as a cross-project experience layer  | active |
-| arch_workspace_root_collection_naming | architecture | domain | Decision: When AI_MEM_WORKSPACE_ROOT is set, detect_repo_context() names collect | active |
+| arch_expert_agent_collections | architecture | domain | Decision: subagent.<name> collections serve as a cross-project experience layer  | superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10 |
+| arch_workspace_root_collection_naming | architecture | domain | Decision: When AI_MEM_WORKSPACE_ROOT is set, detect_repo_context() names collect | superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10 |
 | bm25_saturating_transform_2026_07_31 | architecture | domain | # BM25 residual min-max flooring: decision & final shipped state (2026-07-31) | active |
 | chromadb-default-space-is-l2-not-cosine | general | anti-pattern | Tried: assuming ChromaDB get_or_create_collection(name) with no explicit metadat | active |
 | chunk1_daemon_shipped_2026_07_31 | architecture | learning | Observed: A Unix-socket daemon (ai_mem/daemon.py) keeps a warm ChromaMemoryRepos | active |
@@ -137,6 +137,7 @@
 | learning_context_boundary_is_read_and_write_point_2026_10_10 | architecture | learning | Observed: Chelsea Troy's practices (DDD Europe 2026, distilled in the records of | active |
 | learning_context_load_after_pull_switch_2026_10_04 | evaluation | learning | Observed: /context in a fresh session after the switch (1M window) shows ai-mem' | active |
 | learning_daemon_latency_and_record_access_race_2026_08_23 | architecture | learning | Observed: Two latency problems, diagnosed by measuring both hook paths live: war | active |
+| learning_deleting_a_removed_modules_test_file_loses_tests_of_moved_functions_2026_10_31 | workflow | learning | Observed: When the test file of a removed module was deleted (tests/test_repo_co | active |
 | learning_dev_team_plugin_step2_done_2026_10_10 | workflow | learning | Observed: /dev-team step 2 on the plugin briefing is done. Chunk 1b-1 (mem CLI:  | active |
 | learning_doctor_effect_retro_missing_signal_unreliable_2026_10_12 | architecture | learning | Observed: In the doctor's Effect section the `[retro]` fields show as "missing"  | active |
 | learning_dont_infer_plugin_reload_rules_from_one_observation_2026_10_12 | plugin | learning | Observed: After the pull, the new plugin skill ai-mem:setup appeared in the sess | active |
@@ -162,6 +163,7 @@
 | learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12 | plugin | learning | Observed: In a normal interactive session with the installed plugin, the librari | active |
 | learning_librarian_scope_was_the_game_changer_2026_10_11 | architecture | learning | Observed: The user names the librarian itself as the game changer: judgment over | active |
 | learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 | workflow | learning | Observed: After a change to the persistence layer (record layout docs/records, c | active |
+| learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31 | workflow | learning | Observed: In a worktree, `bin/mem doctor` reports on the main checkout's records | active |
 | learning_migrate_apply_exit1_has_two_meanings_2026_10_11 | workflow | learning | Observed: migrate --apply exits 1 in two different cases: files were written but | active |
 | learning_organizational_not_personal_memory_2026_10_10 | architecture | learning | Observed: The starting question on 2026-10-10 was how ai-mem could give the agen | active |
 | learning_our_orchestration_matches_magentic_2026_10_11 | plugin | learning | Observed: Our way of working matches magentic orchestration (Microsoft Azure Arc | active |
@@ -280,7 +282,6 @@
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
 | todo_readme_first_impression_problem_first_2026_10_31 | architecture | todo | TODO (user confirmed): Write the README for the first impression: the problem fi | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
-| todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31 | architecture | todo | TODO (user confirmed): After the push gate of the legacy-removal chunk, remove c | active |
 | todo_rename_folder_and_plugin_to_fabrica_2026_10_31 | architecture | todo | TODO (user confirmed): Rename the local folder ai-mem to fabrica, and the plugin | active |
 | todo_resolve_public_lodge_book_vs_handoffs_local_2026_10_31 | records | todo | TODO (user confirmed): Resolve the tension between domain_fabrica_records_public | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |

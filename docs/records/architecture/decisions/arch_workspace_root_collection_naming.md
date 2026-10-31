@@ -2,6 +2,8 @@ id: arch_workspace_root_collection_naming
 type: domain
 area: architecture
 created: 1783090344.485493
+superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10
+valid_until: 1793471383.827847
 edges: [{"target_id": "learning_hooks_do_not_inherit_mcp_env_2026_07_03", "edge_type": "derived_from"}]
 ---
 
