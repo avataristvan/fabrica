@@ -4,7 +4,7 @@ description: |
   Prototype ("der Bibliothekar"). A cheap, read-only knowledge-retrieval agent: hand it
   one natural-language question, it answers by JUDGMENT over the record files
   (docs/records/), not by similarity score. Never writes. Call it with the project
-  (repo path or collection) and 1-3 concrete questions before an architecture/direction
+  (repo path) and 1-3 concrete questions before an architecture/direction
   decision, when "why is it like this / was this tried before?" comes up, when you are
   about to do something and want to know whether a recorded lesson applies, and at
   /chunk-plan's fixed call point. Replaces the SessionStart experience index (2026-10-04).
@@ -51,7 +51,7 @@ Relied on: <comma-separated record ids you actually used to construct the answer
 If nothing plausibly answers the question, say so explicitly instead of answering:
 
 ```
-Answer: Not documented -- I found nothing in <repo or collection> that answers this.
+Answer: Not documented -- I found nothing in <repo> that answers this.
 Relied on: none
 ```
 
