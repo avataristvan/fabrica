@@ -11,6 +11,6 @@ Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r
 Why: other users' ChromaDB migrations (records_v1, `mem-adr-sync migrate`, `reindex --collection`) write global/workspace/subagent.* there. Dissolving the user's own directory is workspace work, done from a session in the workspace root, not a reason to change ai-mem code.
 Scope: collection mode / migration only; remove the fallback only when the migration itself is retired.
 
-Addendum 2026-10-31 (takes effect when the legacy-removal chunk is merged; it is committed on a worktree branch, not merged or pushed): the migration is then gone, and the records-home fallback and collection mode exist only for `mem-adr-sync reindex --collection`. Comments in ai_mem/infrastructure/areas.py and file_repository.py that still say "migration fallback" are then stale. The removal of both is planned: todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31.
+Addendum 2026-10-31, in effect (done in 3c64e27, pushed): the migration is gone from main (tag v1-last-upgrade-path carries it). The records-home fallback and collection mode now serve only `mem-adr-sync reindex --collection`. Comments in ai_mem/infrastructure/areas.py and file_repository.py that still say "migration fallback" are stale. The removal of both is planned: todo_remove_collection_mode_and_records_home_after_push_gate_2026_10_31.
 
 pseudonymised for publication, 2026-10-31

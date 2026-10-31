@@ -10,3 +10,5 @@ cue: You are asked whether UPGRADING.md works for an unattended agent, or you ar
 Observed: The chunk 0 upgrade acceptance ran on 2026-10-15 against code d5b73b1 (scripts/upgrade_acceptance/run.sh, BASE_PY = pyenv 3.13.11, fresh claude -p agents for B and C) and passed: ACCEPTANCE: PASS, all 19 checks green. A: dry run and apply with sentinel. Hook guard line with empty stderr. B: pulled, migrated, no chromadb, workspaces and reports equal to A. C: on the diverged checkout stopped without merge, rebase or migration. Real-data checksums identical.
 Cause: UPGRADING.md is followable by an unattended agent as written; the run is the proof. Rerun it before the next breaking upgrade step and after every UPGRADING.md edit.
 Evidence: commit d5b73b1; log kept local in the session scratchpad; learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12.
+
+Historical since 3c64e27 (2026-10-31): UPGRADING.md, scripts/upgrade_acceptance and the upgrade path are removed from main; the code this ran against lives at tag v1-last-upgrade-path. See domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31.

@@ -10,3 +10,5 @@ cue: I want to deduplicate PLUGIN_HOOK_EVENTS in install/uninstall against hooks
 Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a fixed list and is not derived from `hooks/hooks.json`.
 Why: It records where OLDER versions of ai-mem registered hooks in the user's settings, so that `--plugin-switch` and uninstall can find and remove them. `hooks/hooks.json` describes only what the current plugin registers; deriving the list from it would forget every event an older version used and leave those hooks behind.
 Scope: PLUGIN_HOOK_EVENTS in install.py and uninstall.py. Complements pattern_uninstall_matches_hooks_by_module_marker_2026_10_11 (hooks are matched by module marker, events come from this list).
+
+Closed, historical since 3c64e27 (2026-10-31): install.py and uninstall.py are removed from main, so there is nothing left to deduplicate; the code lives at tag v1-last-upgrade-path.

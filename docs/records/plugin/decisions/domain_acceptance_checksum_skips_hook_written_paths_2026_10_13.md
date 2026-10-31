@@ -11,3 +11,5 @@ Decision: scripts/upgrade_acceptance/run.sh skips reminded/, retro_log.jsonl, do
 Why: Running sessions' hooks write the skipped paths, so the run was never green although every functional check passed. Only the migration writes adr_collection_roots.json, so a change there is a real leak.
 Scope: the acceptance run's real-data checksum. Closes todo_acceptance_checksum_exclude_hook_written_paths_2026_10_12.
 Evidence: scripts/upgrade_acceptance/run.sh.
+
+Historical since 3c64e27 (2026-10-31): the acceptance run is removed from main; it lives at tag v1-last-upgrade-path.

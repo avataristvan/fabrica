@@ -10,3 +10,5 @@ cue: I am reading or wrapping the exit code of mem-adr-sync migrate --apply
 Observed: migrate --apply exits 1 in two different cases: files were written but the plan was not clean, or the store was unreadable and nothing was written. Only the "Report:" line in stdout tells them apart.
 Cause: One exit code for two outcomes; the distinction lives in the output.
 Evidence: install.py run_records_migration branches its message on "Report:".
+
+Historical since 3c64e27 (2026-10-31): `migrate` and install.py are removed from main; the code is at tag v1-last-upgrade-path.

@@ -10,3 +10,5 @@ cue: I am removing or switching a storage backend and some code still checks for
 Observed: A guard on an artefact of the old backend (`DB_PATH.exists()` in hook.py) silenced SessionStart on plugin-only machines.
 Cause: Guards keyed to old-backend files silently disable features once the backend is switched and those files never exist.
 Evidence: ai_mem/hook.py (the guard no longer keys on the old store). Related decision: domain_drop_mcp_server_for_cli_plugin_2026_10_10.
+
+Historical since 3c64e27 (2026-10-31): the upgrade guard itself is removed from main; the code is at tag v1-last-upgrade-path. The general lesson about guards keyed to old-backend files stands.
