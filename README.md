@@ -105,6 +105,8 @@ Organised by [Diátaxis](https://diataxis.fr/).
 
 Earlier versions kept memory in a vector database behind an MCP tool server and injected content into prompts. Both are replaced by record files and the roles above. An existing installation is moved once: [UPGRADING.md](UPGRADING.md) lists the exact steps (written for an agent that updates unattended) and [Migrate an old installation](docs/how-to/migrate-to-records.md) explains them for a human. The reasoning and measurements behind each retirement are kept as sources in [`docs/sources/`](docs/sources/).
 
+The tag `v1-last-upgrade-path` is the last version that carries this upgrade path (the records_v1 migration, the upgrade guard, `install.py --plugin-switch`, `uninstall.py`). Later versions drop it: an old installation checks out that tag, upgrades, and then moves on to `main`. The last version with the MCP server is the tag `v0-last-mcp`.
+
 ## Uninstall and update
 
 ```bash

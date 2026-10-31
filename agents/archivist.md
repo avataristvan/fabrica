@@ -43,8 +43,13 @@ you adopt them.
   its `docs/records/INDEX.md` is missing or starts with `# Decision Records Index` (generated);
   a hand-kept INDEX would be overwritten by the write, so report it as "for <area>, not
   written" instead.
-- **`mem add` on an existing id updates it in place**, in any area. Before every `mem add`
-  meant as a new record, `Glob` `**/<id>.md` under that area's `docs/records/`; if the id
+- **`mem add` on an existing id updates it in place**, in any area, and keeps its edges,
+  `created` and any field you do not pass (checked: a rewrite with new text leaves `edges:`
+  untouched). So rewrite a record to correct it; do not write a contradicting twin out of
+  doubt about edges. Before every `mem add`
+  meant as a new record, `Glob` `**/<id>.md` under that area's `docs/records/` (if `Glob`
+  is not available to you, `mem find <id>` or `Grep` with `output_mode: files_with_matches`
+  does the same; never `find` or `ls` through Bash); if the id
   exists, pick another id (home area: or decide "update") and never overwrite in another
   area. Never use the id `current_focus` (it overwrites `FOCUS.md`, which is state).
 - **`supersedes` never crosses areas** (`mem` refuses it). Across areas use `related` or
@@ -130,6 +135,12 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      <result> --type <type>`, then `mem unlink --area <area> <ref> <todo id>`) or drop it
      (`mem unlink ...` only). Report each in the edges line, an unlink as `<ref> -x-> <todo id>`.
      References from other areas are not printed; `mem doctor` finds them.
+   - **resolved contradiction** (a candidate says a fix made the contradicted record hold
+     again): the `contradicts` edge no longer holds. `mem unlink` it on both records (the
+     edge and its back-reference), `mem link <new> <old> --type confirms` plus its
+     back-reference, and in a versioned home area correct the old learning's text in place
+     (`mem add --id`) if it still says "contradicted". Report the unlink as
+     `<ref> -x-> <target>`. A `perspective: user` record is never changed this way.
    `confirms` and `contradicts` are not weakened to `related` when they hold; a `confirms`
    that does not hold is retyped (step 10).
    **Choose the area by topic:** the record goes to the area its subject belongs to, never
@@ -162,13 +173,16 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      `mem link <source> <target> --type <edge>`, with `--to-area <path>` when the target is in
      another area. Types: `derived_from` (a decision resting on a learning), `causes`,
      `fixes`, `confirms`, `contradicts`, `supersedes`, `related`.
-9. **Back-references are mandatory.** Every edge from a new record to an existing record gets
+9. **Back-references are mandatory, and you write them.** Never hand the caller a `mem link`
+   command for one: the caller must not write records. They are written in any area,
+   including those outside your write scope. Every edge from a new record to an existing record gets
    the reverse edge on that existing record, in whatever area it lives:
    `mem link --area <its area> <existing id> <new id> --to-area <new record's area> --type <reverse>`.
    `<reverse>` is `contradicts` for `contradicts`, otherwise `related` (the reverse of a
    causal edge is not causal). `supersedes` needs none (`mem` sets `superseded_by`), nor does
-   a `docs/reference/` target (not a record). If a
-   back-reference cannot be written (hand-kept INDEX), list it under "back-references not
+   a `docs/reference/` target (not a record). Only a
+   hand-kept INDEX in the target area (or `mem` refusing the edge) is a reason to leave one
+   out; then list it under "back-references not
    written". The report counts them and names only those not written.
 10. **Third-time rule.** When a confirm makes it the third `confirms` edge on a lesson, the
     lesson was learned three times and not recalled. Sharpen its `cue:` (`mem add --id <id>

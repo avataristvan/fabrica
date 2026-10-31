@@ -18,6 +18,8 @@ UserPromptSubmit fires on EVERY single message with up to 4 parallel semantic qu
 Deployed via `install.register_claude(workspace_root='<workspace root>')` -- a direct Python call, not the interactive `python3 install.py` flow (which asks interactively for workspace root/targets and is not headless-capable). Verified: the `hooks` block of `~/.claude/settings.json` now contains only SessionStart + PostToolUse. 365/365 tests still green.
 
 ## Cleaned up along the way: stale permissions
-`~/workspace/ai-mem/.claude/settings.local.json` contained two categories of dead entries, both removed: (1) `Bash(... -m ai_mem.pretool_hook)` -- permission for the hook retired on 2026-09-12. (2) Two `Bash(cp /tmp/.../scratchpad/*.bak ~/.claude/...)` entries that pointed to a dead scratchpad path of an earlier session (52651925-...). A grep over all other `settings.local.json` files in the workspace found no further hits.
+this repo's `.claude/settings.local.json` contained two categories of dead entries, both removed: (1) `Bash(... -m ai_mem.pretool_hook)` -- permission for the hook retired on 2026-09-12. (2) Two `Bash(cp /tmp/.../scratchpad/*.bak ~/.claude/...)` entries that pointed to a dead scratchpad path of an earlier session (52651925-...). A grep over all other `settings.local.json` files in the workspace found no further hits.
 
 See also: arch_decision_pretool_push_removed_2026_09_12, pattern_generic_core_selective_agent_activation.
+
+pseudonymised for publication, 2026-10-31

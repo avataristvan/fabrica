@@ -11,7 +11,7 @@ Pass rule since 2a-2: the 2v rule plus every edge to an existing record has its 
 | recall of hand-set edges | 6/33 = 18% | 13/33 = 39% | 11/33 = 33% |
 | predecessors, strict (expected source -> predecessor, qualified) | 0/4 | 0/4 | 0/4 |
 | predecessors, any candidate | 0/4 | 2/4 (see below) | 0/4 |
-| duplicate `istvan_interaction_style` flagged | no | no | no |
+| duplicate `user_interaction_style` flagged | no | no | no |
 | back-references on existing records | not measured | 6/37 | 26/26 |
 | perspective / cue on written records | 18/18, 18/18 | 18/18, 18/18 | 18/18, 18/18 |
 | outside-scratch check (both `find`s, and run.sh's real-area hash) | empty | empty | empty, hash unchanged |
@@ -35,7 +35,7 @@ outside-scratch check is empty. No opus number for the reworked definition.
 - Run 2 replaced "(id withheld)" placeholders by guessed ids and declared two of them as inference
   (`domain_direction_judgment_over_scores_2026_09_20`, `anti_pattern_convention_fragility_ai_mem_2026_10_04`); these
   guesses account for part of the 13 hits, and some correct hits are by body-content similarity of neighbours.
-- Neither run flagged the `istvan_interaction_style` duplicate (it sits in `global` and `workspace`, which neither
+- Neither run flagged the `user_interaction_style` duplicate (it sits in `global` and `workspace`, which neither
   run searched by that name), and neither used `confirms` (expected: candidate 14 -confirms-> 18's `librarian_at_review_handoff`;
   opus linked the pair as `related`).
 - Even opus misses 61% of hand-set edges: most expected edges join candidates to each other, and the archivist

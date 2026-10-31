@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed: agent definitions after a field report (librarian scope, archivist edges)
+
+- `librarian` also reads `docs/*.md` (plans, handoffs) and says "not read: ..." when material is out of its reach.
+- `archivist`: a resolved contradiction is unlinked and replaced by `confirms`; back-references are always written by the archivist, in any area; `mem add --id` is documented to keep edges; `mem find`/`Grep` is the fallback when `Glob` is missing.
+
 ### Removed: the MCP server, the daemon and the Chroma backend (cutover to the plugin)
 
 - **Breaking:** `ai_mem/server.py` (`mem_*` MCP tools), the query daemon, `repository_factory.py` with the Chroma/BM25/Markdown-projection repositories (`AI_MEM_BACKEND=chroma`), the PreToolUse/UserPromptSubmit/PostToolUse push modules, `agent_context.py`, `session_stats.py`, `injection_log.py`, the use cases only the server called, `mem-adr-sync export`/`import`, `mem-dream --collection`/`--expert`, `agents.yaml` handling and `scripts/eval_pull/replay.py`. The last commit that has them is the tag `v0-last-mcp`.

@@ -1,7 +1,7 @@
 ---
 type: design-doc
 date: 2026-10-10
-origin: ~/workspace/fabrica/MANIFESTO.md (draft v0.1), briefly docs/fabrica/MANIFESTO.md; folded into docs/fabrica/core.md and the patterns on 2026-10-14
+origin: ../fabrica/MANIFESTO.md (draft v0.1, a sibling area since removed; path pseudonymised for publication 2026-10-31), briefly docs/fabrica/MANIFESTO.md; folded into docs/fabrica/core.md and the patterns on 2026-10-14
 status: processed
 ---
 

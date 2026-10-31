@@ -39,7 +39,7 @@ write nothing.
    spawn, say so in the retro and go on; never fail. A finding rests only on records you read.
 3. **User records.** Read the `user` records of the areas the change touches
    (`Glob` `**/docs/records/*/user/*.md` under the repo and those areas, plus
-   `~/workspace/docs/records/*/user/*.md`) and check the diff against what the user values, not only
+   the `docs/records/*/user/*.md` of every ancestor area up to the workspace root) and check the diff against what the user values, not only
    against general best practice. No `user` records is not a finding.
 
 ## Report

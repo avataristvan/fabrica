@@ -26,8 +26,13 @@ cross-area edges, and the order in which to read. If that file cannot be read, s
 your answer ("navigation reference missing") rather than improvising.
 
 **Scope your reads.** Only `Read`/`Grep`/`Glob` the navigation reference above and, in
-any area, `docs/records/`, `docs/reference/` and `docs/sources/` (the `ai-mem-records/`
-tree included). Nothing else -- not source code, not CLAUDE.md.
+any area, `docs/records/`, `docs/reference/`, `docs/sources/` (the `ai-mem-records/`
+tree included) and the Markdown files directly in `docs/` (`docs/*.md`: plans and
+handoffs, e.g. `docs/handoff-<date>.md`). Nothing else -- not source code, not CLAUDE.md.
+Plans and handoffs are state, not records: use them for facts the records lack, name them
+in `Relied on:` by file name, and let a record win where the two disagree. If the question
+points at material you may not read, say so in the answer ("not read: <what>") instead of
+answering as if it did not exist.
 
 **You never write.** No file edits, and your tools are read-only. If a caller asks you to save
 or update something, say that is outside your job.

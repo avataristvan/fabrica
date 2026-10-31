@@ -20,7 +20,7 @@ When a later record bears out an earlier one, link `--type confirms` (later -> e
 ## Link across areas
 
 ```bash
-mem find some_id --root ~/workspace                  # where does the id exist?
+mem find some_id --root <workspace>                  # where does the id exist?
 mem link my_record some_id --type related --to-area ../other-area
 ```
 
@@ -68,7 +68,7 @@ Ids are required; a delete without ids is refused. Prefer superseding to deletin
 ## Review the whole practice
 
 ```bash
-mem doctor --root ~/workspace      # every area below the root
+mem doctor --root <workspace>      # every area below the root
 ```
 
 Read the Records, Sources, State, Wiring and Effect sections; each names what to do. The SessionStart hook reminds you when the last run is older than 14 days.

@@ -2,15 +2,15 @@
 
 Does the archivist, given the 18 record candidates of the 2026-10-10 briefing session as plain text and a copy of the
 records without them, reproduce the hand-set edges, find the four predecessors missed on that day, flag the
-`istvan_interaction_style` duplicate, and write a back-reference on every existing record it links to? Pass: >= 80%
+`user_interaction_style` duplicate, and write a back-reference on every existing record it links to? Pass: >= 80%
 of the 33 hand-set edges, 4/4 predecessors linked across areas, duplicate flagged, every edge to an existing record
 has its back-reference (since 2a-2), nothing written outside the scratch tree.
 
     PYENV_VERSION=3.13.11 python scripts/eval_archivist/build.py <scratch>/runN      # copy + fixtures + agent + baseline.json
     scripts/eval_archivist/run.sh <scratch>/runN [model]                              # fresh `claude -p` (never edit while it runs)
     python scripts/eval_archivist/compare.py <scratch>/runN --report <scratch>/runN/answer.txt
-    find ~/workspace -newer <scratch>/runN/stamp -path '*docs/records*' -not -path '*/.claude/worktrees/*'   # must be empty
-    find ~/workspace/ai-mem-records -newer <scratch>/runN/stamp                                              # must be empty
+    find <workspace> -newer <scratch>/runN/stamp -path '*docs/records*' -not -path '*/.claude/worktrees/*'   # must be empty
+    find <workspace>/ai-mem-records -newer <scratch>/runN/stamp                                              # must be empty
 
 Files: `candidates.json` (18 candidates: number, real id, type, redacted body; the archivist gets `<run>/candidates.txt`
 without ids), `expected_edges.json` (33 hand-set edges from the real frontmatter, `predecessor_area: null`, + 4
@@ -51,5 +51,5 @@ missed predecessors with the area they live in), `fixtures.py` (both types and t
   targets are not records and need none. Run 2 (its scratch tree survived the reboot) scores 6/37: 37 edges from its
   new records to baseline records, 6 with a back-reference.
 - `run.sh` hashes every file under the real `docs/records/` trees and `ai-mem-records/` before and after the run and
-  exits 1 on a difference: `Bash(mem:*)` would permit `mem add --area ~/workspace/...`. A write to real state by
+  exits 1 on a difference: `Bash(mem:*)` would permit `mem add --area <workspace>/...`. A write to real state by
   someone else during the run (the orchestrator's FOCUS.md) shows up there too.

@@ -157,7 +157,7 @@ def back_references(run: Run) -> tuple[int, int]:
 
 
 def duplicate_flagged(report: Path) -> bool:
-    return any("istvan_interaction_style" in line and re.search(r"merge|duplicate|both|twice", line, re.I)
+    return any("user_interaction_style" in line and re.search(r"merge|duplicate|both|twice", line, re.I)
                for line in report.read_text().splitlines())
 
 
@@ -183,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"perspective present: {sum(1 for r in new if r.perspective)}/{len(new)}; cue present: {sum(1 for r in new if r.cue)}/{len(new)}")
 
     dup = duplicate_flagged(args.report)
-    print(f"duplicate istvan_interaction_style flagged in report: {'yes' if dup else 'no'}")
+    print(f"duplicate user_interaction_style flagged in report: {'yes' if dup else 'no'}")
     passed = recall >= PASS_RECALL and all(predecessors.values()) and dup and back_ok == back_total > 0
     print(("PASS" if passed else "FAIL") + " (the outside-scratch check is separate: see README)")
     return 0 if passed else 1
