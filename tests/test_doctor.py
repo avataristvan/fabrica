@@ -8,7 +8,6 @@ import time
 
 from ai_mem.infrastructure.areas import find_area
 from ai_mem.mem_cli import main
-from ai_mem.upgrade_guard import CHROMA_SQLITE
 
 
 def _area(path, records=()):
@@ -45,7 +44,7 @@ def test_clean_unversioned_area_reports_only_missing_version_control(tmp_path, c
     report = _report(tmp_path, capsys)
     area = report["areas"][0]
     assert area["findings"] == {} and area["versioned"] is False and not area["dead_weight"]
-    assert report["migration"] == {"pending": False}
+    assert "migration" not in report
 
 
 def test_dangling_edges_bare_and_cross_area(tmp_path, capsys):
@@ -113,15 +112,6 @@ def test_state_unversioned_uses_mtime(tmp_path, capsys):
     os.utime(focus, (1_000_000, 1_000_000))
     state = _report(tmp_path, capsys)["state"]
     assert state and state[0]["basis"] == "mtime"
-
-
-def test_migration_pending_section(tmp_path, monkeypatch, capsys):
-    _area(tmp_path / "a")
-    db = tmp_path / "db"
-    db.mkdir()
-    (db / CHROMA_SQLITE).write_text("")
-    monkeypatch.setenv("AI_MEM_PATH", str(db))
-    assert _report(tmp_path, capsys)["migration"] == {"pending": True}
 
 
 def test_deterministic_and_writes_only_the_timestamp(tmp_path, monkeypatch, capsys):

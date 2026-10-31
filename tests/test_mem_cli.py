@@ -22,7 +22,6 @@ import pytest
 
 from ai_mem.infrastructure.areas import Area, find_area, resolve_ref
 from ai_mem.mem_cli import main
-from ai_mem.upgrade_guard import GUARD_MESSAGE, mark_records_v1_done
 
 
 def _make_area(path):
@@ -341,34 +340,6 @@ def test_area_flag_selects_the_area(env, tmp_path):
     assert list(other.records_dir.rglob("learning_a.md")) and not list(proj.records_dir.rglob("learning_a.md"))
 
 
-def test_pending_migration_blocks_every_write(env, capsys):
-    tmp_path, db, proj, other = env
-    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
-    _add("--id", "learning_b", "--type", "learning", "--text", "B.")
-    (db / "chroma.sqlite3").write_bytes(b"")
-    before = _tree(tmp_path)
-
-    codes = [
-        _add("--id", "learning_c", "--type", "learning", "--text", "C."),
-        _add("--id", "learning_a", "--cue", "x"),
-        _add("--id", "current_focus", "--text", "f"),
-        main(["link", "learning_a", "learning_b", "--type", "related"]),
-        main(["delete", "learning_a"]),
-    ]
-
-    assert codes == [3] * 5
-    assert GUARD_MESSAGE in capsys.readouterr().err
-    assert _tree(tmp_path) == before
-
-
-def test_guard_lifts_with_the_sentinel(env):
-    _, db, _, _ = env
-    (db / "chroma.sqlite3").write_bytes(b"")
-    mark_records_v1_done(db)
-
-    assert _add("--id", "learning_a", "--type", "learning", "--text", "A.") == 0
-
-
 def test_context_reports_paths_and_legacy_collection(env, tmp_path, monkeypatch, capsys):
     _, _, proj, _ = env
     home = tmp_path / "ai-mem-records"
@@ -525,12 +496,10 @@ def test_move_hostile_ids_refused(env, bad):
     assert _tree(proj.root) == before
 
 
-def test_move_same_area_missing_id_and_pending_guard(env):
+def test_move_same_area_and_missing_id(env):
     _, db, proj, other = env
     assert main(["move", "learning_zz", "--to-area", str(other.root)]) == 1
     assert main(["move", "learning_zz", "--to-area", str(proj.root)]) == 2
-    (db / "chroma.sqlite3").write_text("")
-    assert main(["move", "learning_zz", "--to-area", str(other.root)]) == 3
 
 
 def test_context_map_aggregates_cross_area_edges_and_unresolved(env, tmp_path, capsys):
@@ -661,13 +630,6 @@ def test_move_ignores_a_hand_kept_third_area(env):
     _hand_index(third)
     assert main(["move", "learning_m", "--to-area", str(other.root)]) == 0
     assert (third.records_dir / "INDEX.md").read_text().startswith("# Hand-kept")
-
-
-def test_pending_migration_beats_the_index_check(env):
-    _, db, proj, _ = env
-    (db / "chroma.sqlite3").write_bytes(b"x")
-    _hand_index(proj)
-    assert _add("--id", "learning_x", "--type", "learning", "--text", "X.") == 3
 
 
 # --- mem find -------------------------------------------------------------------------------------------

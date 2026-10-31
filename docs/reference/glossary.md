@@ -9,7 +9,7 @@ This page is state, like `FOCUS.md`: a session that coins a term or changes what
 | **Fabrica** | The method: conventions, roles, rituals and artifacts for working with agents. ai-mem is its memory. | |
 | **area** | A folder that holds `docs/records/`. It is the address of knowledge; areas can nest. | a git repo; a collection; the frontmatter key `area:` (that one names the topic) |
 | **topic** | The subfolder inside an area's records that a record sits in (`architecture`, `workflow`, ...). | area |
-| **collection** | The old name for a store of records (`repo.<x>`, `global`, `workspace`, `subagent.*`). Only the migration still uses it. | area |
+| **collection** | The old name for a store of records (`repo.<x>`, `global`, `workspace`, `subagent.*`). Only `mem-adr-sync reindex --collection` still uses it. | area |
 | **record** | One decision, learning, todo or user yardstick, as one file. Added to or superseded, rarely edited. | a handoff; a source |
 | **decision** | What was chosen and why: domain, pattern or anti-pattern. | a learning |
 | **learning** | What was observed, and its cause. Decisions rest on learnings. | a decision |

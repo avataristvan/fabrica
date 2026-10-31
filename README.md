@@ -68,7 +68,7 @@ claude plugin install ai-mem@ai-mem
 
 Restart Claude Code. The plugin needs only `python3` on the PATH (no `pip install`); its options (`retro_roles`, `doctor_cadence_days`) are set with `/plugin configure ai-mem@ai-mem` and default sensibly while unset. To try it without installing: `claude --plugin-dir ./fabrica`.
 
-Coming from the MCP-server version? `python3 install.py --plugin-switch` offers to remove the MCP registration and `mcp__ai-mem__*` permissions, the hooks, the `/reflect` and `/mem-init` commands and the links that version put into `~/.claude`; [UPGRADING.md](UPGRADING.md) has the steps. The last version with the server is the tag `v0-last-mcp`.
+Coming from an earlier version? See [Upgrading from the earlier versions](#upgrading-from-the-earlier-versions).
 
 Requires Python 3.10+. The runtime of the practice (`mem`, hooks, lint, doctor) uses only the standard library. Works with Claude Code; the record files can be read by any tool.
 
@@ -95,24 +95,22 @@ Organised by [Diátaxis](https://diataxis.fr/).
 | | |
 |---|---|
 | **Tutorial** | [Your first records](docs/tutorial/first-records.md) |
-| **How-to** | [Set up your teams and CLAUDE.md](docs/how-to/set-up.md) · [Manage records](docs/how-to/manage-records.md) · [Wire skills and agents](docs/how-to/wire-skills-and-agents.md) · [Develop ai-mem](docs/how-to/develop.md) · [Migrate an old installation](docs/how-to/migrate-to-records.md) |
+| **How-to** | [Set up your teams and CLAUDE.md](docs/how-to/set-up.md) · [Manage records](docs/how-to/manage-records.md) · [Wire skills and agents](docs/how-to/wire-skills-and-agents.md) · [Develop ai-mem](docs/how-to/develop.md) |
 | **Reference** | [Command-line reference](docs/reference/cli.md) · [Record format](docs/reference/record-format.md) · [Hooks](docs/reference/hooks.md) · [Architecture](docs/reference/architecture.md) · [Glossary](docs/reference/glossary.md) · [The removed Chroma stack](docs/reference/chroma_rollback_backend.md) (historical) |
 | **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [What we measured](docs/explanation/what-we-measured.md) · [Fabrica: the core](docs/fabrica/core.md) · [Fabrica: patterns](docs/fabrica/patterns/README.md) |
-| **Evidence and history** | [`docs/sources/`](docs/sources/) (dated, frozen evidence: measurements, past designs, retired systems) · [CHANGELOG](CHANGELOG.md) · [UPGRADING](UPGRADING.md) |
+| **Evidence and history** | [`docs/sources/`](docs/sources/) (dated, frozen evidence: measurements, past designs, retired systems) · [CHANGELOG](CHANGELOG.md) |
 | **For agents** | [`CLAUDE.md`](CLAUDE.md) (what is true now) · [`skills/handoff-protocol/SKILL.md`](skills/handoff-protocol/SKILL.md) (the boundary contract) · [`agents/`](agents/) · [`examples/agents/`](examples/agents/README.md) · [`reference/navigating_records.md`](reference/navigating_records.md) |
 
 ## Upgrading from the earlier versions
 
-Earlier versions kept memory in a vector database behind an MCP tool server and injected content into prompts. Both are replaced by record files and the roles above. An existing installation is moved once: [UPGRADING.md](UPGRADING.md) lists the exact steps (written for an agent that updates unattended) and [Migrate an old installation](docs/how-to/migrate-to-records.md) explains them for a human. The reasoning and measurements behind each retirement are kept as sources in [`docs/sources/`](docs/sources/).
+Earlier versions kept memory in a vector database behind an MCP tool server and injected content into prompts. Both are replaced by record files and the roles above. The reasoning and measurements behind each retirement are kept as sources in [`docs/sources/`](docs/sources/).
 
-The tag `v1-last-upgrade-path` is the last version that carries this upgrade path (the records_v1 migration, the upgrade guard, `install.py --plugin-switch`, `uninstall.py`). Later versions drop it: an old installation checks out that tag, upgrades, and then moves on to `main`. The last version with the MCP server is the tag `v0-last-mcp`.
+The tag `v1-last-upgrade-path` is the last version that carries the upgrade path (the records_v1 migration, the upgrade guard, `install.py --plugin-switch`, `uninstall.py`, `UPGRADING.md`). Later versions drop it: an old installation checks out that tag, upgrades, and then moves on to `main`. The last version with the MCP server is the tag `v0-last-mcp`.
 
 ## Uninstall and update
 
 ```bash
 claude plugin uninstall ai-mem  # the plugin
-python3 uninstall.py            # interactive: removes the old MCP registration, permissions, hooks, commands and links into this checkout
-python3 uninstall.py --dry-run  # preview without changes
 cd fabrica && git pull          # update the checkout; the plugin picks it up after `claude plugin update ai-mem@ai-mem`
 ```
 

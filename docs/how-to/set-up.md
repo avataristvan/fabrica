@@ -32,7 +32,7 @@ For a spawned role the line goes into the prompt that role receives, because a s
 - Change a file without your approval in the session. A standing instruction of yours, for example a CLAUDE.md line saying proposed CLAUDE.md changes are applied without asking, counts as approval; setup quotes it when it applies.
 - Reword, reorder or delete your text. It only adds lines.
 - Edit agents or skills that come from a plugin or a marketplace, ai-mem's own included. For those it reports the boundary and leaves the file.
-- Write records, run `mem lint --fix`, edit `settings.json` or run `install.py`. Where one of these is the fix, it names the command for you to run, for example `python3 install.py --plugin-switch` to remove copies an older ai-mem installed into `~/.claude`.
+- Write records, run `mem lint --fix`, or edit `settings.json`. Where one of these is the fix, it names the change for you to make, for example removing copies an older ai-mem installed into `~/.claude`.
 
 ## Check the result
 

@@ -74,9 +74,6 @@ Sources
 State
   FOCUS.md and handoff are current
 
-Migration
-  none pending
-
 Wiring
   hooks: ai-mem plugin enabled
   teams without `handoff-protocol` (2 of 3 that spawn agents or name memory):

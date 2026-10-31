@@ -81,9 +81,9 @@ The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `recor
 
 ---
 
-## What install.py Sets Up
+## What the plugin sets up
 
-The plugin (see the [README](../../README.md)) ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:setup`, `ai-mem:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks. `python3 install.py` installs the package, runs the one-time records_v1 migration and offers to remove what older versions left (`--plugin-switch`); it registers nothing.
+The plugin (see the [README](../../README.md)) ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:setup`, `ai-mem:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks.
 
 It does **not** wire your skills or agents: those are local configuration that you own. `/ai-mem:setup` proposes the wiring and applies it on your approval. `examples/agents/` ships a starting point to copy, not a file installed automatically.
 

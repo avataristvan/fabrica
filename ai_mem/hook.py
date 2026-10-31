@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """SessionStart hook -- announces the area the session works in (`Area:`), where its records live, and the
-upgrade guard / doctor pointers. It pushes no memory content; agents pull via the records and the librarian."""
+doctor pointer. It pushes no memory content; agents pull via the records and the librarian."""
 import json
 import math
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -15,11 +14,8 @@ DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / 
 # Module-level imports for patchability in tests.
 try:
     from ai_mem.infrastructure.areas import find_area
-    from ai_mem.upgrade_guard import GUARD_MESSAGE, migration_pending
 except ImportError:
     find_area = None  # type: ignore[assignment]
-    GUARD_MESSAGE = ""
-    migration_pending = None  # type: ignore[assignment]
 
 
 def _pointer_to(records: Path) -> str:
@@ -66,18 +62,10 @@ def _area_lines() -> list[str]:
 
 
 def main():
-    if find_area is None or migration_pending is None:
+    if find_area is None:
         return
 
-    parts = []
-    try:
-        # A Chroma store without records_v1 means this code runs on data it cannot read yet:
-        # say so first, as one line (still no content).
-        if migration_pending(DB_PATH):
-            parts.append(GUARD_MESSAGE)
-    except Exception:
-        pass
-    parts.extend(_area_lines())
+    parts = _area_lines()
     if not parts:
         return
     print(json.dumps({

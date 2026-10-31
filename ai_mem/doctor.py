@@ -16,7 +16,6 @@ import sys
 import time
 from pathlib import Path
 
-from ai_mem import upgrade_guard
 from ai_mem.doctor_sources import collect_sources
 from ai_mem.domain.memory import parse_edges
 from ai_mem.hooks import DOCTOR_STAMP, RETRO_LOG, state_dir
@@ -396,9 +395,7 @@ def render(report: dict, base: Path) -> str:
         out += [f"  {_label(s['root'], base)}: {s['file']} is {s['behind_days']} day(s) behind the newest change ({s['basis']})" for s in report["state"]]
     else:
         out.append("  FOCUS.md and handoff are current")
-    migration = report["migration"]
-    out += ["", "Migration", f"  {'pending: Chroma store without records_v1.done, see UPGRADING.md' if migration['pending'] else 'none pending'}",
-            "", "Wiring", *_render_wiring(report["wiring"]), "", "Effect", *_render_effect(report["effect"], base)]
+    out += ["", "Wiring", *_render_wiring(report["wiring"]), "", "Effect", *_render_effect(report["effect"], base)]
     return "\n".join(out)
 
 
@@ -435,7 +432,6 @@ def run(args: argparse.Namespace) -> int:
     report["root"] = str(base)
     report["wiring"] = collect_wiring(home)
     report["effect"] = collect_effect(db_path / RETRO_LOG, args.days, time.time(), report.pop("confirmed"))
-    report["migration"] = {"pending": upgrade_guard.migration_pending(db_path)}
     print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) if args.json else render(report, base))
     try:
         write_atomic(db_path / DOCTOR_STAMP, f"{int(time.time())}\n")

@@ -9,7 +9,6 @@ Fires at the start of every Claude Code session.
 1. Detects the area: the nearest ancestor of the cwd with `docs/records/` (a worktree maps to its main checkout) and prints `Area: <path>`.
 2. Prints one `Records:` line pointing at `FOCUS.md` and `INDEX.md` of the area and at the librarian agent.  Outside any area, no `Area:` line is printed.
 3. When the session is inside an area and `$AI_MEM_PATH/doctor_last_run` (epoch seconds, written by `mem doctor`) is missing or older than 14 days, adds one pointer line: `Run mem doctor (last run N days ago).` or `Run mem doctor (not run yet).` A pointer, never findings.
-4. While an upgrade step is pending, one extra line points at `UPGRADING.md`.
 
 Nothing from the records is pushed, and the hook never opens a database. The agent pulls on purpose: it reads the record files, or asks the librarian agent, which reads them (including each record's `cue:` line) by judgment.
 
@@ -54,8 +53,8 @@ The plugin registers all four hooks in its own `hooks/hooks.json`, each as `pyth
 
 Two plugin options reach the hooks as environment variables, `CLAUDE_PLUGIN_OPTION_RETRO_ROLES` (comma-separated agent types, read by `retro_check`) and `CLAUDE_PLUGIN_OPTION_DOCTOR_CADENCE_DAYS` (read by SessionStart). A variable that is unset or blank means the file or default named above; Claude Code exports an option only once a value is set. Runtime state stays in `$AI_MEM_PATH` (default `~/.local/share/ai-mem`), not in `${CLAUDE_PLUGIN_DATA}`: that variable is not in the Bash tool's environment, so `mem doctor` run by an agent could not find it.
 
-The hooks of the plugin and the entries older `install.py` versions wrote into `~/.claude/settings.json` would both fire; `python3 install.py --plugin-switch` offers to remove the old entries (and `uninstall.py` does too), matched by module whatever the interpreter path.
+The hooks of the plugin and the entries older `install.py` versions wrote into `~/.claude/settings.json` would both fire. Remove the old entries from `settings.json` by hand, or check out the tag `v1-last-upgrade-path`, whose `install.py --plugin-switch` removes them.
 
 ## Retired hooks
 
-Earlier versions also registered `UserPromptSubmit` and `PreToolUse` hooks that injected search results into the prompt, and a `PostToolUse` hook that counted accesses. They were retired in September and October 2026 because pushed content scaled with conversation length and edit count, not with relevance. Their measurements and reasoning: [sources/automation.md](../sources/automation.md), [sources/pull_through_measurement_impl_2026_07_31.md](../sources/pull_through_measurement_impl_2026_07_31.md), [sources/hook_routing_subagent.md](../sources/hook_routing_subagent.md). The modules were removed at the plugin cutover (tag `v0-last-mcp`); `python3 install.py --plugin-switch` removes their hook entries from existing installs.
+Earlier versions also registered `UserPromptSubmit` and `PreToolUse` hooks that injected search results into the prompt, and a `PostToolUse` hook that counted accesses. They were retired in September and October 2026 because pushed content scaled with conversation length and edit count, not with relevance. Their measurements and reasoning: [sources/automation.md](../sources/automation.md), [sources/pull_through_measurement_impl_2026_07_31.md](../sources/pull_through_measurement_impl_2026_07_31.md), [sources/hook_routing_subagent.md](../sources/hook_routing_subagent.md). The modules were removed at the plugin cutover (tag `v0-last-mcp`); existing installs remove their hook entries as described under Registration.

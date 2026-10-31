@@ -15,7 +15,7 @@ At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-proto
 - **Additions only.** Add lines; never reword, reorder or delete the user's existing text. Where a line already says the same thing in other words, propose nothing for it.
 - **Only files the user owns.** A file is the user's when it is a regular file in their `~/.claude/` or in a project's `.claude/` or CLAUDE.md, written by them. Never edit what ships with a plugin or a marketplace (anything under `~/.claude/plugins/`, a symlink into another checkout, a file whose frontmatter or header names another author or package), ai-mem's own agents and skills included. For such a file, report the boundary you found and leave it; there is no exclusion list, the judgment is made per file.
 - **No records.** You do not run `mem add`, `mem link` or `mem lint --fix` and do not edit `docs/records/`. What should become a record goes into `record_candidates` for `/ai-mem:reflect`, which hands it to the archivist.
-- **No settings, no installer.** You do not edit `settings.json` or run `install.py`; when one of them is the fix, name the command for the user to run.
+- **No settings, no installer.** You do not edit `settings.json`; when one of them is the fix, name the command for the user to run.
 
 ## 1. Teams: one hook-in per real boundary
 
@@ -57,11 +57,11 @@ Use the report the user gives, or run `mem doctor` yourself. Its findings are ke
 **Wiring, "teams without `handoff-protocol`".** The doctor flags every file whose text matches a signal (`Agent(`, `subagent_type`, `ai-mem`, `librarian`, `archivist`, `docs/records`, `mem_add`, `mem_query`) and lacks the substring `handoff-protocol`. For each flagged file, read it and decide:
 
 - **real**: the file has a boundary as defined in part 1 (it hands work to a role it spawns, or reads or stores memory at a fixed moment). If the user owns it, go through part 1 for it. If not, report the boundary and leave the file.
-- **spurious**: the signal is incidental. Examples: the word appears in another sense (a "librarian" persona of a story, "memory" of a device), the file is a copy an older ai-mem version installed that the plugin now replaces (remove it with `python3 install.py --plugin-switch`, run by the user), or a single-step tool that spawns nothing and stores nothing. Propose no hook-in; say in one line why the hit is spurious.
+- **spurious**: the signal is incidental. Examples: the word appears in another sense (a "librarian" persona of a story, "memory" of a device), the file is a copy an older ai-mem version installed that the plugin now replaces (the user removes it by hand), or a single-step tool that spawns nothing and stores nothing. Propose no hook-in; say in one line why the hit is spurious.
 
 Give a verdict for every flagged file: path, real or spurious, the evidence (the line or the absence of a handoff), and the proposal or "nothing to change".
 
-**Wiring, hooks.** "plugin enabled" is the target. Hooks still registered in `settings.json` next to the plugin fire twice: name `python3 install.py --plugin-switch` for the user.
+**Wiring, hooks.** "plugin enabled" is the target. Hooks still registered in `settings.json` next to the plugin fire twice: tell the user to remove the old hook entries from `settings.json` by hand, or to check out the tag `v1-last-upgrade-path` and run its `install.py --plugin-switch`.
 
 **Records, Sources, State, Effect.** Lint findings, dangling edges, dead-weight candidates, unadopted hand-written records, unprocessed sources, current docs naming a retired system, a stale `FOCUS.md`: none of these is yours to fix. Turn each into a plain-text record candidate (what the doctor reported, where, and why it matters) for the archivist via `/ai-mem:reflect`, or point the user to `/ai-mem:reflect` when the fix is a handoff. Effect rates near zero for a role are a question for the user (has the step become ritual?), not a finding against the team.
 

@@ -1,10 +1,10 @@
 """`mem` -- the write contract for record files (stdlib only; reads go through Read/Grep).
 
 Every write goes through the existing use cases over `FileMemoryRepository` in area mode (the
-repository key is the area root), after the upgrade guard. Ids and area paths are validated here,
+repository key is the area root). Ids and area paths are validated here,
 before any use case, path join or glob (pattern_tool_argument_ids_are_hostile_input).
 
-Exit codes: 0 ok, 1 conflict / not found, 2 usage or invalid input, 3 migration pending.
+Exit codes: 0 ok, 1 conflict / not found, 2 usage or invalid input.
 A write into an area whose INDEX.md is hand-kept (differs from the generated one) is refused with 1, nothing
 written; `mem lint --fix` is exempt and adopts the area. current_focus (FOCUS.md) is not INDEX-bound.
 """
@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import get_args
 
-from ai_mem import doctor, records_lint, upgrade_guard
+from ai_mem import doctor, records_lint
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.delete_memory import DeleteMemoryUseCase
@@ -51,7 +51,7 @@ from ai_mem.infrastructure.areas import (
 )
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 
-OK, CONFLICT, USAGE, PENDING = 0, 1, 2, 3
+OK, CONFLICT, USAGE = 0, 1, 2
 
 
 class CliError(Exception):
@@ -66,13 +66,6 @@ def _db_path() -> Path:
 
 def _repository() -> MemoryRepository:
     return FileMemoryRepository(_db_path(), records_dir_for=area_records_dir)
-
-
-def _guard_writes() -> None:
-    try:
-        upgrade_guard.refuse_if_pending(_db_path())
-    except upgrade_guard.MigrationPending as exc:
-        raise CliError(str(exc), PENDING) from exc
 
 
 def _refuse_hand_kept_index(*areas: Area) -> None:
@@ -121,7 +114,6 @@ def _read_text(args: argparse.Namespace) -> str | None:
 
 
 def _add(args: argparse.Namespace) -> int:
-    _guard_writes()
     entry_id = _bare_id(args.id)
     area = _area(args.area)
     if entry_id != FOCUS_ID:
@@ -210,7 +202,6 @@ def _find(args: argparse.Namespace) -> int:
 
 
 def _link(args: argparse.Namespace) -> int:
-    _guard_writes()
     source = _bare_id(args.source)
     area = _area(args.area)
     if args.to_area:
@@ -236,7 +227,6 @@ def _link(args: argparse.Namespace) -> int:
 
 
 def _unlink(args: argparse.Namespace) -> int:
-    _guard_writes()
     source = _bare_id(args.source)
     area = _area(args.area)
     _refuse_hand_kept_index(area)
@@ -263,7 +253,6 @@ def _found_at_hint(home: Area, target: str) -> str:
 
 
 def _delete(args: argparse.Namespace) -> int:
-    _guard_writes()
     ids = list(dict.fromkeys(_bare_id(entry_id) for entry_id in args.ids))
     area = _area(args.area)
     if any(entry_id != FOCUS_ID for entry_id in ids):
@@ -341,7 +330,6 @@ def _scan_areas(args: argparse.Namespace, involved: list[Area]) -> list[str]:
 
 
 def _move(args: argparse.Namespace) -> int:
-    _guard_writes()
     if args.batch:
         if args.ids or args.to_area or args.area:
             raise CliError("--batch takes its areas and ids from the file; give no ids, --to-area or --area", USAGE)

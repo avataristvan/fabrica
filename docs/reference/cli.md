@@ -6,7 +6,7 @@ The commands ai-mem installs. `mem` is the main one: it reads and writes record 
 
 Every `mem` command works on one area: the nearest ancestor of the working directory that has `docs/records/` (`--area PATH` overrides). Ids are plain file stems (no `:`, separators or glob characters).
 
-Exit codes: 0 ok, 1 conflict or not found (or lint findings remain), 2 usage or invalid input (or no area), 3 an upgrade step is pending (see `UPGRADING.md`; nothing is written).
+Exit codes: 0 ok, 1 conflict or not found (or lint findings remain), 2 usage or invalid input (or no area).
 
 ## `mem`
 
@@ -45,7 +45,7 @@ Copies each record into the same topic/kind folder of the target area and delete
 
 ### `mem lint` and `mem doctor`
 
-`mem lint` checks one area; the codes are in [record format](record-format.md#lint-and-normalisation). `mem doctor` runs the same checks over every area below `--root` and adds the Sources, State, Migration, Wiring and Effect sections described in [architecture](architecture.md#doctor-ai_memdoctorpy). It changes nothing except `$AI_MEM_PATH/doctor_last_run`.
+`mem lint` checks one area; the codes are in [record format](record-format.md#lint-and-normalisation). `mem doctor` runs the same checks over every area below `--root` and adds the Sources, State, Wiring and Effect sections described in [architecture](architecture.md#doctor-ai_memdoctorpy). It changes nothing except `$AI_MEM_PATH/doctor_last_run`.
 
 ## `mem-dream`
 
@@ -60,13 +60,13 @@ Modes: `--mode single-haiku | single-sonnet | hier | team` (default `hier`). It 
 
 ## `mem-adr-sync`
 
-`mem-adr-sync reindex` rebuilds `docs/records/INDEX.md`; `mem-adr-sync migrate [--apply]` is the one-time move from the earlier database store into record files ([how-to](../how-to/migrate-to-records.md)). The Chroma round trip (`export`, `import`) was removed with the Chroma backend; it lives in the tag `v0-last-mcp` ([facts](chroma_rollback_backend.md)).
+`mem-adr-sync reindex` rebuilds `docs/records/INDEX.md`. The records_v1 migration (`migrate`) lives in the tag `v1-last-upgrade-path`; the Chroma round trip (`export`, `import`) was removed with the Chroma backend and lives in the tag `v0-last-mcp` ([facts](chroma_rollback_backend.md)).
 
 ## Environment
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `AI_MEM_PATH` | `~/.local/share/ai-mem` | runtime state: retro log, doctor timestamp, retro roles, migration markers |
-| `AI_MEM_WORKSPACE_ROOT` | unset | the directory that contains your areas; default root for `mem find` and the default scan root of `mem-adr-sync migrate` |
+| `AI_MEM_PATH` | `~/.local/share/ai-mem` | runtime state: retro log, doctor timestamp, retro roles |
+| `AI_MEM_WORKSPACE_ROOT` | unset | the directory that contains your areas; default root for `mem find` |
 | `AI_MEM_ADR_DIR` | `docs/records` | records directory relative to the area |
 

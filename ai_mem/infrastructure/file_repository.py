@@ -60,7 +60,7 @@ def _read_or_none(path: Path) -> str | None:
 
 class FileMemoryRepository:
     """Two modes. Default: `collection` is a collection name, resolved through the mapping file,
-    cwd detection and the records home (collection names only survive for the migration and `mem-adr-sync reindex --collection`). With `records_dir_for`:
+    cwd detection and the records home (collection names only survive for `mem-adr-sync reindex --collection`). With `records_dir_for`:
     `collection` is an area key (the area root as an absolute path string) and only the resolver
     maps it to a records directory -- the mapping file is never read or written.
     """

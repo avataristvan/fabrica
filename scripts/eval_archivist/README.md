@@ -27,7 +27,7 @@ missed predecessors with the area they live in), `fixtures.py` (both types and t
 - Redactions (no id hints): sentences naming a missed predecessor (candidate 17 named three of them in its own body)
   or announcing one ("was missed when ...", candidate 14) are removed; every other dated record id became
   "an earlier record (id withheld)".
-- The scratch db dir carries `.migrations/records_v1.done`; `AI_MEM_WORKSPACE_ROOT`/`AI_MEM_RECORDS_HOME` are unset;
+- `AI_MEM_WORKSPACE_ROOT`/`AI_MEM_RECORDS_HOME` are unset;
   `--allowedTools Read Grep Glob Bash(mem:*) Bash(mem-dream:*) Agent`. Containment of `mem --area <path>` rests on the
   prompt (all areas are under `<run>/workspace`) plus the outside-scratch check.
 - The prompt tells the archivist it works on an isolated copy and to use only paths below it (a mild hint).

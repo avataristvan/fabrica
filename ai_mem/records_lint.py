@@ -6,7 +6,7 @@ cannot parse, and lint exists to name exactly those (learning_handwritten_record
 lives in exactly one area; the body is never touched and a content-preservation guard refuses any rewrite that
 would lose a frontmatter value or a byte of body.
 
-Exit codes: 0 clean, 1 findings remain, 2 usage or invalid input, 3 migration pending (`--fix` only).
+Exit codes: 0 clean, 1 findings remain, 2 usage or invalid input.
 Stdlib only.
 """
 from __future__ import annotations
@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, get_args
 
-from ai_mem import upgrade_guard
 from ai_mem.domain.memory import EdgeType, parse_edges
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import index_is_current, regenerate_index
@@ -39,7 +38,7 @@ from ai_mem.infrastructure.adr_paths import (
 )
 from ai_mem.infrastructure.areas import Area, ancestor_areas, discover_areas, find_area, parse_ref, qualify, resolve_ref
 
-OK, FINDINGS, USAGE, PENDING = 0, 1, 2, 3
+OK, FINDINGS, USAGE = 0, 1, 2
 
 _EDGE_TYPES = frozenset(get_args(EdgeType))
 _INDEX_FILENAME = "INDEX.md"
@@ -492,12 +491,6 @@ def run(args: argparse.Namespace) -> int:
         print("mem lint: no area (no docs/records/ in this folder or above)", file=sys.stderr)
         return USAGE
     if args.fix:
-        db_path = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
-        try:
-            upgrade_guard.refuse_if_pending(db_path)
-        except upgrade_guard.MigrationPending as exc:
-            print(f"mem lint: {exc}", file=sys.stderr)
-            return PENDING
         # INDEX.md is fresh after _fix by construction, so it is not rendered a second time.
         findings = lint_records(area, _fix(area, args), check_index=False)
     else:

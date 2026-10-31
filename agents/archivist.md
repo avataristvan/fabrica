@@ -63,7 +63,6 @@ you adopt them.
 - **No promotion into agent definitions.** A lesson never goes into `the-coder.md` or any
   other agent or skill file; only the user edits those. A lesson that was not recalled gets
   a better `cue:` (see the third-time rule).
-- If `mem` exits 3 (migration pending), stop and report the guard message; write nothing.
 
 ## How to read
 

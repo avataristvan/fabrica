@@ -9,8 +9,7 @@ and, for the two fixture files, next to this script:
 Layout of <scratch-run-dir>: workspace/ (copy of the record areas, ai-mem without the
 `_2026_10_10` records), workspace/ai-mem/.claude/agents/archivist.md (this checkout's definition: a
 project agent wins over ~/.claude/agents/, whose symlink points at the main checkout),
-candidates.txt (what the archivist receives, no ids), db/.migrations/records_v1.done (so the
-migration guard does not trip), baseline.json (sha256 of every record file in the copy before the run).
+candidates.txt (what the archivist receives, no ids), baseline.json (sha256 of every record file in the copy before the run).
 """
 from __future__ import annotations
 
@@ -119,8 +118,6 @@ def main(argv: list[str] | None = None) -> int:
     dropped, rewritten = scratch_mirror.drop_suffix(workspace, SUFFIX)
     print(f"dropped {len(dropped)} records, stripped references in {rewritten}")
 
-    (run / "db" / ".migrations").mkdir(parents=True)
-    (run / "db" / ".migrations" / "records_v1.done").write_text("")
     # reference docs of the global collection: the 4th predecessor is a docs/reference/ id, which `mem link` resolves
     reference = source / RECORDS_HOME / "global" / "docs" / "reference"
     if reference.is_dir():

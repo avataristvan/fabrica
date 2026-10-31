@@ -16,7 +16,7 @@ Records are not limited to software architecture: a topic can just as well be `m
 - Learnings (what was observed) and decisions (what was chosen because of it) are separate records in separate folders; a decision links back to the learning it rests on via a `derived_from` edge (`domain_learning_decision_split_subfolders_2026_09_29`). A type or topic change moves the file.
 - Filename: `<id>.md`. Ids are unique per area and semantically named (e.g. `domain_bmad_vs_ai_mem_epistemology_2026_09_25`), so no sequence number is needed.
 - `INDEX.md` and `README.md` stay central at `<root>/`, not per topic.
-- There is no shared level. Every record lives in the area of its topic; cross-cutting topics get an area of their own (see [Areas and kinds](../explanation/areas-and-kinds.md)). Upgrading from the earlier collection layout: `UPGRADING.md`, "Collections -> areas".
+- There is no shared level. Every record lives in the area of its topic; cross-cutting topics get an area of their own (see [Areas and kinds](../explanation/areas-and-kinds.md)). Upgrading from the earlier collection layout: the tag `v1-last-upgrade-path`.
 
 ## Areas and cross-area references
 
@@ -103,7 +103,7 @@ status: <unprocessed | processed>
 
 ## Lint and normalisation
 
-`mem lint [--area PATH] [--fix] [--json]` checks one area's record files and reads them as plain files (not through the repository, which silently skips records it cannot parse). Exit 0 clean, 1 findings remain, 2 no area, 3 migration pending (`--fix` only). `mem doctor` runs the same checks over every area below `--root` and adds state and migration checks; it changes nothing except `$AI_MEM_PATH/doctor_last_run`.
+`mem lint [--area PATH] [--fix] [--json]` checks one area's record files and reads them as plain files (not through the repository, which silently skips records it cannot parse). Exit 0 clean, 1 findings remain, 2 no area. `mem doctor` runs the same checks over every area below `--root` and adds state checks; it changes nothing except `$AI_MEM_PATH/doctor_last_run`.
 
 | Code | Meaning | Fixable |
 |---|---|---|

@@ -2,14 +2,12 @@
 from __future__ import annotations
 
 import json
-import os
 
 import pytest
 
 from ai_mem import records_lint
 from ai_mem.infrastructure.areas import find_area
 from ai_mem.mem_cli import main
-from ai_mem.upgrade_guard import MIGRATIONS_DIRNAME, CHROMA_SQLITE
 
 
 def _area(path):
@@ -233,20 +231,6 @@ def test_fix_does_not_write_outside_the_area(tmp_path):
     before = foreign.read_bytes()
     main(["lint", "--fix", "--area", str(area.root)])
     assert foreign.read_bytes() == before
-
-
-def test_fix_refused_while_migration_pending(tmp_path, monkeypatch, capsys):
-    area = _clean_area(tmp_path)
-    db = tmp_path / "db"
-    db.mkdir()
-    (db / CHROMA_SQLITE).write_text("")
-    monkeypatch.setenv("AI_MEM_PATH", str(db))
-    path = _write(area, "general/learnings/learning_b.md", DRIFTED)
-    before = path.read_bytes()
-    assert main(["lint", "--fix", "--area", str(area.root)]) == 3
-    assert path.read_bytes() == before
-    assert main(["lint", "--area", str(area.root)]) == 1  # reading stays allowed
-    assert MIGRATIONS_DIRNAME not in os.listdir(db)
 
 
 def test_no_area_is_a_usage_error(tmp_path, capsys):

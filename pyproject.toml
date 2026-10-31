@@ -15,10 +15,8 @@ authors = [
 dependencies = []
 
 [project.optional-dependencies]
-# chromadb only builds real Chroma stores as fixtures for the records_v1 migration tests (they skip without it).
 dev = [
   "pytest>=7.0",
-  "chromadb>=0.5.0",
 ]
 
 [project.scripts]

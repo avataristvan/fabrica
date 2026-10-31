@@ -8,7 +8,7 @@ ai-mem uses capability-centric DDD with three strict layers. Imports only flow d
 ai_mem/
   domain/            pure contracts, no I/O
   application/       one use case per file, single execute(), deps injected
-  infrastructure/    file-backed repository, area resolution, record format, migration reader
+  infrastructure/    file-backed repository, area resolution, record format
   mem_cli.py         `mem` CLI: add, link, delete, move, find, context, lint, doctor
   records_lint.py    `mem lint`: checks and normalises one area's record files
   doctor.py          `mem doctor`: deterministic, read-only diagnosis of the practice
@@ -16,9 +16,8 @@ ai_mem/
   hook.py            SessionStart hook: Area: line, Records: pointer, doctor pointer
   hooks/             enforcing hooks: retro_check, lint_after_write, reflect_reminder
   dream_cli.py       `mem-dream`: consolidates an area's records with the claude CLI
-  adr_cli.py         `mem-adr-sync`: reindex, and one-time migration into record files
-  upgrade_guard.py   one SessionStart line while an upgrade step is pending
-  repo_context.py    collection naming, kept for the records_v1 migration
+  adr_cli.py         `mem-adr-sync`: reindex
+  repo_context.py    collection naming, kept for `reindex --collection`
 ```
 
 The tool server, the warm query process, the vector-store backend and the prompt/tool push hooks were removed at the plugin cutover; the last commit that has them is the tag `v0-last-mcp`.
@@ -52,9 +51,8 @@ One use case per file, each with a single public `execute()`.
 | `file_repository.py` | `FileMemoryRepository`: the store. Records are the files; area mode (`records_dir_for=`) resolves each area by folder |
 | `areas.py` | area resolution (nearest ancestor with `docs/records/`), area discovery, cross-area reference parsing |
 | `adr_markdown.py`, `adr_paths.py`, `adr_index.py` | record serialisation, path conventions, INDEX.md generation ([record format](record-format.md)) |
-| `chroma_sqlite_reader.py`, `records_migration.py` | read-only reader and planner for the one-time migration ([how-to](../how-to/migrate-to-records.md)) |
 
-There are no runtime dependencies (`dependencies = []`): everything uses the standard library. The `dev` extra holds `pytest` and the client library of the earlier database; the latter only builds real stores as fixtures for the migration tests, which skip without it.
+There are no runtime dependencies (`dependencies = []`): everything uses the standard library. The `dev` extra holds `pytest`; `tests/test_stdlib_only.py` checks the promise.
 
 ## Doctor (`ai_mem/doctor.py`)
 
@@ -63,7 +61,6 @@ There are no runtime dependencies (`dependencies = []`): everything uses the sta
 - **Records**: the lint checks over every area below `--root`.
 - **Sources**: sources nothing points to, sources with a missing field, and current docs that still describe a retired system as current.
 - **State**: handoff or `FOCUS.md` behind the newest change.
-- **Migration**: a pending upgrade step.
 - **Wiring**: commands, agents and skills under `<home>/.claude` that spawn agents or name memory but lack `handoff-protocol` (skills installed by a tool, i.e. a folder with `.git`, `VERSION` or a `.*_version` marker, are listed apart as external: they are never edited); whether the four ai-mem hooks are registered in `settings.json` or the plugin is enabled.
 - **Effect**: per agent type over the last N days of `retro_log.jsonl` (deduplicated by `agent_id`, last entry wins), the share with `records_consulted` / `record_candidates` given and with missing retro fields; records with at least three incoming `confirms` edges as cue-sharpening candidates.
 

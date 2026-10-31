@@ -48,4 +48,4 @@ They age differently and are never mixed. See [areas and kinds](areas-and-kinds.
 
 ## What was left behind
 
-The first versions were a semantic store behind a tool server: vector search, hybrid ranking, confidence scores, automatic injection. Most of that was measured, found to push noise or to need maintenance nobody did, and replaced by files and judgment. The evidence stays, frozen, in [`docs/sources/`](../sources/) so that a conclusion can be checked and a retired idea is not rediscovered; the upgrade steps for an old installation are in `UPGRADING.md`.
+The first versions were a semantic store behind a tool server: vector search, hybrid ranking, confidence scores, automatic injection. Most of that was measured, found to push noise or to need maintenance nobody did, and replaced by files and judgment. The evidence stays, frozen, in [`docs/sources/`](../sources/) so that a conclusion can be checked and a retired idea is not rediscovered; an old installation upgrades via the tag `v1-last-upgrade-path`.

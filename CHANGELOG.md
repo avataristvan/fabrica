@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Removed: the legacy upgrade path
+
+- `install.py`, `uninstall.py`, `UPGRADING.md` and `docs/how-to/migrate-to-records.md`; the records_v1 migration (`mem-adr-sync migrate`, `records_migration.py`, `chroma_sqlite_reader.py`); the upgrade guard (`upgrade_guard.py`: the SessionStart line, `mem` exit 3, the `mem doctor` "Migration" section and JSON key `migration`); `scripts/upgrade_acceptance/`; the `chromadb` entry of the `dev` extra. `mem-adr-sync reindex` (also `--collection`) stays.
+- The last version that carries the upgrade path is the tag `v1-last-upgrade-path`: an old installation checks out that tag, upgrades, then moves to `main`. The tag `v0-last-mcp` stays as the rollback to the MCP version.
+- `tests/test_stdlib_only.py` keeps the `dependencies = []` check that lived in `tests/test_upgrade_guard.py`.
+
 ### Changed: agent definitions after a field report (librarian scope, archivist edges)
 
 - `librarian` also reads `docs/*.md` (plans, handoffs) and says "not read: ..." when material is out of its reach.
