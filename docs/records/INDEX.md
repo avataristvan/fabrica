@@ -147,6 +147,7 @@
 | learning_e2e_file_backend_after_restart_2026_10_04 | evaluation | learning | Observed: After the restart on the file backend everything worked through the re | active |
 | learning_editable_install_python_i_resolves_main_checkout_not_worktree_2026_10_12 | workflow | learning | Observed: Under an editable pyenv install, a `python -I` subprocess resolves `ai | active |
 | learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24 | evaluation | learning | Observed: In hw-projekt-T, resuming on "weiter", FOCUS.md and the handoff gave t | active |
+| learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31 | workflow | learning | Observed: After the repo folder was renamed, a linked worktree (.claude/worktree | active |
 | learning_gap_test_first_run_and_blindtest_2026_07_31 | evaluation | learning | Observed: First gap test (2026-05-29, WITH memory): candidate `origin_story`, qu | active |
 | learning_get_by_ids_hides_unparsable_records_2026_10_10 | workflow | learning | Observed: `FileMemoryRepository.get_by_ids` silently skips record files whose fr | active |
 | learning_glob_id_injection_missed_by_review_2026_10_04 | architecture | learning | Observed: find_adr_files built a glob from the entry id (`**/<id>.md`), so mem_d | active |
@@ -164,6 +165,7 @@
 | learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12 | evaluation | learning | Observed: The librarian read plan and handoff files outside its permitted scope  | active |
 | learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12 | plugin | learning | Observed: In a normal interactive session with the installed plugin, the librari | active |
 | learning_librarian_scope_was_the_game_changer_2026_10_11 | architecture | learning | Observed: The user names the librarian itself as the game changer: judgment over | active |
+| learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31 | records | learning | Observed: After the ai-mem folder was renamed, the body of todo_build_dev_team_p | active |
 | learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 | workflow | learning | Observed: After a change to the persistence layer (record layout docs/records, c | active |
 | learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31 | workflow | learning | Observed: In a worktree, `bin/mem doctor` reports on the main checkout's records | active |
 | learning_migrate_apply_exit1_has_two_meanings_2026_10_11 | workflow | learning | Observed: migrate --apply exits 1 in two different cases: files were written but | active |
@@ -286,7 +288,6 @@
 | todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
 | todo_readme_first_impression_problem_first_2026_10_31 | architecture | todo | TODO (user confirmed): Write the README for the first impression: the problem fi | active |
 | todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
-| todo_rename_folder_and_plugin_to_fabrica_2026_10_31 | architecture | todo | TODO (user confirmed): Rename the local folder ai-mem to fabrica, and the plugin | active |
 | todo_resolve_public_lodge_book_vs_handoffs_local_2026_10_31 | records | todo | TODO (user confirmed): Resolve the tension between domain_fabrica_records_public | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |

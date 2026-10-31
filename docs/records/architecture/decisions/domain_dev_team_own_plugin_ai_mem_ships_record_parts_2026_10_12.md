@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1791788132.948062
-edges: [{"target_id": "domain_review_is_skill_with_anchor_lint_agent_2026_10_12", "edge_type": "derived_from"}, {"target_id": "pattern_generic_core_selective_agent_activation", "edge_type": "related"}]
+edges: [{"target_id": "domain_review_is_skill_with_anchor_lint_agent_2026_10_12", "edge_type": "derived_from"}, {"target_id": "pattern_generic_core_selective_agent_activation", "edge_type": "related"}, {"target_id": "..:todo_build_dev_team_plugin_after_chunk_6a_2026_10_12", "edge_type": "related"}]
 cue: I am deciding which plugin an agent, skill or command belongs in, ai-mem or a team plugin
 ---
 
