@@ -182,7 +182,7 @@ def test_wiring_all_hooks_and_plugin(tmp_path, monkeypatch, capsys):
     settings = {"hooks": {event: [{"hooks": [{"command": f"py -m {mod} 2>/dev/null || true"}]}] for event, mod in modules.items()}}
     (home / ".claude" / "settings.json").write_text(json.dumps(settings))
     assert _doctor_json(tmp_path, home, capsys)["wiring"]["hooks_missing"] == []
-    (home / ".claude" / "settings.json").write_text(json.dumps({"enabledPlugins": {"ai-mem@fabrica": True}}))
+    (home / ".claude" / "settings.json").write_text(json.dumps({"enabledPlugins": {"fabrica@fabrica": True}}))
     wiring = _doctor_json(tmp_path, home, capsys)["wiring"]
     assert wiring["plugin_enabled"] is True and wiring["teams"] == 0
 

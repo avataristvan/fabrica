@@ -51,7 +51,7 @@ def _scan(transcript: Path) -> tuple[bool, bool]:
                 name, tool_input = block.get("name"), block.get("input")
                 if name in _EDIT_TOOLS:
                     edited = True
-                elif name == "Skill" and isinstance(tool_input, dict) and tool_input.get("skill") in ("reflect", "ai-mem:reflect"):
+                elif name == "Skill" and isinstance(tool_input, dict) and tool_input.get("skill") in ("reflect", "fabrica:reflect", "ai-mem:reflect"):
                     reflected = True
             if reflected:
                 return edited, True

@@ -62,15 +62,15 @@ Read more: [Organisational memory](docs/explanation/organisational-memory.md) ·
 
 ## Install
 
-ai-mem is a Claude Code plugin: it ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:handoff-protocol`), the `mem` and `mem-dream` commands and the four hooks.
+ai-mem is a Claude Code plugin: it ships the agents (`fabrica:librarian`, `fabrica:archivist`, `fabrica:anchor-lint`), the skills (`fabrica:reflect`, `fabrica:handoff-protocol`), the `mem` and `mem-dream` commands and the four hooks.
 
 ```bash
 git clone https://github.com/avataristvan/fabrica.git
 claude plugin marketplace add ./fabrica
-claude plugin install ai-mem@ai-mem
+claude plugin install fabrica@fabrica
 ```
 
-Restart Claude Code. The plugin needs only `python3` on the PATH (no `pip install`); its options (`retro_roles`, `doctor_cadence_days`) are set with `/plugin configure ai-mem@ai-mem` and default sensibly while unset. To try it without installing: `claude --plugin-dir ./fabrica`.
+Restart Claude Code. The plugin needs only `python3` on the PATH (no `pip install`); its options (`retro_roles`, `doctor_cadence_days`) are set with `/plugin configure fabrica@fabrica` and default sensibly while unset. To try it without installing: `claude --plugin-dir ./fabrica`.
 
 Coming from an earlier version? See [Upgrading from the earlier versions](#upgrading-from-the-earlier-versions).
 
@@ -114,8 +114,8 @@ The tag `v1-last-upgrade-path` is the last version that carries the upgrade path
 ## Uninstall and update
 
 ```bash
-claude plugin uninstall ai-mem  # the plugin
-cd fabrica && git pull          # update the checkout; the plugin picks it up after `claude plugin update ai-mem@ai-mem`
+claude plugin uninstall fabrica  # the plugin
+cd fabrica && git pull          # update the checkout; the plugin picks it up after `claude plugin update fabrica@fabrica`
 ```
 
 Your record files, the runtime state in `~/.local/share/ai-mem` and your config in `~/.config/ai-mem` are never touched.

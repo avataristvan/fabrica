@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exit check of the setup skill (/ai-mem:setup) in fresh `claude -p` processes; see README.md."""
+"""Exit check of the setup skill (/fabrica:setup) in fresh `claude -p` processes; see README.md."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-CANONICAL = "At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`)."
+CANONICAL = "At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`)."
 REMOVED = " At this boundary follow the ai-mem handoff protocol (skill `handoff-protocol`)."
 
 CLAUDE_MD = """# CLAUDE.md
@@ -85,9 +85,9 @@ Effect
 """
 
 PROMPTS = {
-    "teams": "/ai-mem:setup Part 1 only, for the team in .claude/commands/dev-team.md (project scope, the user wrote it). Skip parts 2 and 3.",
-    "claude_md": "/ai-mem:setup Part 2 only (CLAUDE.md), for this project; the user's ~/.claude/CLAUDE.md is out of scope here. Skip parts 1 and 3.",
-    "doctor": ("/ai-mem:setup Part 3 only: judge the mem doctor report in ./doctor_report.txt (the flagged files are under ./.claude/, "
+    "teams": "/fabrica:setup Part 1 only, for the team in .claude/commands/dev-team.md (project scope, the user wrote it). Skip parts 2 and 3.",
+    "claude_md": "/fabrica:setup Part 2 only (CLAUDE.md), for this project; the user's ~/.claude/CLAUDE.md is out of scope here. Skip parts 1 and 3.",
+    "doctor": ("/fabrica:setup Part 3 only: judge the mem doctor report in ./doctor_report.txt (the flagged files are under ./.claude/, "
                "written by the user). Do not run mem doctor yourself. Skip parts 1 and 2 except what part 3 sends you to; propose, do not apply. "
                "After your answer, add one line per flagged file: VERDICT <path as in the report> real|spurious"),
 }
@@ -172,7 +172,7 @@ def run_one(part: str, index: int, model: str, plugin_dir: Path, dev_team: Path,
         checks["canonical_line_proposed_in_diff"] = proposed_as_addition(result)
         checks["removed_boundary_named"] = boundary_phrase(dev_team) in result
     elif part == "claude_md":
-        checks["routing_line_proposed"] = "docs/records/" in result and "ai-mem:librarian" in result
+        checks["routing_line_proposed"] = "docs/records/" in result and "fabrica:librarian" in result
         approved = claude(root, model, plugin_dir, APPROVAL, resume=reply.get("session_id"))
         numstat = subprocess.run(["git", "-C", str(root), "diff", "--numstat", "--", "CLAUDE.md"], capture_output=True, text=True).stdout.split()
         checks["applied_after_approval_additions_only"] = (not approved.get("is_error") and len(numstat) == 3

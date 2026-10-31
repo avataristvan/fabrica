@@ -15,7 +15,7 @@ import time
 
 from ai_mem.hooks import RETRO_LOG, run, state_dir
 
-DEFAULT_ROLES = ("ai-mem:anchor-lint",)
+DEFAULT_ROLES = ("fabrica:anchor-lint",)
 REQUIRED_FIELDS = ("records_consulted", "record_candidates")
 _FIELDS = ("learned", "blocked", "next", *REQUIRED_FIELDS)
 _MARKER = re.compile(r"\[retro\]", re.IGNORECASE)

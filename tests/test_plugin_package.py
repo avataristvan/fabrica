@@ -26,8 +26,8 @@ def _area(tmp_path: Path) -> Path:
 def test_manifest_and_marketplace_name_the_same_plugin() -> None:
     manifest = json.loads((ROOT / ".claude-plugin" / "plugin.json").read_text())
     market = json.loads((ROOT / ".claude-plugin" / "marketplace.json").read_text())
-    assert manifest["name"] == "ai-mem"
-    assert [p["name"] for p in market["plugins"]] == ["ai-mem"]
+    assert manifest["name"] == "fabrica"
+    assert [p["name"] for p in market["plugins"]] == ["fabrica"]
     assert manifest["userConfig"]["retro_roles"]["default"].split(",") == list(DEFAULT_ROLES)
 
 
@@ -53,7 +53,7 @@ def test_agents_and_skills_name_plugin_paths_and_namespaced_agents() -> None:
         assert "~/.claude/ai-mem" not in text
     assert (ROOT / "reference" / "navigating_records.md").is_file()
     assert (ROOT / "agents" / "anchor-lint.md").is_file() and (ROOT / "skills" / "reflect" / "SKILL.md").is_file()
-    assert 'subagent_type="ai-mem:archivist"' in (ROOT / "skills" / "reflect" / "SKILL.md").read_text()
+    assert 'subagent_type="fabrica:archivist"' in (ROOT / "skills" / "reflect" / "SKILL.md").read_text()
 
 
 def test_mem_shim_runs_without_install(tmp_path: Path) -> None:
@@ -83,7 +83,7 @@ def test_runner_session_start_prints_the_area_line(tmp_path: Path) -> None:
 
 
 def test_runner_retro_check_blocks_once(tmp_path: Path) -> None:
-    event = {"agent_type": "ai-mem:anchor-lint", "agent_id": "a1", "session_id": "s1", "last_assistant_message": "no retro"}
+    event = {"agent_type": "fabrica:anchor-lint", "agent_id": "a1", "session_id": "s1", "last_assistant_message": "no retro"}
     result = _run_hook(tmp_path, "ai_mem.hooks.retro_check", json.dumps(event), tmp_path)
     assert result.returncode == 0 and result.stderr == ""
     assert json.loads(result.stdout)["decision"] == "block"

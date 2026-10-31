@@ -10,7 +10,7 @@ tools: Read, Grep, Glob, Agent
 model: sonnet
 ---
 
-At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`).
+At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
 
 You lint a diff against the anchors that bound its chunk. You judge; you do not fix and you
 write nothing.
@@ -34,7 +34,7 @@ write nothing.
    A record that cannot be found is `not applicable: record not found`, not a failure.
 2. **Records outside the list.** Use the librarian answer you were passed. Also ask the
    librarian yourself with the changed paths, if you can spawn:
-   `Agent(subagent_type="ai-mem:librarian", model="haiku")` with the area path, the changed paths and
+   `Agent(subagent_type="fabrica:librarian", model="haiku")` with the area path, the changed paths and
    "which decisions/learnings concern this change, and does it contradict one?". If you cannot
    spawn, say so in the retro and go on; never fail. A finding rests only on records you read.
 3. **User records.** Read the `user` records of the areas the change touches

@@ -1,6 +1,6 @@
 # Setup skill exit check
 
-Does `/ai-mem:setup` find the right boundaries, leave files alone until approval, and judge a `mem doctor` report correctly? Each run is a fresh `claude -p` process on its own fixture, so it loads the skill from the plugin directory at its own start.
+Does `/fabrica:setup` find the right boundaries, leave files alone until approval, and judge a `mem doctor` report correctly? Each run is a fresh `claude -p` process on its own fixture, so it loads the skill from the plugin directory at its own start.
 
 ```bash
 python3 scripts/eval_setup/run.py --out <empty scratch dir> --model sonnet --repeats 3
@@ -20,7 +20,7 @@ Exit code 0 when every part passes in a majority of its repeats (2 of 3) and not
 | Part | Prompt | Checks |
 |---|---|---|
 | `teams` | part 1 on the team copy | the canonical line appears verbatim on a `+` line of a proposed diff; the reply names the boundary heading the removed line stood under; fixture files byte-identical |
-| `claude_md` | part 2, then `both lines` via `--resume` | routing line proposed (`docs/records/` and `ai-mem:librarian` in the reply); files byte-identical before approval; after approval `git diff --numstat CLAUDE.md` shows insertions and 0 deletions |
+| `claude_md` | part 2, then `both lines` via `--resume` | routing line proposed (`docs/records/` and `fabrica:librarian` in the reply); files byte-identical before approval; after approval `git diff --numstat CLAUDE.md` shows insertions and 0 deletions |
 | `doctor` | part 3 on the report, plus a `VERDICT <path> real\|spurious` line per flagged file | `commands/release-train.md` real, `skills/bookshop-copy/SKILL.md` spurious; files byte-identical |
 
 `~/.claude` unchanged means: every file under `commands/`, `agents/`, `skills/` and `CLAUDE.md`, `settings.json`, `settings.local.json` hashes the same before and after. It detects a write, it does not prevent one, and it does not cover session state, caches or `plugins/`; edits in another live session during the check show up as a (false) failure.

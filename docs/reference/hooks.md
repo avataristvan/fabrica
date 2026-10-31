@@ -34,7 +34,7 @@ Hooks enforce THAT a ritual happens; roles decide HOW (`domain_hooks_enforce_tha
 
 ### Retro roles
 
-The roles come from the plugin option `retro_roles`, else `$AI_MEM_PATH/retro_roles.json` (a JSON list of agent types); both missing or malformed means the default `["ai-mem:anchor-lint"]`: the plugin enforces only the agents it ships; your own teams (e.g. `the-coder`) are added through the option. Other agent types produce no output and no log line.
+The roles come from the plugin option `retro_roles`, else `$AI_MEM_PATH/retro_roles.json` (a JSON list of agent types); both missing or malformed means the default `["fabrica:anchor-lint"]`: the plugin enforces only the agents it ships; your own teams (e.g. `the-coder`) are added through the option. Other agent types produce no output and no log line.
 
 ### Retro log (`$AI_MEM_PATH/retro_log.jsonl`)
 

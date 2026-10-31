@@ -16,7 +16,7 @@ The area is the folder of the current work that holds `docs/records/` (nearest a
 
 ## Step 1 — Collect
 
-At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`).
+At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
 
 Scan subagent return values for `[retro]` blocks (see convention below). Note any `learned:`, `blocked:`, `next:` and `record_candidates:` lines. No user input needed yet.
 
@@ -104,7 +104,7 @@ Show the list to the user once:
 Spawn the archivist with the candidates and the area:
 
 ```
-Agent(subagent_type="ai-mem:archivist", prompt="Area: <area path>.\nRecord candidates:\n<the list from Step 6>")
+Agent(subagent_type="fabrica:archivist", prompt="Area: <area path>.\nRecord candidates:\n<the list from Step 6>")
 ```
 
 Skip this step silently when there are no candidates.

@@ -152,7 +152,7 @@ def _registered_hooks(settings: object) -> tuple[list[str], bool]:
     registered = [module for event, module in _EXPECTED_HOOKS
                   if any(re.search(rf"-m\s+{re.escape(module)}(?:\s|$)", c) for c in _hook_commands(hooks, event))]
     plugins = settings.get("enabledPlugins")
-    plugin = isinstance(plugins, dict) and any(isinstance(k, str) and k.startswith("ai-mem@") and v is True for k, v in plugins.items())
+    plugin = isinstance(plugins, dict) and any(isinstance(k, str) and k.startswith(("fabrica@", "ai-mem@")) and v is True for k, v in plugins.items())
     return registered, plugin
 
 
@@ -173,7 +173,7 @@ def collect_wiring(home: Path) -> dict:
     except (ValueError, RecursionError):
         settings = None
     registered, plugin = _registered_hooks(settings)
-    # TODO(chunk 6): also scan the skills/agents of enabled ai-mem@... plugins (needs the plugin cache layout).
+    # TODO(chunk 6): also scan the skills/agents of enabled fabrica@... plugins (needs the plugin cache layout).
     return {"claude_dir": (home / ".claude").is_dir(), "teams": scanned, "teams_without_hook_in": without,
             "teams_external": external, "plugin_enabled": plugin,
             "hooks_registered": registered, "hooks_missing": [m for _, m in _EXPECTED_HOOKS if m not in registered]}
@@ -300,7 +300,7 @@ def _label(root: str, base: Path) -> str:
 def _render_wiring(wiring: dict) -> list[str]:
     hooks = wiring["hooks_registered"]
     if wiring["plugin_enabled"]:
-        out = ["  hooks: ai-mem plugin enabled"]
+        out = ["  hooks: fabrica plugin enabled"]
     elif wiring["hooks_missing"]:
         out = [f"  hooks: {len(hooks)}/{len(_EXPECTED_HOOKS)} registered in settings.json, missing: {', '.join(wiring['hooks_missing'])}"]
     else:

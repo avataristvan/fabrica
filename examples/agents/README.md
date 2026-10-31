@@ -10,7 +10,7 @@ agent's actual job.
 |---|---|
 | `example-agent-with-memory.md` | Minimal template: ask the librarian before starting, deliver `record_candidates` in the `[retro]` block before finishing (agents never write records) |
 
-The librarian, the archivist and `anchor-lint` ship with the plugin in `agents/` (as `ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`); they share one navigation reference, `reference/navigating_records.md`, which their texts name as `${CLAUDE_PLUGIN_ROOT}/reference/navigating_records.md`. Only the template below stays here.
+The librarian, the archivist and `anchor-lint` ship with the plugin in `agents/` (as `fabrica:librarian`, `fabrica:archivist`, `fabrica:anchor-lint`); they share one navigation reference, `reference/navigating_records.md`, which their texts name as `${CLAUDE_PLUGIN_ROOT}/reference/navigating_records.md`. Only the template below stays here.
 
 ## Why a template instead of automatic wiring
 

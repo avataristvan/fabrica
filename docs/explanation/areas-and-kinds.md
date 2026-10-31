@@ -41,7 +41,7 @@ Write a `domain` record the moment the knowledge surfaces, not at the end of a s
 
 ## Setting a first focus
 
-Write the first records yourself ([tutorial](../tutorial/first-records.md)), or let them come from work: `/ai-mem:reflect` hands what a session decided and learned to the archivist, which writes the records. Records written from work are better scoped than records split out of a CLAUDE.md by heading, which an earlier automatic seeder did and which was removed. `/ai-mem:setup` wires your teams and CLAUDE.md so that sessions ask the librarian and deliver record candidates ([how-to](../how-to/set-up.md)).
+Write the first records yourself ([tutorial](../tutorial/first-records.md)), or let them come from work: `/fabrica:reflect` hands what a session decided and learned to the archivist, which writes the records. Records written from work are better scoped than records split out of a CLAUDE.md by heading, which an earlier automatic seeder did and which was removed. `/fabrica:setup` wires your teams and CLAUDE.md so that sessions ask the librarian and deliver record candidates ([how-to](../how-to/set-up.md)).
 
 ## History: collections
 

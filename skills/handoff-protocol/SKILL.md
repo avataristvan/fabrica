@@ -12,7 +12,7 @@ A boundary is an observable moment where one role hands work to another or start
 Ask once, with the concrete situation, not with a topic. The librarian reads the record files by judgment and answers `Answer:` / `Relied on:`; "Not documented" is a valid result and means: go on.
 
 ```
-Agent(subagent_type="ai-mem:librarian", model="haiku", prompt="""
+Agent(subagent_type="fabrica:librarian", model="haiku", prompt="""
 Area: <absolute path of the area, i.e. the folder that holds docs/records/>
 Situation: <charter, changed or touched paths, symptom, chunk spec as far as it exists>
 Questions:

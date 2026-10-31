@@ -31,7 +31,7 @@ End of the work -> [retro] with records_consulted + record_candidates
 /reflect -> handoff (state) + candidates to the archivist
 ```
 
-The shared contract for the boundary step is the skill `handoff-protocol` (`skills/handoff-protocol/SKILL.md`, shipped by the plugin as `ai-mem:handoff-protocol`). A team file adds one line at each boundary: "At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`)." `mem doctor` (Wiring) lists the teams that lack it, and `/ai-mem:setup` proposes the line at each real boundary ([Set up your teams and CLAUDE.md](set-up.md)).
+The shared contract for the boundary step is the skill `handoff-protocol` (`skills/handoff-protocol/SKILL.md`, shipped by the plugin as `fabrica:handoff-protocol`). A team file adds one line at each boundary: "At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`)." `mem doctor` (Wiring) lists the teams that lack it, and `/fabrica:setup` proposes the line at each real boundary ([Set up your teams and CLAUDE.md](set-up.md)).
 
 ---
 
@@ -40,11 +40,11 @@ The shared contract for the boundary step is the skill `handoff-protocol` (`skil
 Skills run in the orchestrator context. At the moment the skill would otherwise read or store memory:
 
 ```markdown
-At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`).
+At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
 
 Ask the librarian with the situation and the area path:
 
-Agent(subagent_type="ai-mem:librarian", model="haiku", prompt="Area: <area path>\nSituation: ...\nQuestions: ...")
+Agent(subagent_type="fabrica:librarian", model="haiku", prompt="Area: <area path>\nSituation: ...\nQuestions: ...")
 
 "Not documented" is a valid result: proceed without it.
 
@@ -75,7 +75,7 @@ records_consulted: <ids that carried a decision or a finding, or "none">
 record_candidates: <plain text: what should become a record, or which record is touched or refuted, or "none">
 ```
 
-The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `records_consulted` and `record_candidates` for the roles in the plugin option `retro_roles` (default only `ai-mem:anchor-lint`; add your own teams with `/plugin configure ai-mem@ai-mem`). The orchestrator reads the blocks during `/reflect` (Step 1); `learned:` and `record_candidates:` become candidates for the archivist.
+The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `records_consulted` and `record_candidates` for the roles in the plugin option `retro_roles` (default only `fabrica:anchor-lint`; add your own teams with `/plugin configure fabrica@fabrica`). The orchestrator reads the blocks during `/reflect` (Step 1); `learned:` and `record_candidates:` become candidates for the archivist.
 
 **Reference implementation (shipped with this repo):** `examples/agents/example-agent-with-memory.md` — copy it to `~/.claude/agents/<name>.md`, rename, and fill in the actual job.
 
@@ -83,9 +83,9 @@ The enforcing `SubagentStop` hook ([hooks](../reference/hooks.md)) checks `recor
 
 ## What the plugin sets up
 
-The plugin (see the [README](../../README.md)) ships the agents (`ai-mem:librarian`, `ai-mem:archivist`, `ai-mem:anchor-lint`), the skills (`ai-mem:reflect`, `ai-mem:setup`, `ai-mem:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks.
+The plugin (see the [README](../../README.md)) ships the agents (`fabrica:librarian`, `fabrica:archivist`, `fabrica:anchor-lint`), the skills (`fabrica:reflect`, `fabrica:setup`, `fabrica:handoff-protocol`), the navigation reference, the `mem` and `mem-dream` commands and all four hooks.
 
-It does **not** wire your skills or agents: those are local configuration that you own. `/ai-mem:setup` proposes the wiring and applies it on your approval. `examples/agents/` ships a starting point to copy, not a file installed automatically.
+It does **not** wire your skills or agents: those are local configuration that you own. `/fabrica:setup` proposes the wiring and applies it on your approval. `examples/agents/` ships a starting point to copy, not a file installed automatically.
 
 ## Check the wiring
 

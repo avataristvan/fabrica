@@ -18,11 +18,11 @@ librarian with the concrete situation and the area path (the folder that holds
 `docs/records/`):
 
 ```
-Agent(subagent_type="ai-mem:librarian", model="haiku", prompt="Area: <area path>\nSituation: <task, touched paths>\nQuestions: <1-3 concrete questions>")
+Agent(subagent_type="fabrica:librarian", model="haiku", prompt="Area: <area path>\nSituation: <task, touched paths>\nQuestions: <1-3 concrete questions>")
 ```
 
 "Not documented", or no librarian available, is a valid result: proceed without it. Never
-block on it. At this boundary follow the ai-mem handoff protocol (skill `ai-mem:handoff-protocol`).
+block on it. At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
 
 ---
 

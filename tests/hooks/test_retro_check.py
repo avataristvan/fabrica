@@ -25,7 +25,7 @@ def state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return tmp_path
 
 
-def _event(message: str | None, agent_type: str = "ai-mem:anchor-lint", **extra) -> dict:
+def _event(message: str | None, agent_type: str = "fabrica:anchor-lint", **extra) -> dict:
     return {"session_id": "s1", "agent_id": "a1", "agent_type": agent_type, "last_assistant_message": message, **extra}
 
 
@@ -107,13 +107,13 @@ def test_unwritable_log_still_blocks(state: Path, monkeypatch: pytest.MonkeyPatc
 
 
 def test_anchor_lint_is_a_default_retro_role(state: Path) -> None:
-    assert "ai-mem:anchor-lint" in retro_check.DEFAULT_ROLES
-    assert retro_check.handle(_event("no retro", agent_type="ai-mem:anchor-lint"))["decision"] == "block"
+    assert "fabrica:anchor-lint" in retro_check.DEFAULT_ROLES
+    assert retro_check.handle(_event("no retro", agent_type="fabrica:anchor-lint"))["decision"] == "block"
 
 
 def test_plugin_option_beats_the_config_file(state: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (state / "retro_roles.json").write_text('["the-coder"]')
-    monkeypatch.setenv("CLAUDE_PLUGIN_OPTION_RETRO_ROLES", "Explore, ai-mem:anchor-lint")
+    monkeypatch.setenv("CLAUDE_PLUGIN_OPTION_RETRO_ROLES", "Explore, fabrica:anchor-lint")
     assert retro_check.handle(_event("no retro", agent_type="Explore"))["decision"] == "block"
     assert retro_check.handle(_event("no retro", agent_type="the-coder")) is None
 
