@@ -1,9 +1,17 @@
 # Fabrica · ai-mem
 
-**A practice for letting AI agents inherit experience from session to session — kept in a record, not in the agent. Whether that makes them more senior is still a hypothesis: [what we measured so far](docs/explanation/what-we-measured.md).**
+**AI agents forget why.** Every session starts cold: the agent does not know what was decided last week, what already failed, or the reason behind either. So it proposes the dead end again, or quietly undoes a decision it never saw.
 
-Fabrica is a practice for teams of humans and agents. ai-mem is its plugin for Claude Code.
-The name is the *fabrica ecclesiae*, the workshop that built and kept a cathedral across generations — not a factory ([the core](docs/fabrica/core.md)).
+Fabrica is a practice that keeps those reasons in a record that the next session inherits, and brings them back at the moment they matter. ai-mem is its plugin for Claude Code. Whether this makes agents more senior is still a hypothesis — [here is what we measured so far](docs/explanation/what-we-measured.md), including what did not hold.
+
+**What it looks like.** Asked *"Why doesn't ai-mem inject memory before every edit?"*, the librarian answers from the record:
+
+> It did. Measured over 50 sessions, 348 edits injected about 67k tokens — 92% of ai-mem's context footprint, whether relevant or not. Retired 2026-09-12.
+> *(arch_decision_pretool_push_removed_2026_09_12)*
+
+## The practice
+
+Pushing memory into every prompt drowns the one decision that matters. Waiting for the agent to look things up does not work either — it does not look. Fabrica works at the boundaries of the work instead:
 
 ```mermaid
 flowchart LR
@@ -22,16 +30,13 @@ flowchart LR
     end
 ```
 
-**The problem.** An agent starts every session cold: it does not know what was decided last week, what already failed, or why. Pushing memory into every prompt drowns the one decision that matters; waiting for the agent to look it up does not work either — it does not look.
+- **At the start** of a session, a chunk or a review, an agent asks the **librarian**, which decides by judgment which records apply.
+- **At the end**, a short retrospective (the *Taskly*: what was learned, what blocked, what comes next) hands record candidates to the **archivist**, the one default writer.
+- **The record** keeps decisions and learnings with their reasons. Outdated ones are superseded, never deleted, because the reason something was wrong is knowledge too.
 
-**The idea.** A cathedral workshop kept its knowledge in a lodge book that each generation of builders handed to the next. Fabrica does the same from session to session: experience is captured at the boundaries of the work, kept with its reasons, and brought back by a librarian when a situation calls for it. If you know Lean, you know the shape — it is Kaizen for teams of humans and agents.
+The name is the *fabrica ecclesiae*, the workshop that built and kept a cathedral across generations, with a lodge book each generation handed to the next — not a factory ([the core](docs/fabrica/core.md)).
 
-**An agent that knows why.** Asked *"Why doesn't ai-mem inject memory before every edit?"*, the librarian answers from the record:
-
-> It did. Measured over 50 sessions, 348 edits injected about 67k tokens — 92% of ai-mem's context footprint, whether relevant or not. Retired 2026-09-12.
-> *(arch_decision_pretool_push_removed_2026_09_12)*
-
-**Built with itself.** This repository was built the Fabrica way. Its own lodge book is in [`docs/records/`](docs/records/INDEX.md): 237 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. Nothing in it is proven yet; what is on probation, what is a hypothesis and what failed is stated, not hidden ([what we measured](docs/explanation/what-we-measured.md)).
+**Built with itself.** This repository was built the Fabrica way. Its own lodge book is in [`docs/records/`](docs/records/INDEX.md): more than 250 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. Nothing in it is proven yet; what is on probation, what is a hypothesis and what failed is stated, not hidden ([what we measured](docs/explanation/what-we-measured.md)).
 
 ## Fabrica and Kaizen
 
@@ -50,8 +55,7 @@ So in Fabrica, seniority is meant to live in the record, not in the agent. That 
 ai-mem remembers the way an organisation does: through rituals at boundaries, not through a smarter index. The value lies in the practice:
 
 - **Records are files.** Decisions, learnings and todos are Markdown files in the `docs/records/` of each *area* (a project or a topic). They are reviewable, greppable and versioned with the work, and you can write them by hand.
-- **Reading and writing happen at context boundaries.** At the start of a session, a chunk or a review, an agent asks the **librarian**, a read-only agent that decides by judgment which records apply. At the end, `/reflect` writes a handoff and hands what was learned to the **archivist**, the one default writer.
-- **Judgment instead of scores.** Nothing is pushed into a prompt and nothing is ranked by a number. Outdated records are superseded, not deleted, because the reason something was wrong is knowledge too.
+- **Two agents, one ritual.** The **librarian** is read-only and answers by judgment over the files, not by a similarity score. `/reflect` writes the handoff and hands record candidates to the **archivist**, which integrates them: new, update, supersede, with the edges between records. Nothing is pushed into a prompt.
 - **Hooks enforce that, roles decide how.** A few hooks check that the ritual happened. `mem doctor` tells you whether the practice is still alive.
 
 Read more: [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [Fabrica: the core](docs/fabrica/core.md) (the method ai-mem implements).
@@ -103,9 +107,9 @@ Organised by [Diátaxis](https://diataxis.fr/).
 
 ## Upgrading from the earlier versions
 
-Earlier versions kept memory in a vector database behind an MCP tool server and injected content into prompts. Both are replaced by record files and the roles above. The reasoning and measurements behind each retirement are kept as sources in [`docs/sources/`](docs/sources/).
+Earlier versions kept memory in a vector database behind a tool server and injected content into prompts. Both are replaced by record files and the roles above. The reasoning and measurements behind each retirement are kept as sources in [`docs/sources/`](docs/sources/).
 
-The tag `v1-last-upgrade-path` is the last version that carries the upgrade path (the records_v1 migration, the upgrade guard, `install.py --plugin-switch`, `uninstall.py`, `UPGRADING.md`). Later versions drop it: an old installation checks out that tag, upgrades, and then moves on to `main`. The last version with the MCP server is the tag `v0-last-mcp`.
+The tag `v1-last-upgrade-path` is the last version that carries the upgrade path (the records_v1 migration, the upgrade guard, `install.py --plugin-switch`, `uninstall.py`, `UPGRADING.md`). Later versions drop it: an old installation checks out that tag, upgrades, and then moves on to `main`. The last version with the tool server (MCP) is the tag `v0-last-mcp`.
 
 ## Uninstall and update
 
