@@ -3,7 +3,7 @@ type: domain
 area: plugin
 perspective: user
 created: 1791839505.102506
-edges: [{"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "derived_from"}]
+edges: [{"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "derived_from"}, {"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}]
 cue: I am changing which agents retro_check demands a [retro] block from, or the-coder is no longer checked after a plugin update
 ---
 

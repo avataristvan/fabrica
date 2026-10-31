@@ -51,6 +51,7 @@
 | domain_dev_team_own_plugin_ai_mem_ships_record_parts_2026_10_12 | architecture | domain | Decision: ai-mem ships only the record-facing parts (`ai-mem:anchor-lint`, libra | active |
 | domain_direction_judgment_over_scores_2026_09_20 | architecture | domain | Decision: Direction for ai-mem (2026-09-20): judgment instead of score. The epis | active |
 | domain_docs_split_into_documentation_and_sources_2026_10_10 | architecture | domain | Decision: Every file under docs/ and docs/reference/ is classified as one of thr | active |
+| domain_doctor_and_reflect_reminder_accept_old_ai_mem_names_2026_10_31 | plugin | domain | Decision: After the rename to fabrica, mem doctor (plugin enabled check) and the | active |
 | domain_doctor_diagnoses_ritual_erosion_2026_10_10 | architecture | domain | Decision: ai-mem gets a doctor, similar to Claude Code's /doctor. It diagnoses w | active |
 | domain_doctor_lists_external_skills_apart_2026_10_23 | architecture | domain | Decision: mem doctor lists skills installed by a tool (folder with .git, VERSION | active |
 | domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12 | architecture | domain | Decision: The doctor's "retired system in current doc" check is a keyword heuris | active |
@@ -82,6 +83,7 @@
 | domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23 | architecture | domain | Decision: Rejected (user, 2026-10-23): a PreToolUse hook on Bash that greps reco | active |
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
+| domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31 | architecture | domain | Decision: The plugin and marketplace are renamed to fabrica (agents fabrica:<age | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
 | domain_pseudonymisation_covers_the_whole_public_repo_2026_10_31 | records | domain | Decision: Pseudonymisation applies to the whole public repo, not only to records | active |
 | domain_public_face_experience_report_not_launch_2026_10_24 | architecture | domain | Decision: The public face of Fabrica is an experience report, not a tool launch. | active |
@@ -165,9 +167,11 @@
 | learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 | workflow | learning | Observed: After a change to the persistence layer (record layout docs/records, c | active |
 | learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31 | workflow | learning | Observed: In a worktree, `bin/mem doctor` reports on the main checkout's records | active |
 | learning_migrate_apply_exit1_has_two_meanings_2026_10_11 | workflow | learning | Observed: migrate --apply exits 1 in two different cases: files were written but | active |
+| learning_old_agent_worktree_branches_covered_by_pre_squash_tags_2026_10_31 | workflow | learning | Observed: Old agent worktree branches from before the history squash are covered | active |
 | learning_organizational_not_personal_memory_2026_10_10 | architecture | learning | Observed: The starting question on 2026-10-10 was how ai-mem could give the agen | active |
 | learning_our_orchestration_matches_magentic_2026_10_11 | plugin | learning | Observed: Our way of working matches magentic orchestration (Microsoft Azure Arc | active |
 | learning_plugin_from_local_marketplace_loads_in_place_2026_10_12 | plugin | learning | Observed: A plugin from a marketplace added from a local path with a relative so | active |
+| learning_plugin_keeps_loading_from_clean_clone_when_marketplace_repointed_2026_10_31 | plugin | learning | Observed: The installed plugin must keep loading from a clean clone outside the  | active |
 | learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12 | plugin | learning | Observed: Claude Code plugin mechanics, verified on claude 2.1.296 while packagi | active |
 | learning_pretool_push_dominated_context_footprint_2026_09_12 | architecture | learning | Observed: Another Claude session (in another project) delivered a doctor scan ov | active |
 | learning_public_history_pushed_clean_2026_10_13 | records | learning | Observed: Going public is done. main (48fabdb) and the tag v0-last-mcp (60d85d8, | active |
@@ -287,6 +291,7 @@
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
+| todo_tell_external_installation_plugin_is_now_fabrica_2026_10_31 | architecture | todo | TODO: Tell the external installation that the plugin is now fabrica@fabrica. Aft | active |
 | todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |

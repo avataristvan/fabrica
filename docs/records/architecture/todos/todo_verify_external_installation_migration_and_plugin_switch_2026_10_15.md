@@ -3,7 +3,7 @@ type: todo
 area: architecture
 perspective: user
 created: 1792016093.273849
-edges: [{"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_three_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31", "edge_type": "related"}]
+edges: [{"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_three_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}, {"target_id": "domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31", "edge_type": "related"}, {"target_id": "todo_tell_external_installation_plugin_is_now_fabrica_2026_10_31", "edge_type": "related"}]
 cue: You are about to rely on the external installation with an auto-updating agent having migrated to the plugin.
 ---
 

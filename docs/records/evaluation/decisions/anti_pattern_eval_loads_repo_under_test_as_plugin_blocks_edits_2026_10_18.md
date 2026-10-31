@@ -3,7 +3,7 @@ type: anti-pattern
 area: evaluation
 perspective: agent
 created: 1792360317.380537
-edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}]
+edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}, {"target_id": "learning_plugin_keeps_loading_from_clean_clone_when_marketplace_repointed_2026_10_31", "edge_type": "related"}]
 cue: I am building an eval arm that loads the repo under test as a plugin and expects the agent to edit files.
 ---
 
