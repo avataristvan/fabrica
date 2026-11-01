@@ -23,7 +23,7 @@ def _write(area, rel, text):
 
 
 def _record(entry_id="learning_a", entry_type="learning", topic="general", extra="", body="Observed: x\n"):
-    return f"id: {entry_id}\ntype: {entry_type}\narea: {topic}\ncreated: 1.0\n{extra}---\n\n{body}"
+    return f"id: {entry_id}\ntype: {entry_type}\ntopic: {topic}\ncreated: 1.0\n{extra}---\n\n{body}"
 
 
 def _codes(area):
@@ -57,9 +57,9 @@ def test_unparsable_frontmatter(tmp_path, text, code):
 def test_missing_required_fields_and_fixability(tmp_path):
     area = _clean_area(tmp_path)
     _write(area, "general/learnings/learning_b.md", "id: learning_b\ntype: learning\n---\n\nObserved: x\n")
-    _write(area, "general/learnings/learning_c.md", "type: learning\narea: general\ncreated: 1.0\n---\n\nObserved: x\n")
+    _write(area, "general/learnings/learning_c.md", "type: learning\ntopic: general\ncreated: 1.0\n---\n\nObserved: x\n")
     by_file = {(f.file.name, f.message): f.fixable for f in records_lint.lint(area) if f.code == "missing-field"}
-    assert by_file[("learning_b.md", "required field 'area' is missing")] is True
+    assert by_file[("learning_b.md", "required field 'topic' is missing")] is True
     assert by_file[("learning_b.md", "required field 'created' is missing")] is True
     assert by_file[("learning_c.md", "required field 'id' is missing")] is False
 
@@ -189,8 +189,8 @@ def test_fix_normalises_shape_and_preserves_everything(tmp_path):
     assert fixed.endswith("---\n\n" + body)
     fields = dict(line.partition(": ")[::2] for line in fixed.split("\n---\n\n")[0].splitlines())
     assert fields["learning"] == "yes" and fields["note"] == "keep me"
-    assert fields["area"] == "general" and float(fields["created"]) > 0
-    assert list(fields)[:3] == ["id", "type", "area"]
+    assert fields["topic"] == "general" and float(fields["created"]) > 0
+    assert list(fields)[:3] == ["id", "type", "topic"]
     assert list(fields)[-2:] == ["learning", "note"]
 
 
@@ -219,7 +219,7 @@ def test_preservation_guard_refuses_unsafe_rewrite(tmp_path, monkeypatch):
     area = _clean_area(tmp_path)
     path = _write(area, "general/learnings/learning_b.md", DRIFTED)
     before = path.read_bytes()
-    monkeypatch.setattr(records_lint, "_canonical", lambda fields, body: "id: learning_b\ntype: learning\n---\n\nlost\n")
+    monkeypatch.setattr(records_lint, "_canonical", lambda *args: "id: learning_b\ntype: learning\n---\n\nlost\n")
     main(["lint", "--fix", "--area", str(area.root)])
     assert path.read_bytes() == before
 
@@ -286,3 +286,33 @@ def test_edge_to_a_source_is_not_dangling(tmp_path):
     edges = [{"target_id": "measured", "edge_type": "derived_from"}]
     _write(area, "general/learnings/learning_b.md", _record("learning_b", extra=f"edges: {json.dumps(edges)}\n"))
     assert "edge-dangling" not in {f.code for f in records_lint.lint(area)}
+
+
+LEGACY = "id: learning_b\ntype: learning\narea: general\ncreated: 1.0\nedges: []\n---\n\nObserved: x\r\nCause: y\n"
+
+
+def test_legacy_area_key_is_a_fixable_finding_and_fix_changes_only_the_key(tmp_path):
+    area = _clean_area(tmp_path)
+    path = _write(area, "general/learnings/learning_b.md", LEGACY)
+    findings = [f for f in records_lint.lint(area) if f.file == path]
+    assert [(f.code, f.fixable) for f in findings] == [("legacy-topic-key", True)]
+    main(["lint", "--fix", "--area", str(area.root)])
+    assert path.read_bytes() == LEGACY.replace("area: general", "topic: general").encode()
+    assert records_lint.lint(area) == []
+
+
+def test_legacy_key_with_equal_topic_drops_the_old_line(tmp_path):
+    area = _clean_area(tmp_path)
+    text = "id: learning_b\ntype: learning\ntopic: general\narea: general\ncreated: 1.0\n---\n\nObserved: x\n"
+    path = _write(area, "general/learnings/learning_b.md", text)
+    main(["lint", "--fix", "--area", str(area.root)])
+    assert path.read_text() == text.replace("area: general\n", "")
+
+
+def test_conflicting_topic_and_area_is_a_finding_that_fix_refuses(tmp_path):
+    area = _clean_area(tmp_path)
+    text = "id: learning_b\ntype: learning\ntopic: general\narea: other\ncreated: 1.0\n---\n\nObserved: x\n"
+    path = _write(area, "general/learnings/learning_b.md", text)
+    assert "topic-conflict" in {f.code for f in records_lint.lint(area) if f.file == path}
+    main(["lint", "--fix", "--area", str(area.root)])
+    assert path.read_text() == text

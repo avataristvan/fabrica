@@ -33,7 +33,7 @@ def test_regenerate_index_lists_entries_sorted_by_id_with_status(tmp_path):
     content = (adr_dir / "INDEX.md").read_text()
     lines = content.splitlines()
     assert lines[0] == "# Decision Records Index"
-    header_idx = lines.index("| id | area | type | title | status |")
+    header_idx = lines.index("| id | topic | type | title | status |")
     rows = lines[header_idx + 2:]
     assert rows == [
         "| domain_alpha | general | domain | Decision: first alphabetically. | active |",

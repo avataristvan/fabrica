@@ -178,7 +178,7 @@ def test_glob_like_ids_never_select_other_records(repo, root, pattern):
 def test_perspective_and_unknown_keys_survive_a_rewrite_through_the_repository(repo, root):
     path = _records(root) / "arch" / "decisions" / "domain_x.md"
     path.parent.mkdir(parents=True)
-    original = ("id: domain_x\ntype: domain\narea: arch\nperspective: user\ncreated: 1.0\n"
+    original = ("id: domain_x\ntype: domain\ntopic: arch\nperspective: user\ncreated: 1.0\n"
                 "status: accepted\nowner: team-a\ncue: when x\n---\n\nDecision: X")
     path.write_text(original)
 

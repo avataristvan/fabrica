@@ -49,7 +49,7 @@ They age differently and are never mixed:
 Layout: `docs/records/<topic>/<kind>/<id>.md`. `<kind>` follows from the type:
 `decisions/` (`domain`, `pattern`, `anti-pattern`), `learnings/` (`learning`), `todos/`
 (`todo`), `user/` (`user`). The topic is a plain subfolder such as `architecture`; its
-frontmatter key keeps the old name `area:` ("`area:` field = topic folder").
+frontmatter key is `topic:` (old records may still say `area:`, the same thing).
 
 Each file starts with `key: value` lines, then `---`, then the text:
 
@@ -57,7 +57,7 @@ Each file starts with `key: value` lines, then `---`, then the text:
 |---|---|
 | `id` | the file name without `.md` |
 | `type` | `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` |
-| `area` | the topic folder |
+| `topic` | the topic folder (old records may still say `area:`) |
 | `perspective` | optional: whose knowledge or experience it is (`user`, `agent`, or a role such as `coder`, `reviewer`). A lens, not a location: it never decides where the file lives. Records of kind `user` also carry `perspective: user`. |
 | `created` | when the record was first written |
 | `superseded_by` | optional: the id of the record that replaces this one |
@@ -87,7 +87,7 @@ held again), `supersedes`, `related`. An edge is stored on its source record onl
 
 ## The catalogue files
 
-- `docs/records/INDEX.md`: one row per record (`id | area | type | title | status`).
+- `docs/records/INDEX.md`: one row per record (`id | topic | type | title | status`).
   Hand-kept areas may have a different INDEX or none; then `Glob` the folder.
 - `docs/records/FOCUS.md`: what is being worked on right now (plain text, state).
 - `cue:` lines: the index of "situation -> record". A cue is written from the point of view

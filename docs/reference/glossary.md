@@ -8,8 +8,8 @@ This page is state, like `FOCUS.md`: a session that coins a term or changes what
 |---|---|---|
 | **Fabrica** | The method: conventions, roles, rituals and artifacts for working with agents. Also the name of the Claude Code plugin that implements it. | |
 | **ai-mem** | The memory part of the plugin: the record files and the `mem` command (Python package `ai_mem`). | the method |
-| **area** | A folder that holds `docs/records/`. It is the address of knowledge; areas can nest. | a git repo; a collection; the frontmatter key `area:` (that one names the topic) |
-| **topic** | The subfolder inside an area's records that a record sits in (`architecture`, `workflow`, ...). | area |
+| **area** | A folder that holds `docs/records/`. It is the address of knowledge; areas can nest. | a git repo; a collection; a topic |
+| **topic** | The subfolder inside an area's records that a record sits in (`architecture`, `workflow`, ...). The frontmatter key `topic:` names it (old records may still say `area:`; `mem lint --fix` renames it). | area |
 | **collection** | The old name for a store of records (`repo.<x>`, `global`, `workspace`, `subagent.*`). Nothing uses it any more. | area |
 | **record** | One decision, learning, todo or user yardstick, as one file. Added to or superseded, rarely edited. | a handoff; a source |
 | **decision** | What was chosen and why: domain, pattern or anti-pattern. | a learning |
