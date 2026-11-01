@@ -97,6 +97,7 @@
 | domain_rebuild_closing_scoped_to_three_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild is scoped to three items (user, 2026- | superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15 |
 | domain_rebuild_closing_scoped_to_two_todos_2026_10_15 | architecture | domain | Decision: Closing the long-running rebuild needs two items (user, 2026-10-15): t | active |
 | domain_record_edges_single_line_json_with_ids_2026_10_23 | records | domain | Decision: Record edges are stored as single-line JSON in the frontmatter (`edges | active |
+| domain_record_key_topic_replaces_area_2026_11_01 | records | domain | Decision: the record frontmatter key `topic:` replaces `area:`. The reader accep | active |
 | domain_records_home_stays_for_migration_2026_10_13 | architecture | domain | Decision: ai-mem's code keeps the records home (`$AI_MEM_WORKSPACE_ROOT/ai-mem-r | active |
 | domain_records_model_replaces_chroma_2026_10_04 | records | domain | Decision: ChromaDB is replaced. The source of truth is git-native files in four  | active |
 | domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13 | records | domain | Decision: Going public. Internal working material (raw eval transcripts, the chu | active |

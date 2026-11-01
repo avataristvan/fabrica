@@ -3,7 +3,7 @@ type: domain
 topic: architecture
 perspective: agent
 created: 1792419303.863204
-edges: [{"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}, {"target_id": "domain_record_key_topic_replaces_area_2026_11_01", "edge_type": "related"}]
 cue: I coin a new term, or notice two sessions using one word differently
 ---
 
