@@ -22,6 +22,11 @@ REF_SEPARATOR = ":"
 _SKIPPED_DIRS = frozenset({"node_modules"})
 
 
+def git(cwd: Path, *args: str) -> str:
+    """Stripped stdout of `git <args>` run in `cwd`, or "" when git fails (not a repo, no git)."""
+    return _run(["git", *args], cwd) or ""
+
+
 def _run(cmd: list[str], cwd: Path) -> str | None:
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(cwd))

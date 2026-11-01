@@ -9,6 +9,11 @@ Entries are newest first; a later entry can remove what an earlier one kept.
 - Plugin and marketplace are renamed `fabrica@fabrica` (was `ai-mem@ai-mem`): agents are `fabrica:<agent>`, skills `/fabrica:<skill>`. The Python package `ai_mem` and the `mem` command keep their names. `mem doctor` and the reflect reminder still accept the old names, so an installation that has not reinstalled is not reported as unwired.
 - Record titles in INDEX.md drop a leading Markdown heading marker.
 
+### Added: `mem move-area` and source commands
+
+- `mem move-area OLD NEW --root DIR` renames or moves an area folder and rewrites every edge and text reference into and out of it; worktrees, editable installs, Claude Code project memory and config files that name the old path are reported, not touched.
+- `mem source SLUG --status processed|unprocessed` sets a source's status (only that line changes); `mem link` accepts a source as target (not for `supersedes`); `mem find` lists sources.
+
 ### Removed: collection mode and the records home
 
 - Collection mode of `FileMemoryRepository` (the repository now takes only the area resolver `records_dir_for`; the `db_path` argument is gone), the mapping file `adr_collection_roots.json`, the records home (`$AI_MEM_RECORDS_HOME`, `$AI_MEM_WORKSPACE_ROOT/ai-mem-records/<collection>`), `repo_context.py` (`detect_repo_context`, `GLOBAL_COLLECTION`, `WORKSPACE_COLLECTION`; `_to_main_checkout` moved to `infrastructure/areas.py`), and the `legacy_collection` field of `mem context --json` and `mem doctor --json` with its doctor line.

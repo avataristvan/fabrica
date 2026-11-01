@@ -40,6 +40,7 @@ One use case per file, each with a single public `execute()`.
 | `delete_memory.py` | `DeleteMemoryUseCase` | delete by ids; a delete without ids is refused |
 | `add_edge.py` | `AddEdgeUseCase` | validate both endpoints exist, dedup on (target_id, edge_type), persist |
 | `move_memory.py` | `MoveToAreaUseCase` | move records between areas verbatim (`mem move`; bypasses `AddMemoryUseCase`'s merge) |
+| `relocate_area.py` | `RelocateAreaUseCase` | plan and write the reference rewrites of an area folder move (`mem move-area`) |
 | `dream_memory.py` | `DreamMemoryUseCase` | consolidate an area via a `claude` CLI call: contradictions, redundancy, stale records |
 
 ## Infrastructure (`ai_mem/infrastructure/`)
@@ -48,6 +49,8 @@ One use case per file, each with a single public `execute()`.
 |---|---|
 | `file_repository.py` | `FileMemoryRepository`: the store. Records are the files; `records_dir_for` resolves each area by folder |
 | `areas.py` | area resolution (nearest ancestor with `docs/records/`, linked worktrees mapped to the main checkout), area discovery, cross-area reference parsing |
+| `area_relocation.py` | path arithmetic, preflight and rename for `mem move-area`; reports what else names the old path (worktrees, editable installs, Claude Code memory, config) |
+| `source_files.py` | locate a source; `mem source` changes its `status:` line and nothing else |
 | `adr_markdown.py`, `adr_paths.py`, `adr_index.py` | record serialisation, path conventions, INDEX.md generation ([record format](record-format.md)) |
 
 There are no runtime dependencies (`dependencies = []`): everything uses the standard library. The `dev` extra holds `pytest`; `tests/test_stdlib_only.py` checks the promise.

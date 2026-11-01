@@ -67,7 +67,7 @@ def edges_of(entry: MemoryEntry) -> list[dict]:
         raise ValueError(f"malformed edges in {entry.id!r}") from exc
 
 
-def _with_edges(entry: MemoryEntry, edges: list[dict]) -> MemoryEntry:
+def with_edges(entry: MemoryEntry, edges: list[dict]) -> MemoryEntry:
     unique = list({(e["target_id"], e["edge_type"]): e for e in edges}.values())
     return MemoryEntry(id=entry.id, text=entry.text, metadata={**entry.metadata, "edges": json.dumps(unique)})
 
@@ -176,7 +176,7 @@ class MoveToAreaUseCase:
                     return
                 ops.append(PlannedOp("rewrite_edge", target, entry.id, f"{old} -> {new}"))
             edges.append({**edge, "target_id": new})
-        final = _with_edges(entry, edges) if edges else entry
+        final = with_edges(entry, edges) if edges else entry
         perspective = "user" if entry.metadata.get("type") == "user" else row.perspective  # D6: kind user is always perspective user
         if perspective:
             final = _with_perspective(final, perspective)
@@ -209,7 +209,7 @@ class MoveToAreaUseCase:
                     edge = {**edge, "target_id": new}
                 edges.append(edge)
             if ops:
-                plan.ops.append(PlannedOp("write", source, entry.id, entry=_with_edges(entry, edges)))
+                plan.ops.append(PlannedOp("write", source, entry.id, entry=with_edges(entry, edges)))
                 plan.ops.extend(ops)
 
     def _plan_reports(self, plan: AreaMovePlan, dest: dict[Key, str], keys: list[str]) -> None:

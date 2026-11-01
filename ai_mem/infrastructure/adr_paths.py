@@ -163,3 +163,18 @@ def find_adr_files(adr_dir: Path, entry_id: str) -> list[Path]:
         return []
     filename = f"{entry_id}.md"
     return sorted(path for path in _walk_markdown(adr_dir) if path.name == filename)
+
+
+def entry_files(records_dir: Path, entry_id: str) -> list[Path]:
+    """Every file `entry_id` names in one area, as a link target: records, a top-level reference doc, a source.
+
+    Unsafe ids, symlinks and files resolving outside their directory are skipped.
+    """
+    if not is_safe_entry_id(entry_id):
+        return []
+    found = [path for path in find_adr_files(records_dir, entry_id) if is_contained(path, records_dir, allow_symlink=False)]
+    for directory in (reference_dir(records_dir), sources_dir(records_dir)):
+        path = directory / f"{entry_id}.md"
+        if path.is_file() and is_contained(path, directory, allow_symlink=False):
+            found.append(path)
+    return found

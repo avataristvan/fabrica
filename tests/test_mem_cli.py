@@ -15,6 +15,7 @@ Coverage -- every write the consumers make today and its `mem` replacement:
 from __future__ import annotations
 
 import hashlib
+import subprocess
 import json
 import shutil
 
@@ -1037,3 +1038,102 @@ def test_find_hit_in_source(env, capsys):
     path = _source(other, "talk_y", _SOURCE)
     assert main(["find", "talk_y"]) == 0
     assert capsys.readouterr().out.strip() == f"../other:talk_y  {path.resolve()}"
+
+
+def _move_area(tmp_path, old, new, *flags):
+    ws = tmp_path / "ws"
+    return main(["move-area", str(ws / old), str(ws / new), "--root", str(ws), *flags])
+
+
+def _linked_pair(env):
+    tmp_path, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A rests on `../other:pattern_t`; `./nothing:here` names nothing.")
+    _add("--area", str(other.root), "--id", "pattern_t", "--type", "pattern", "--text", "T, see ../proj:learning_a.")
+    assert main(["link", "learning_a", "pattern_t", "--type", "related", "--to-area", str(other.root)]) == 0
+    assert main(["link", "--area", str(other.root), "pattern_t", "learning_a", "--type", "related", "--to-area", str(proj.root)]) == 0
+    return tmp_path, proj, other
+
+
+def test_move_area_rewrites_edges_and_text_both_ways(env, capsys):
+    tmp_path, _, other = _linked_pair(env)
+    (tmp_path / "ws" / "sub").mkdir()
+    assert _move_area(tmp_path, "proj", "sub/proj", "--include-unversioned") == 0
+    moved = Area((tmp_path / "ws" / "sub" / "proj").resolve(), (tmp_path / "ws" / "sub" / "proj" / "docs" / "records").resolve())
+    assert not (tmp_path / "ws" / "proj").exists()
+    assert [e["target_id"] for e in _edges_of(moved, "learning_a")] == ["../../other:pattern_t"]
+    assert [e["target_id"] for e in _edges_of(other, "pattern_t")] == ["../sub/proj:learning_a"]
+    assert "`../../other:pattern_t`" in _record(moved, "learning_a").read_text()
+    assert "`./nothing:here`" in _record(moved, "learning_a").read_text()
+    assert "see ../sub/proj:learning_a." in _record(other, "pattern_t").read_text()
+    assert resolve_ref(other, "../sub/proj:learning_a")[1] == "learning_a"
+    assert main(["lint", "--area", str(moved.root)]) == 0
+
+
+def test_move_area_rename_in_place_keeps_outgoing_edges(env):
+    tmp_path, _, other = _linked_pair(env)
+    assert _move_area(tmp_path, "proj", "renamed", "--include-unversioned") == 0
+    moved = find_area(tmp_path / "ws" / "renamed")
+    assert [e["target_id"] for e in _edges_of(moved, "learning_a")] == ["../other:pattern_t"]
+    assert [e["target_id"] for e in _edges_of(other, "pattern_t")] == ["../renamed:learning_a"]
+
+
+def test_move_area_carries_nested_areas_and_keeps_edges_inside(env):
+    tmp_path, _, proj, other = env
+    inner = _make_area(proj.root / "inner")
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _add("--area", str(inner.root), "--id", "learning_i", "--type", "learning", "--text", "I.")
+    _add("--area", str(other.root), "--id", "pattern_t", "--type", "pattern", "--text", "T.")
+    assert main(["link", "--area", str(inner.root), "learning_i", "learning_a", "--type", "related", "--to-area", str(proj.root)]) == 0
+    assert main(["link", "--area", str(inner.root), "learning_i", "pattern_t", "--type", "related", "--to-area", str(other.root)]) == 0
+    (tmp_path / "ws" / "deep").mkdir()
+    assert _move_area(tmp_path, "proj", "deep/proj", "--include-unversioned") == 0
+    moved_inner = find_area(tmp_path / "ws" / "deep" / "proj" / "inner")
+    assert [e["target_id"] for e in _edges_of(moved_inner, "learning_i")] == ["..:learning_a", "../../../other:pattern_t"]
+
+
+def test_move_area_dry_run_changes_nothing(env, capsys):
+    tmp_path, _, _ = _linked_pair(env)
+    before = _tree(tmp_path / "ws")
+    assert _move_area(tmp_path, "proj", "renamed", "--dry-run", "--include-unversioned") == 0
+    out = capsys.readouterr().out
+    assert "rewrite other: pattern_t (edge) ../proj:learning_a -> ../renamed:learning_a" in out
+    assert "rename " in out
+    assert _tree(tmp_path / "ws") == before
+
+
+def test_move_area_refusals(env):
+    tmp_path, _, _ = _linked_pair(env)
+    before = _tree(tmp_path / "ws")
+    assert _move_area(tmp_path, "proj", "renamed") == 1  # unversioned areas need the flag
+    assert _move_area(tmp_path, "proj", "other", "--include-unversioned") == 1  # target exists
+    assert _move_area(tmp_path, "proj", "proj/inside", "--include-unversioned") == 1
+    assert _move_area(tmp_path, "nowhere", "x", "--include-unversioned") == 2
+    assert main(["move-area", str(tmp_path / "ws" / "proj"), str(tmp_path / "x"), "--root", str(tmp_path / "ws")]) == 2
+    assert _tree(tmp_path / "ws") == before
+
+
+def test_move_area_in_a_git_workspace_needs_no_flag(env):
+    tmp_path, _, other = _linked_pair(env)
+    ws = tmp_path / "ws"
+    subprocess.run(["git", "init", "-q", str(ws)], check=True)
+    assert _move_area(tmp_path, "proj", "renamed") == 0
+    assert [e["target_id"] for e in _edges_of(other, "pattern_t")] == ["../renamed:learning_a"]
+
+
+def test_move_area_failed_rename_writes_nothing(env, monkeypatch):
+    tmp_path, _, _ = _linked_pair(env)
+    before = _tree(tmp_path / "ws")
+
+    def refuse(src, dst):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr("ai_mem.infrastructure.area_relocation.os.rename", refuse)
+    assert _move_area(tmp_path, "proj", "renamed", "--include-unversioned") == 1
+    assert _tree(tmp_path / "ws") == before
+
+
+def test_move_area_refuses_a_symlinked_folder(env):
+    tmp_path, _, _ = _linked_pair(env)
+    (tmp_path / "ws" / "alias").symlink_to(tmp_path / "ws" / "proj")
+    assert _move_area(tmp_path, "alias", "renamed", "--include-unversioned") == 2
+    assert (tmp_path / "ws" / "proj").is_dir()

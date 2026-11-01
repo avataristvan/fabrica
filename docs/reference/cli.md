@@ -24,6 +24,7 @@ mem context [PATH] [--json]                                  # area root, record
 mem context --map [--root DIR] [--json]                      # areas below DIR and the edges between them
 mem move ID... --to-area PATH [--dry-run] [--scan-root DIR]  # move records into another area
 mem move --batch FILE [--dry-run] [--scan-root DIR]          # move many records between many areas in one plan
+mem move-area OLD NEW --root DIR [--dry-run] [--include-unversioned]  # rename or move an area folder, references included
 mem lint [--fix] [--json]                                    # check (and normalise) the area's record files
 mem doctor [--root DIR] [--days N] [--json]                  # diagnosis of the whole practice, changes nothing
 ```
@@ -33,6 +34,14 @@ Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `superse
 ### `mem find`
 
 Searches the home area, its ancestor areas (nearest first), then every other area below `--root` (default `$AI_MEM_WORKSPACE_ROOT`, else the home area's parent); records, `docs/reference/` docs and sources (`docs/sources/<slug>.md`) count. Each hit is printed as the reference `mem link` accepts from the home area (bare id, else `<rel-area-path>:<id>`) plus the file path. `mem link` with a bare target missing in the home area still fails, but its error names where `mem find` would find it; it never qualifies for you.
+
+### `mem move-area`
+
+Renames or moves a folder that is an area or holds areas, together with every reference the move would break. Cross-area references are relative paths, so a move breaks them in both directions: from the moved areas outwards and from every other area into them. `mem move-area` scans every area below `--root` (the workspace), rewrites each edge that resolves into or out of a moved area, and does the same for references in record text (`../x:<id>`, `./x:<id>`) when the record they name exists. Areas nested in the folder move with it; edges between them stay as they are. Then it renames the folder.
+
+It refuses before writing anything when the target exists, lies inside the folder or on another filesystem, when a record's edges field is malformed, when an area it would write has a hand-kept INDEX.md, or when such an area is not under git (no undo; `--include-unversioned` allows it). With `--dry-run` it prints every rewrite, the rename, what blocks it and what is left to you, and changes nothing. Records are rewritten before the folder is renamed, so an interrupted run can be started again.
+
+What a move also breaks outside the records is reported as `left to you:` and never touched: linked git worktrees (with the `git worktree repair` command), an editable install that still maps to the old path, the Claude Code project memory folder of the old path, and config files (`CLAUDE.md`, `CLAUDE.local.md`, `.mcp.json`, `.claude/settings*.json` in the workspace and its areas, `~/.claude/` files) that name the old path.
 
 ### `mem move`
 

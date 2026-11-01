@@ -22,11 +22,13 @@ from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.delete_memory import DeleteMemoryUseCase
 from ai_mem.application.move_memory import AreaMovePlan, MoveRow, MoveToAreaUseCase, OpKind
+from ai_mem.application.relocate_area import RelocateAreaUseCase
 from ai_mem.application.remove_edge import RemoveEdgeUseCase
 from ai_mem.domain.memory import EdgeType, MemoryRepository, is_area_qualified, normalize_cue, parse_edges
 from ai_mem.infrastructure.adr_index import index_is_current
 from ai_mem.infrastructure.adr_paths import (
     FOCUS_ID,
+    entry_files,
     find_adr_files,
     focus_path,
     is_contained,
@@ -48,6 +50,7 @@ from ai_mem.infrastructure.areas import (
     resolve_ref,
     search_order,
 )
+from ai_mem.infrastructure.area_relocation import AreaRelocation, is_versioned, machine_state
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 from ai_mem.infrastructure.source_files import SOURCE_STATUSES, set_status, source_file
 
@@ -180,15 +183,9 @@ def _locate(entry_id: str, home: Area, root: str | None) -> tuple[list[tuple[Are
     areas = search_order(home, _search_root(home, root))
     hits = []
     for area in areas:
-        found = [(area.records_dir, path) for path in find_adr_files(area.records_dir, entry_id)]
-        # The repository reads only top-level docs/reference/*.md, so only those are link targets.
-        doc = reference_dir(area.records_dir) / f"{entry_id}.md"
-        if doc.is_file():
-            found.append((doc.parent, doc))
-        if (source := source_file(area.records_dir, entry_id)) is not None:
-            found.append((source.parent, source))
+        found = entry_files(area.records_dir, entry_id)
         if found and _usable_ref(home, area, entry_id):
-            hits += [(area, path) for directory, path in found if is_contained(path, directory, allow_symlink=False)]
+            hits += [(area, path) for path in found]
     return hits, len(areas)
 
 
@@ -257,6 +254,65 @@ def _source(args: argparse.Namespace) -> int:
     action = "updated" if changed else "unchanged"
     _emit(args, {"action": action, "source": slug, "status": args.status, "path": str(path)},
           f"{action} {slug}: status {args.status}")
+    return OK
+
+
+def _move_area(args: argparse.Namespace) -> int:
+    root = Path(args.root).expanduser().resolve()
+    if Path(args.old).expanduser().is_symlink():
+        raise CliError(f"{args.old} is a symlink; pass the folder itself", USAGE)
+    old = Path(args.old).expanduser().resolve()
+    new_arg = Path(args.new).expanduser()
+    new = new_arg.parent.resolve() / new_arg.name
+    if not (old.is_relative_to(root) and new.is_relative_to(root)) or old == root:
+        raise CliError(f"OLD and NEW must both lie below --root {root}", USAGE)
+    relocation = AreaRelocation(old, new)
+    areas = discover_areas(root)
+    if not any(relocation.moves(area.root) for area in areas):
+        raise CliError(f"no area at or below {old}", USAGE)
+    if (reason := relocation.preflight()) is not None:
+        raise CliError(reason, CONFLICT)
+
+    repo = _repository()
+    use_case = RelocateAreaUseCase(repo, relocation)
+    plan = use_case.plan([str(area.root) for area in areas])
+    if plan.malformed:
+        raise CliError("malformed edges field in " + ", ".join(f"{key}:{entry_id}" for key, entry_id in plan.malformed)
+                       + "; fix the files by hand first", CONFLICT)
+
+    def name(key: str) -> str:
+        return Path(key).relative_to(root).as_posix() or "."
+
+    written = [area for area in areas if str(area.root) in plan.entries]
+    blockers = [f"{name(str(area.root))}: INDEX.md is hand-kept (or stale); run `mem lint --fix` there first"
+                for area in written
+                if (area.records_dir / "INDEX.md").exists() and not index_is_current(area.records_dir)]
+    if not args.include_unversioned:
+        blockers += [f"{name(str(area.root))}: not under version control (no undo); commit it or pass --include-unversioned"
+                     for area in written if not is_versioned(area)]
+
+    for rewrite in plan.rewrites:
+        _emit(args, {"action": "rewrite", "area": rewrite.area, "id": rewrite.id, "where": rewrite.where,
+                     "old": rewrite.old, "new": rewrite.new},
+              f"rewrite {name(rewrite.area)}: {rewrite.id} ({rewrite.where}) {rewrite.old} -> {rewrite.new}")
+    _emit(args, {"action": "rename", "old": str(old), "new": str(new)}, f"rename {old} -> {new}")
+    for line in machine_state(old, new, root, areas):
+        _emit(args, {"action": "left_to_you", "detail": line}, f"left to you: {line}")
+    for blocker in blockers:
+        _emit(args, {"action": "blocked", "detail": blocker}, f"blocked: {blocker}")
+    if blockers:
+        return CONFLICT
+    if args.dry_run:
+        return OK
+    # Rename first: a failed rename leaves nothing written, while rewritten references would only resolve after it.
+    try:
+        relocation.rename()
+    except OSError as exc:
+        raise CliError(f"rename failed, nothing written: {exc}", CONFLICT) from exc
+    use_case.apply(plan, key_after=lambda key: str(relocation.after(Path(key))))
+    records = sum(map(len, plan.entries.values()))
+    _emit(args, {"action": "done", "rewrites": len(plan.rewrites), "records": records},
+          f"done: folder renamed, {len(plan.rewrites)} reference(s) in {records} record(s) rewritten")
     return OK
 
 
@@ -566,6 +622,14 @@ def _build_parser() -> argparse.ArgumentParser:
     move.add_argument("--dry-run", action="store_true", help="print every planned write and edge rewrite, change nothing")
     move.add_argument("--scan-root", metavar="DIR", help="where to look for referrers to report (default: common parent of both areas)")
     move.set_defaults(handler=_move)
+
+    move_area = sub.add_parser("move-area", parents=[common], help="rename or move an area folder and rewrite every reference into and out of it")
+    move_area.add_argument("old", help="the folder to move (an area, or a folder holding areas)")
+    move_area.add_argument("new", help="its new path (must not exist)")
+    move_area.add_argument("--root", required=True, metavar="DIR", help="the workspace: every area below it is scanned for references")
+    move_area.add_argument("--dry-run", action="store_true", help="print the rewrites, the rename and what is left to you; change nothing")
+    move_area.add_argument("--include-unversioned", action="store_true", help="also rewrite records in areas not under git (no undo)")
+    move_area.set_defaults(handler=_move_area)
 
     source = sub.add_parser("source", parents=[common], help="set a source's status (only its `status:` frontmatter line changes)")
     source.add_argument("slug", help="the source's slug: docs/sources/<slug>.md")

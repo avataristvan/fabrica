@@ -35,6 +35,15 @@ mem move id1 id2 --to-area ../other-area
 
 Edges are re-qualified and referrers in the source area rewritten; referrers elsewhere are only reported. Many records between many areas: `mem move --batch plan.tsv --dry-run`. Run moves only on versioned areas.
 
+## Rename or move a whole area
+
+```bash
+mem move-area ai-mem fabrica --root ~/workspace --dry-run   # rewrites, rename, blockers, what is left to you
+mem move-area ai-mem fabrica --root ~/workspace
+```
+
+Every reference into and out of the area, in edges and in record text, is rewritten across the workspace, then the folder is renamed. Areas that would be written must be under git (or pass `--include-unversioned`) and have a generated INDEX.md (`mem lint --fix` there first). Afterwards, work through the `left to you:` lines (worktrees, editable install, Claude Code project memory, config files), then run `mem doctor --root ~/workspace`.
+
 ## Adopt hand-written records
 
 Records may be written by hand or by another tool. To bring an area into the canonical form:
