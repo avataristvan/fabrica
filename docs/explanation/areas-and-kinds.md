@@ -1,6 +1,6 @@
 # Areas and kinds of knowledge
 
-Where knowledge lives and how it ages. This page replaces the earlier description of collections and automatic scoping; the retired model is covered in the history at the end. Exact syntax is in the [record format](../reference/record-format.md).
+Where knowledge lives and how it ages; the model it replaced is in the history at the end. Exact syntax is in the [record format](../reference/record-format.md).
 
 ## Areas: the folder is the address
 

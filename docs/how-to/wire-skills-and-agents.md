@@ -4,7 +4,7 @@ How to wire Claude Code skills and agents into the records, so they use what ear
 
 ---
 
-## Core Concepts
+## Core concepts
 
 ### Areas and kinds
 
@@ -35,7 +35,7 @@ The shared contract for the boundary step is the skill `handoff-protocol` (`skil
 
 ---
 
-## The Skill Pattern
+## The skill pattern
 
 Skills run in the orchestrator context. At the moment the skill would otherwise read or store memory:
 
@@ -57,7 +57,7 @@ Name an observable moment ("before drafting the first script"), not a category (
 
 ---
 
-## The Agent Pattern
+## The agent pattern
 
 Agents start cold: no conversation history and no memory content pushed at session start (SessionStart names the area and points at the records). Compensate in the agent's own prompt (`~/.claude/agents/<name>.md`):
 

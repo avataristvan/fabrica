@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 — 2026-11-01
+
+Entries are newest first; a later entry can remove what an earlier one kept.
+
+### Changed: the plugin is fabrica
+
+- Plugin and marketplace are renamed `fabrica@fabrica` (was `ai-mem@ai-mem`): agents are `fabrica:<agent>`, skills `/fabrica:<skill>`. The Python package `ai_mem` and the `mem` command keep their names. `mem doctor` and the reflect reminder still accept the old names, so an installation that has not reinstalled is not reported as unwired.
+- Record titles in INDEX.md drop a leading Markdown heading marker.
 
 ### Removed: collection mode and the records home
 
@@ -9,7 +16,7 @@
 
 ### Removed: the legacy upgrade path
 
-- `install.py`, `uninstall.py`, `UPGRADING.md` and `docs/how-to/migrate-to-records.md`; the records_v1 migration (`mem-adr-sync migrate`, `records_migration.py`, `chroma_sqlite_reader.py`); the upgrade guard (`upgrade_guard.py`: the SessionStart line, `mem` exit 3, the `mem doctor` "Migration" section and JSON key `migration`); `scripts/upgrade_acceptance/`; the `chromadb` entry of the `dev` extra. `mem-adr-sync reindex` (also `--collection`) stays.
+- `install.py`, `uninstall.py`, `UPGRADING.md` and `docs/how-to/migrate-to-records.md`; the records_v1 migration (`mem-adr-sync migrate`, `records_migration.py`, `chroma_sqlite_reader.py`); the upgrade guard (`upgrade_guard.py`: the SessionStart line, `mem` exit 3, the `mem doctor` "Migration" section and JSON key `migration`); `scripts/upgrade_acceptance/`; the `chromadb` entry of the `dev` extra. `mem-adr-sync reindex` (also `--collection`) stayed until the removal of collection mode (above).
 - The last version that carries the upgrade path is the tag `v1-last-upgrade-path`: an old installation checks out that tag, upgrades, then moves to `main`. The tag `v0-last-mcp` stays as the rollback to the MCP version.
 - `tests/test_stdlib_only.py` keeps the `dependencies = []` check that lived in `tests/test_upgrade_guard.py`.
 
@@ -23,7 +30,7 @@
 - **Breaking:** `ai_mem/server.py` (`mem_*` MCP tools), the query daemon, `repository_factory.py` with the Chroma/BM25/Markdown-projection repositories (`AI_MEM_BACKEND=chroma`), the PreToolUse/UserPromptSubmit/PostToolUse push modules, `agent_context.py`, `session_stats.py`, `injection_log.py`, the use cases only the server called, `mem-adr-sync export`/`import`, `mem-dream --collection`/`--expert`, `agents.yaml` handling and `scripts/eval_pull/replay.py`. The last commit that has them is the tag `v0-last-mcp`.
 - `pyproject.toml`: `dependencies = []`; the only extra is `dev` (`pytest`, plus `chromadb` for the migration test fixtures). The `chroma`, `hybrid` and `config` extras are gone.
 - SessionStart prints `Area:`, `Records:` and the upgrade/doctor pointers; the `Active collection:` and `Expert collection:` lines and the verbose mode are gone.
-- The records_v1 migration (`mem-adr-sync migrate`, stdlib sqlite reader, no extra) and `mem-adr-sync reindex` stay. The ChromaDB store on disk is never touched.
+- The records_v1 migration (`mem-adr-sync migrate`, stdlib sqlite reader, no extra) and `mem-adr-sync reindex` stayed (both removed later, above). The ChromaDB store on disk is never touched.
 - `install.py` no longer registers an MCP server for Claude Code, Gemini CLI or Cursor; `install.py --plugin-switch` offers to remove the old registration, the `mcp__ai-mem__*` permissions and the retired push hooks. `UPGRADING.md` has part 2 of "MCP server -> plugin".
 
 ### Added: Claude Code plugin package (`ai-mem@ai-mem`)

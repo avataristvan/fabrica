@@ -21,7 +21,7 @@ No pattern is proven yet. The level stays, because an empty top level is more ho
 |---|---|---|
 | [Taskly](taskly.md) | convention | Hansei |
 | [Both sides learn](both-sides-learn.md) | convention | respect for people (related) |
-| [Trust through links, not scores](trust-through-links.md) | convention | graphify; genchi genbutsu (related) |
+| [Trust through links, not scores](trust-through-links.md) | convention | genchi genbutsu (related) |
 | [Recall at boundaries](recall-at-boundaries.md) | probation | pull system (Kanban) |
 | [A rule carries its reason](rule-carries-its-reason.md) | convention | A3 report, 5 Whys |
 | [Wisdom, not only rules](wisdom-not-only-rules.md) | hypothesis | respect for people (related) |
