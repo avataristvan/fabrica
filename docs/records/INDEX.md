@@ -72,8 +72,9 @@
 | domain_handoff_points_instead_of_copying_2026_10_19 | workflow | domain | Decision: The /reflect handoff points instead of copying: anything already in a  | active |
 | domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01 | records | domain | Decision: Handoffs (docs/handoff-*.md) may be published after all, pseudonymised | active |
 | domain_handoffs_stay_local_records_and_sources_public_2026_11_01 | records | domain | Decision: Handoffs (docs/handoff-*.md) stay local and are not published. Records | superseded_by: domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01 |
-| domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the ai-mem hand | active |
+| domain_hook_in_line_canonical_form_is_namespaced_2026_10_12 | plugin | domain | Decision: The canonical hook-in line is "At this boundary follow the Fabrica han | active |
 | domain_hooks_enforce_that_roles_decide_how_2026_10_10 | architecture | domain | Decision: Hooks enforce THAT a ritual happens. Roles decide HOW. Planned hooks:  | active |
+| domain_how_fabrica_built_itself_is_the_curated_entry_2026_11_01 | architecture | domain | Decision: docs/explanation/how-fabrica-built-itself.md is the curated entry for  | active |
 | domain_internal_material_judged_by_content_and_references_2026_10_31 | records | domain | Decision: Internal material is judged by its content and by what points at it, n | active |
 | domain_internal_records_stay_out_of_public_areas_2026_10_12 | architecture | domain | Decision: Records are a blueprint, and the freedom to clean them is kept. Intern | active |
 | domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31 | architecture | domain | Decision: Before an upgrade, migration or cleanup path is removed from main, the | active |
@@ -81,9 +82,12 @@
 | domain_librarian_at_review_handoff_2026_10_10 | retrieval | domain | Decision: The librarian is firmly integrated at handoff points of the dev team i | active |
 | domain_librarian_replaces_experience_index_2026_10_04 | architecture | domain | Decision: SessionStart pushes no memory content anymore. The experience index bl | active |
 | domain_mem_delete_names_dangling_edges_2026_10_13 | records | domain | Decision: `mem delete` prints `dangling: REF --TYPE--> ID` for every same-area e | active |
+| domain_mem_move_area_renames_with_references_rename_first_2026_11_01 | records | domain | Decision: `mem move-area OLD NEW --root DIR` renames or moves an area folder det | active |
+| domain_mem_source_sets_status_and_link_find_reach_sources_2026_11_01 | records | domain | Decision: `mem link` accepts a source slug (docs/sources/<slug>.md) as target (n | active |
 | domain_mem_unlink_removes_edges_2026_10_13 | records | domain | Decision: `mem unlink SOURCE TARGET [--type T]` (RemoveEdgeUseCase, ai_mem/appli | active |
 | domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23 | architecture | domain | Decision: Rejected (user, 2026-10-23): a PreToolUse hook on Bash that greps reco | active |
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
+| domain_plan_seniority_measurement_stays_loose_in_docs_2026_11_01 | evaluation | domain | Decision: docs/plan_seniority_measurement.md stays loose in docs/ although it lo | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
 | domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31 | architecture | domain | Decision: The plugin and marketplace are renamed to fabrica (agents fabrica:<age | active |
 | domain_plugin_target_picture_implemented_and_closed_2026_10_15 | architecture | domain | Decision: The plugin target picture (docs/target_picture_plugin.md, local only)  | active |
@@ -149,6 +153,7 @@
 | learning_e2e_file_backend_after_restart_2026_10_04 | evaluation | learning | Observed: After the restart on the file backend everything worked through the re | active |
 | learning_editable_install_python_i_resolves_main_checkout_not_worktree_2026_10_12 | workflow | learning | Observed: Under an editable pyenv install, a `python -I` subprocess resolves `ai | active |
 | learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24 | evaluation | learning | Observed: In hw-projekt-T, resuming on "weiter", FOCUS.md and the handoff gave t | active |
+| learning_first_visitor_review_found_what_authors_sessions_missed_2026_11_01 | architecture | learning | Observed: A first-visitor review by a fresh agent (git-tracked files only, role  | active |
 | learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31 | workflow | learning | Observed: After the repo folder was renamed, a linked worktree (.claude/worktree | active |
 | learning_gap_test_first_run_and_blindtest_2026_07_31 | evaluation | learning | Observed: First gap test (2026-05-29, WITH memory): candidate `origin_story`, qu | active |
 | learning_get_by_ids_hides_unparsable_records_2026_10_10 | workflow | learning | Observed: `FileMemoryRepository.get_by_ids` silently skips record files whose fr | active |
@@ -283,7 +288,6 @@
 | todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
 | todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
 | todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
-| todo_mem_link_and_find_resolve_source_slugs_2026_10_12 | records | todo | TODO: Make `mem link` and `mem find` resolve source slugs (docs/sources/<slug>.m | active |
 | todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
 | todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
 | todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24 | architecture | todo | TODO: Settle the rule. docs/reference/record-format.md "Sources" allows pseudony | active |
@@ -294,7 +298,5 @@
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |
 | todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
-| todo_tell_external_installation_plugin_is_now_fabrica_2026_10_31 | architecture | todo | TODO: Tell the external installation that the plugin is now fabrica@fabrica. Aft | active |
-| todo_verify_external_installation_migration_and_plugin_switch_2026_10_15 | architecture | todo | TODO (user, in person): check on site the external installation with an auto-upd | active |
 | todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |

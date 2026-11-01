@@ -3,7 +3,7 @@ type: todo
 area: records
 perspective: the-coder
 created: 1791756542.736177
-edges: [{"target_id": "pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12", "edge_type": "related"}, {"target_id": "todo_mem_link_and_find_resolve_source_slugs_2026_10_12", "edge_type": "related"}, {"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12", "edge_type": "related"}, {"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "related"}, {"target_id": "domain_mem_source_sets_status_and_link_find_reach_sources_2026_11_01", "edge_type": "related"}]
 cue: A record points at a docs/reference or docs/sources file that may move or be renamed
 ---
 

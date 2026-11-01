@@ -7,7 +7,7 @@ description: "Wire the user's teams and CLAUDE.md to ai-mem: team by team, find 
 
 You set up the user's own configuration so that it uses ai-mem at the right moments. You propose; the user decides. Arguments (`$ARGUMENTS`) may name files, a directory, a `mem doctor` report, or one of the three parts below; then work only on what they name.
 
-At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`). Ask the librarian once, before the first proposal, with the area path and the teams you are about to examine: which records concern these teams' boundaries, and was a hook-in here tried or rejected before?
+At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`). Ask the librarian once, before the first proposal, with the area path and the teams you are about to examine: which records concern these teams' boundaries, and was a hook-in here tried or rejected before?
 
 ## Rules
 
@@ -34,7 +34,7 @@ Not a boundary: a role table, an introduction, a list of rules, every step of a 
 At each real boundary propose exactly this line, verbatim:
 
 ```
-At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
+At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`).
 ```
 
 Where a team already carries it, or the older form `(skill \`handoff-protocol\`)`, propose nothing new; for the older form propose only the prefix `fabrica:`. Where a team already asks the librarian at that moment in its own words, the line still goes in (it is what `mem doctor` checks), right before that text. Show each proposal as a diff with two lines of context and one sentence on why this moment is a boundary.

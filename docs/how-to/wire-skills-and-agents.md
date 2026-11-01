@@ -31,7 +31,7 @@ End of the work -> [retro] with records_consulted + record_candidates
 /reflect -> handoff (state) + candidates to the archivist
 ```
 
-The shared contract for the boundary step is the skill `handoff-protocol` (`skills/handoff-protocol/SKILL.md`, shipped by the plugin as `fabrica:handoff-protocol`). A team file adds one line at each boundary: "At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`)." `mem doctor` (Wiring) lists the teams that lack it, and `/fabrica:setup` proposes the line at each real boundary ([Set up your teams and CLAUDE.md](set-up.md)).
+The shared contract for the boundary step is the skill `handoff-protocol` (`skills/handoff-protocol/SKILL.md`, shipped by the plugin as `fabrica:handoff-protocol`). A team file adds one line at each boundary: "At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`)." `mem doctor` (Wiring) lists the teams that lack it, and `/fabrica:setup` proposes the line at each real boundary ([Set up your teams and CLAUDE.md](set-up.md)).
 
 ---
 
@@ -40,7 +40,7 @@ The shared contract for the boundary step is the skill `handoff-protocol` (`skil
 Skills run in the orchestrator context. At the moment the skill would otherwise read or store memory:
 
 ```markdown
-At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
+At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`).
 
 Ask the librarian with the situation and the area path:
 

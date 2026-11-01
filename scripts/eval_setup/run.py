@@ -12,8 +12,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-CANONICAL = "At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`)."
-REMOVED = " At this boundary follow the ai-mem handoff protocol (skill `handoff-protocol`)."
+CANONICAL = "At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`)."
+REMOVED = " At this boundary follow the Fabrica handoff protocol (skill `handoff-protocol`)."
 
 CLAUDE_MD = """# CLAUDE.md
 

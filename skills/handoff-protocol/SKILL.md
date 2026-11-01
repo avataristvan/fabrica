@@ -1,6 +1,6 @@
 ---
 name: handoff-protocol
-description: "The ai-mem protocol at a boundary (chunk start, planning, review handoff, a skill's read/write of memory): ask the librarian with the concrete situation and the area path, check the work against the records it names, and report records_consulted and record_candidates in the [retro] block. Records are written by the archivist via /reflect, never by the team itself. Load it when a team file says 'follow the ai-mem handoff protocol'."
+description: "The ai-mem protocol at a boundary (chunk start, planning, review handoff, a skill's read/write of memory): ask the librarian with the concrete situation and the area path, check the work against the records it names, and report records_consulted and record_candidates in the [retro] block. Records are written by the archivist via /reflect, never by the team itself. Load it when a team file says 'follow the Fabrica handoff protocol'."
 ---
 
 # Handoff protocol

@@ -3,7 +3,7 @@ type: learning
 area: records
 perspective: agent
 created: 1792747177.637129
-edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}, {"target_id": "learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31", "edge_type": "related"}, {"target_id": "learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31", "edge_type": "related"}]
+edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}, {"target_id": "learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31", "edge_type": "related"}, {"target_id": "learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31", "edge_type": "related"}, {"target_id": "domain_mem_move_area_renames_with_references_rename_first_2026_11_01", "edge_type": "related"}]
 cue: I am moving or renaming an area folder (or the repo) and assume mem and its records keep working afterwards.
 ---
 
@@ -12,3 +12,5 @@ Cause: Relative area paths in edges and editable installs both encode the folder
 Evidence: mem doctor 2026-10-23 (edge-dangling-xarea 6, edge-unresolved 5); __editable___ai_mem_0_1_0_finder.py MAPPING pointed to the old folder (ai-mem directly in the workspace root). After the move: run mem doctor --root <workspace root>, rewrite edges with mem unlink + mem link, reinstall the editable package.
 
 pseudonymised for publication, 2026-10-31
+
+Addendum 2026-11-01: `mem move-area` now rewrites the edges and text references; the editable install is only reported, not touched (domain_mem_move_area_renames_with_references_rename_first_2026_11_01).

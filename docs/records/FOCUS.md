@@ -1,7 +1,7 @@
 Fabrica 0.1.0: the method (docs/fabrica/) and the plugin fabrica@fabrica that implements it (memory part ai-mem: package ai_mem, command mem). The repository is in a presentable state: README with a runnable quick start, glossary, English-only agent texts, past handoffs published as sources.
 
 Next:
-- tell the external installation that the plugin is now fabrica@fabrica (reinstall once); its migration is still unverified (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15).
+- the record key `area:` becomes `topic:` (reader accepts both; lint --fix migrates).
 - keep docs/explanation/how-fabrica-built-itself.md current when a new chain is worth showing.
 - the product backlog in todos/.
 

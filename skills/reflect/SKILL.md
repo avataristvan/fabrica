@@ -16,7 +16,7 @@ The area is the folder of the current work that holds `docs/records/` (nearest a
 
 ## Step 1 — Collect
 
-At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
+At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`).
 
 Scan subagent return values for `[retro]` blocks (see convention below). Note any `learned:`, `blocked:`, `next:` and `record_candidates:` lines. No user input needed yet.
 

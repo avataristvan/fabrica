@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1793470086.23224
-edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "todo_verify_external_installation_migration_and_plugin_switch_2026_10_15", "edge_type": "related"}]
+edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}]
 cue: I am about to remove migration, upgrade or cleanup code while other installations that auto-update from main may still lag behind.
 ---
 

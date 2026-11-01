@@ -3,7 +3,7 @@ type: domain
 area: architecture
 perspective: user
 created: 1792876751.932452
-edges: [{"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_internal_records_stay_out_of_public_areas_2026_10_12", "edge_type": "related"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "todo_readme_first_impression_problem_first_2026_10_31", "edge_type": "related"}]
+edges: [{"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_internal_records_stay_out_of_public_areas_2026_10_12", "edge_type": "related"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "todo_readme_first_impression_problem_first_2026_10_31", "edge_type": "related"}, {"target_id": "domain_how_fabrica_built_itself_is_the_curated_entry_2026_11_01", "edge_type": "related"}]
 cue: I am sharpening the README or announcing Fabrica publicly and tempted to word it as a success claim or tool launch.
 ---
 

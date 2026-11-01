@@ -22,7 +22,7 @@ Agent(subagent_type="fabrica:librarian", model="haiku", prompt="Area: <area path
 ```
 
 "Not documented", or no librarian available, is a valid result: proceed without it. Never
-block on it. At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
+block on it. At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`).
 
 ---
 

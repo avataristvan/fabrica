@@ -15,7 +15,7 @@ Run it after installing the plugin, after adding or changing a team, and when `m
 **Hook-ins, team by team.** A team is a command, agent or skill that spawns other agents or reads or stores memory. Setup starts with the teams that orchestrate others, reads each team's file and the roles it spawns, and finds the moments where work is handed over: a task starts in a spawned role, a plan is drafted, a diff goes to review, a skill is about to use what earlier sessions decided, a role reports back. At each one it proposes this line, verbatim:
 
 ```
-At this boundary follow the ai-mem handoff protocol (skill `fabrica:handoff-protocol`).
+At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`).
 ```
 
 For a spawned role the line goes into the prompt that role receives, because a spawned agent reads only its prompt and its own definition. What the line triggers is described in [Wire skills and agents](wire-skills-and-agents.md).
