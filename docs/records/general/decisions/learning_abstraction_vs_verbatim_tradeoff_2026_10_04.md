@@ -1,6 +1,6 @@
 id: learning_abstraction_vs_verbatim_tradeoff_2026_10_04
 type: domain
-area: general
+topic: general
 perspective: user
 created: 1791067532.967105
 cue: Asked why ai-mem does not store verbatim session transcripts like MemPalace

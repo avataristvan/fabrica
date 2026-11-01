@@ -1,6 +1,6 @@
 id: anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12
 type: anti-pattern
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791821370.63955
 edges: [{"target_id": "learning_editable_install_python_i_resolves_main_checkout_not_worktree_2026_10_12", "edge_type": "related"}]

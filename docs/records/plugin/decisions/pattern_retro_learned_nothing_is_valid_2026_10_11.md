@@ -1,6 +1,6 @@
 id: pattern_retro_learned_nothing_is_valid_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791725661.852841
 edges: [{"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]

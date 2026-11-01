@@ -1,6 +1,6 @@
 id: domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1793485172.510591
 edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12", "edge_type": "related"}, {"target_id": "domain_hook_in_line_canonical_form_is_namespaced_2026_10_12", "edge_type": "related"}, {"target_id": "learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23", "edge_type": "related"}]

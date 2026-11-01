@@ -1,6 +1,6 @@
 id: pattern_look_up_records_when_task_feels_trivial_2026_10_18
 type: pattern
-area: architecture
+topic: architecture
 perspective: user
 created: 1792360316.935171
 edges: [{"target_id": "eval_seniority_available_not_used_confirms_pull_gap_2026_10_18", "edge_type": "derived_from"}, {"target_id": "learning_trigger_must_name_observable_moment_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_retrieval_needs_fixed_trigger_in_role_prompt", "edge_type": "related"}]

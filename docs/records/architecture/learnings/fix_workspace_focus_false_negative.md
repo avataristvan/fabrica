@@ -1,6 +1,6 @@
 id: fix_workspace_focus_false_negative
 type: learning
-area: architecture
+topic: architecture
 created: 1785254188.230579
 ---
 

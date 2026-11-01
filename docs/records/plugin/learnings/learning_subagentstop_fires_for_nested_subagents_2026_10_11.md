@@ -1,6 +1,6 @@
 id: learning_subagentstop_fires_for_nested_subagents_2026_10_11
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791738289.748743
 edges: [{"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]

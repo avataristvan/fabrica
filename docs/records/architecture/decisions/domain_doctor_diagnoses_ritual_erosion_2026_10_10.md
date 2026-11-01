@@ -1,6 +1,6 @@
 id: domain_doctor_diagnoses_ritual_erosion_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 created: 1791630569.932795
 edges: [{"target_id": "todo_doctor_reads_environment_records_2026_10_11", "edge_type": "related"}, {"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}, {"target_id": "todo_detect_skipped_reflect_gate_2026_10_11", "edge_type": "related"}, {"target_id": "learning_doctor_effect_retro_missing_signal_unreliable_2026_10_12", "edge_type": "related"}, {"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}]
 ---

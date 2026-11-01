@@ -1,6 +1,6 @@
 id: learning_old_agent_worktree_branches_covered_by_pre_squash_tags_2026_10_31
 type: learning
-area: workflow
+topic: workflow
 perspective: agent
 created: 1793485173.44348
 edges: [{"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}]

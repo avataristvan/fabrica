@@ -1,6 +1,6 @@
 id: domain_plan_seniority_measurement_stays_loose_in_docs_2026_11_01
 type: domain
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1793524157.494791
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}]

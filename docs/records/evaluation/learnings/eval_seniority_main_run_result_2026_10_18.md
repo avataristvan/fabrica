@@ -1,6 +1,6 @@
 id: eval_seniority_main_run_result_2026_10_18
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792360315.595097
 edges: [{"target_id": "learning_knowledge_loses_against_the_order_2026_10_18", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}, {"target_id": "pattern_spot_check_form_separates_grader_and_expectation_2026_10_19", "edge_type": "related"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "domain_plan_seniority_measurement_stays_loose_in_docs_2026_11_01", "edge_type": "related"}]

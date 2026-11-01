@@ -1,6 +1,6 @@
 id: domain_rebuild_closing_scoped_to_two_todos_2026_10_15
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792061273.883129
 edges: [{"target_id": "domain_rebuild_closing_scoped_to_three_todos_2026_10_15", "edge_type": "supersedes"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}]

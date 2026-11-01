@@ -1,6 +1,6 @@
 id: domain_setup_applies_claude_md_changes_only_on_approval_2026_10_12
 type: domain
-area: plugin
+topic: plugin
 perspective: user
 created: 1791833919.54524
 edges: [{"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}]

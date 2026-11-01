@@ -1,6 +1,6 @@
 id: pattern_saturating_transform_nonnegativity_precondition
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1785517827.962589
 ---

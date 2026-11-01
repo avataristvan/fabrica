@@ -1,6 +1,6 @@
 id: domain_hooks_enforce_that_roles_decide_how_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791630404.488933
 edges: [{"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "related"}, {"target_id": "learning_organizational_not_personal_memory_2026_10_10", "edge_type": "derived_from"}, {"target_id": "pattern_retro_learned_nothing_is_valid_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_lint_hook_reports_codes_only_2026_10_11", "edge_type": "related"}, {"target_id": "learning_subagentstop_fires_for_nested_subagents_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_uninstall_matches_hooks_by_module_marker_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "related"}, {"target_id": "../..:domain_coder_tests_run_by_subagentstop_hook_2026_10_19", "edge_type": "related"}]

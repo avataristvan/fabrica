@@ -1,6 +1,6 @@
 id: pattern_text_proposals_replace_body_keep_frontmatter_2026_10_12
 type: pattern
-area: records
+topic: records
 perspective: the-coder
 created: 1791756531.297117
 edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}]

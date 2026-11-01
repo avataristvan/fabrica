@@ -1,6 +1,6 @@
 id: learning_our_orchestration_matches_magentic_2026_10_11
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791725662.851305
 edges: [{"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "related"}]

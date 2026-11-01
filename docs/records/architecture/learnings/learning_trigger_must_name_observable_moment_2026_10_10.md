@@ -1,6 +1,6 @@
 id: learning_trigger_must_name_observable_moment_2026_10_10
 type: learning
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791632072.445893
 edges: [{"target_id": "learning_context_boundary_is_read_and_write_point_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_look_up_records_when_task_feels_trivial_2026_10_18", "edge_type": "related"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}]

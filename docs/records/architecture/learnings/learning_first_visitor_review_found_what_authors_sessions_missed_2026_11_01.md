@@ -1,6 +1,6 @@
 id: learning_first_visitor_review_found_what_authors_sessions_missed_2026_11_01
 type: learning
-area: architecture
+topic: architecture
 perspective: agent
 created: 1793524157.191136
 cue: You are about to show a repo to outsiders and have only reviewed it from inside the authoring sessions.

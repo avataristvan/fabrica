@@ -1,6 +1,6 @@
 id: fix_install_hook_registration_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1785517791.69763
 edges: [{"target_id": "arch_workspace_root_collection_naming", "edge_type": "related"}, {"target_id": "fix_workspace_focus_false_negative", "edge_type": "related"}]
 ---

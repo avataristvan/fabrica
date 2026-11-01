@@ -1,6 +1,6 @@
 id: pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18
 type: pattern
-area: architecture
+topic: architecture
 perspective: user
 created: 1792360316.267205
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}, {"target_id": "../..:domain_coder_tests_run_by_subagentstop_hook_2026_10_19", "edge_type": "related"}, {"target_id": "learning_call_prompt_does_not_beat_agent_template_2026_10_24", "edge_type": "related"}]

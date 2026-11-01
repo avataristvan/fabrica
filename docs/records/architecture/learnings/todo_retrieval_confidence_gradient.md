@@ -1,6 +1,6 @@
 id: todo_retrieval_confidence_gradient
 type: learning
-area: architecture
+topic: architecture
 created: 1783085186.096779
 superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790440080.734041

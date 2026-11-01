@@ -1,6 +1,6 @@
 id: daemon_concurrency_and_embedding_cache_2026_08_23
 type: domain
-area: architecture
+topic: architecture
 created: 1787512794.273834
 edges: [{"target_id": "chunk1_daemon_shipped_2026_07_31", "edge_type": "related"}, {"target_id": "learning_daemon_latency_and_record_access_race_2026_08_23", "edge_type": "derived_from"}]
 ---

@@ -1,6 +1,6 @@
 id: learning_public_history_pushed_clean_2026_10_13
 type: learning
-area: records
+topic: records
 perspective: user
 created: 1791889505.242208
 edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: learning_hooks_do_not_inherit_mcp_env_2026_07_03
 type: learning
-area: architecture
+topic: architecture
 created: 1790678543.79727
 ---
 

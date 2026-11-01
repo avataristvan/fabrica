@@ -1,6 +1,6 @@
 id: learning_deleting_a_removed_modules_test_file_loses_tests_of_moved_functions_2026_10_31
 type: learning
-area: workflow
+topic: workflow
 perspective: the-coder
 created: 1793471377.227264
 edges: [{"target_id": "pattern_stale_by_neighbouring_retirement", "edge_type": "related"}]

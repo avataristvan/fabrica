@@ -1,6 +1,6 @@
 id: todo_after_confidence_drop_cleanup_2026_09_26
 type: learning
-area: general
+topic: general
 created: 1790440075.46643
 edges: [{"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "pattern_stale_by_neighbouring_retirement", "edge_type": "confirms"}]
 ---

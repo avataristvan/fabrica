@@ -1,6 +1,6 @@
 id: domain_how_fabrica_built_itself_is_the_curated_entry_2026_11_01
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1793524157.760527
 edges: [{"target_id": "domain_public_face_experience_report_not_launch_2026_10_24", "edge_type": "related"}]

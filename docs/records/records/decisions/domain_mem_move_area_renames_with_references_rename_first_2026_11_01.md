@@ -1,6 +1,6 @@
 id: domain_mem_move_area_renames_with_references_rename_first_2026_11_01
 type: domain
-area: records
+topic: records
 perspective: agent
 created: 1793524156.850862
 edges: [{"target_id": "pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12", "edge_type": "confirms"}, {"target_id": "learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23", "edge_type": "derived_from"}, {"target_id": "learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31", "edge_type": "related"}, {"target_id": "learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31", "edge_type": "related"}]

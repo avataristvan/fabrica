@@ -1,6 +1,6 @@
 id: domain_reflect_yields_handoff_and_record_candidates_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629954.244394
 edges: [{"target_id": "learning_context_boundary_is_read_and_write_point_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}, {"target_id": "learning_our_orchestration_matches_magentic_2026_10_11", "edge_type": "related"}, {"target_id": "todo_detect_skipped_reflect_gate_2026_10_11", "edge_type": "related"}, {"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}]

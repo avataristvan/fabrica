@@ -1,6 +1,6 @@
 id: pattern_convention_enforcement_gap
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1781307523.670864
 ---

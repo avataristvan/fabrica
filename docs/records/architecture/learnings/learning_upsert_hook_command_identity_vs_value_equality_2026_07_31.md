@@ -1,6 +1,6 @@
 id: learning_upsert_hook_command_identity_vs_value_equality_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1790700224.170705
 edges: [{"target_id": "fix_install_hook_registration_2026_07_31", "edge_type": "related"}]
 ---

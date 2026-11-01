@@ -1,6 +1,6 @@
 id: pattern_lookup_refs_use_consumer_validation_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791745726.471122
 edges: [{"target_id": "pattern_bubble_up_lookup_stops_at_root_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_error_hint_checks_error_concerns_argument_2026_10_11", "edge_type": "related"}]

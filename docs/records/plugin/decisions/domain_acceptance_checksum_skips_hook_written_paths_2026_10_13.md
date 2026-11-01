@@ -1,6 +1,6 @@
 id: domain_acceptance_checksum_skips_hook_written_paths_2026_10_13
 type: domain
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791869829.001687
 edges: [{"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

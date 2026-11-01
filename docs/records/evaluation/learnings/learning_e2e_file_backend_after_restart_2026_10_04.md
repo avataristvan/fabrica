@@ -1,6 +1,6 @@
 id: learning_e2e_file_backend_after_restart_2026_10_04
 type: learning
-area: evaluation
+topic: evaluation
 created: 1791134202.528678
 edges: [{"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "confirms"}, {"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "confirms"}, {"target_id": "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29", "edge_type": "confirms"}, {"target_id": "eval_librarian_2026_09_26", "edge_type": "related"}]
 ---

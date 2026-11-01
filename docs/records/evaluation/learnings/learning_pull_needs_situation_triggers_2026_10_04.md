@@ -1,6 +1,6 @@
 id: learning_pull_needs_situation_triggers_2026_10_04
 type: learning
-area: evaluation
+topic: evaluation
 perspective: user
 created: 1791138589.146879
 edges: [{"target_id": "pattern_triggers_beat_storage_and_ranking", "edge_type": "confirms"}, {"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "confirms"}]

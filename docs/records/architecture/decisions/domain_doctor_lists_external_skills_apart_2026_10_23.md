@@ -1,6 +1,6 @@
 id: domain_doctor_lists_external_skills_apart_2026_10_23
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1792757456.502053
 edges: [{"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "derived_from"}, {"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}]

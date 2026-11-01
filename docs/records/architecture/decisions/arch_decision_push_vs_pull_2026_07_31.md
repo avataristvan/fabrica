@@ -1,6 +1,6 @@
 id: arch_decision_push_vs_pull_2026_07_31
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1785508569.588063
 edges: [{"target_id": "learning_gap_test_first_run_and_blindtest_2026_07_31", "edge_type": "derived_from"}, {"target_id": "arch_critique_push_vs_pull_synthesis_2026_07_31", "edge_type": "derived_from"}]

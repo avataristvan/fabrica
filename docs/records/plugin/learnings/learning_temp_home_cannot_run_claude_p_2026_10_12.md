@@ -1,6 +1,6 @@
 id: learning_temp_home_cannot_run_claude_p_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791821371.472324
 edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}, {"target_id": "learning_setting_sources_drops_user_claude_md_for_claude_p_2026_10_12", "edge_type": "related"}, {"target_id": "learning_temp_home_record_held_again_in_6b_2026_10_12", "edge_type": "related"}]

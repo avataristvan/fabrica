@@ -1,6 +1,6 @@
 id: learning_plugin_keeps_loading_from_clean_clone_when_marketplace_repointed_2026_10_31
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1793485172.98626
 edges: [{"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}, {"target_id": "pattern_install_plugin_from_clean_clone_2026_10_12", "edge_type": "confirms"}, {"target_id": "anti_pattern_eval_loads_repo_under_test_as_plugin_blocks_edits_2026_10_18", "edge_type": "related"}]

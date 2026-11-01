@@ -1,6 +1,6 @@
 id: fix_dream_stale_model_id_and_swallowed_stderr_2026_09_12
 type: domain
-area: architecture
+topic: architecture
 created: 1789245885.249158
 edges: [{"target_id": "learning_dream_failure_hid_cause_stale_model_tag_2026_09_12", "edge_type": "derived_from"}]
 cue: mem_dream aborts with "exit status 1" or a model alias/tag no longer resolves.

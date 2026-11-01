@@ -1,6 +1,6 @@
 id: pattern_load_bearing_entries_require_maintenance_discipline
 type: pattern
-area: workflow
+topic: workflow
 created: 1785517820.086595
 cue: A change shifts thresholds or renames concepts that records describe.
 ---

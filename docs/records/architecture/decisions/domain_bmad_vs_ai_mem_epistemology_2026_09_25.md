@@ -1,6 +1,6 @@
 id: domain_bmad_vs_ai_mem_epistemology_2026_09_25
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1790364318.133604
 edges: [{"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_kinship_with_kaizen_2026_10_14", "edge_type": "related"}]

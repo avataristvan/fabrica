@@ -1,6 +1,6 @@
 id: pattern_spot_check_transcripts_use_tilde_fences_2026_10_18
 type: pattern
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792360317.608234
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}]

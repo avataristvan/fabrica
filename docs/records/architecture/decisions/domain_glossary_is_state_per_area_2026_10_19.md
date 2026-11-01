@@ -1,6 +1,6 @@
 id: domain_glossary_is_state_per_area_2026_10_19
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1792419303.863204
 edges: [{"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}]

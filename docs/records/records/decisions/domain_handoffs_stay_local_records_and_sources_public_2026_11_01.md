@@ -1,6 +1,6 @@
 id: domain_handoffs_stay_local_records_and_sources_public_2026_11_01
 type: domain
-area: records
+topic: records
 perspective: user
 created: 1793490845.933027
 superseded_by: domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01

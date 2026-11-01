@@ -1,6 +1,6 @@
 id: todo_reflect_reminder_rescans_transcript_2026_10_11
 type: todo
-area: plugin
+topic: plugin
 perspective: user
 created: 1791738308.398155
 cue: I am changing reflect_reminder or noticing slow Stop hooks in long sessions without edits

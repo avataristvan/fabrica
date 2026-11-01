@@ -1,6 +1,6 @@
 id: learning_workspace_collection_catchall_dumped_unrelated_entries_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1790678548.833528
 ---
 

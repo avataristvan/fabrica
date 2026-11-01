@@ -1,6 +1,6 @@
 id: pattern_cite_file_or_test_not_unpushed_sha_before_squash_2026_10_13
 type: pattern
-area: records
+topic: records
 perspective: agent
 created: 1791889505.768927
 edges: [{"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

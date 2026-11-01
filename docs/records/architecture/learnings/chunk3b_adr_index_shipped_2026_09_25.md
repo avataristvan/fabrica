@@ -1,6 +1,6 @@
 id: chunk3b_adr_index_shipped_2026_09_25
 type: learning
-area: architecture
+topic: architecture
 created: 1790370744.828019
 ---
 

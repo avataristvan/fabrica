@@ -1,6 +1,6 @@
 id: eval_experience_index_ab_2026_09_21
 type: learning
-area: evaluation
+topic: evaluation
 created: 1789969006.311655
 edges: [{"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "contradicts"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}]
 ---

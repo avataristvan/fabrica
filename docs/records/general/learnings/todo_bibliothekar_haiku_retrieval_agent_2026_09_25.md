@@ -1,6 +1,6 @@
 id: todo_bibliothekar_haiku_retrieval_agent_2026_09_25
 type: learning
-area: general
+topic: general
 created: 1790369035.889465
 ---
 

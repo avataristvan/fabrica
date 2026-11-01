@@ -1,6 +1,6 @@
 id: learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792868079.086224
 edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "confirms"}, {"target_id": "todo_librarian_cannot_read_handoffs_2026_10_20", "edge_type": "related"}, {"target_id": "pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24", "edge_type": "related"}, {"target_id": "todo_decide_librarian_core_or_optional_2026_10_24", "edge_type": "related"}]

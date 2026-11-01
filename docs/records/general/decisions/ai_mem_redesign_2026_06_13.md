@@ -1,6 +1,6 @@
 id: ai_mem_redesign_2026_06_13
 type: domain
-area: general
+topic: general
 created: 1781302341.02234
 superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790440703.114531

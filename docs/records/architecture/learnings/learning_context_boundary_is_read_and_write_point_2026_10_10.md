@@ -1,6 +1,6 @@
 id: learning_context_boundary_is_read_and_write_point_2026_10_10
 type: learning
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629940.055744
 edges: [{"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "confirms"}, {"target_id": "pattern_retrieval_needs_fixed_trigger_in_role_prompt", "edge_type": "related"}]

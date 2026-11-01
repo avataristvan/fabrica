@@ -1,6 +1,6 @@
 id: learning_temp_home_record_held_again_in_6b_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791833920.162076
 edges: [{"target_id": "learning_temp_home_cannot_run_claude_p_2026_10_12", "edge_type": "confirms"}]

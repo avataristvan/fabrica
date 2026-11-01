@@ -1,6 +1,6 @@
 id: todo_dream_trigger_candidates_not_count_2026_09_25
 type: learning
-area: general
+topic: general
 created: 1790367224.873221
 superseded_by: domain_dream_after_every_reflect_2026_09_26
 valid_until: 1790440445.555816

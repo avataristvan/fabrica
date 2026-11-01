@@ -1,6 +1,6 @@
 id: todo_archivist_report_names_searched_areas_2026_10_11
 type: todo
-area: architecture
+topic: architecture
 perspective: user
 created: 1791745728.959503
 edges: [{"target_id": "domain_archivist_acceptance_closed_fail_use_carries_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_archivist_report_is_an_interim_message_2026_10_24", "edge_type": "related"}]

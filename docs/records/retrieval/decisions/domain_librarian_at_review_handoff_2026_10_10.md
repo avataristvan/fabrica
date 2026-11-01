@@ -1,6 +1,6 @@
 id: domain_librarian_at_review_handoff_2026_10_10
 type: domain
-area: retrieval
+topic: retrieval
 created: 1791588269.857843
 edges: [{"target_id": "domain_user_records_as_role_perspective_2026_10_04", "edge_type": "related"}, {"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "related"}, {"target_id": "domain_review_is_skill_with_anchor_lint_agent_2026_10_12", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "derived_from"}, {"target_id": "learning_pull_needs_situation_triggers_2026_10_04", "edge_type": "derived_from"}, {"target_id": "../..:domain_dev_team_stops_on_contradiction_blocked_2026_10_19", "edge_type": "related"}, {"target_id": "learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31", "edge_type": "related"}]
 ---

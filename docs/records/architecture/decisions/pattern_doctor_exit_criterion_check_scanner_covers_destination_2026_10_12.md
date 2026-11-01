@@ -1,6 +1,6 @@
 id: pattern_doctor_exit_criterion_check_scanner_covers_destination_2026_10_12
 type: pattern
-area: architecture
+topic: architecture
 perspective: the-coder
 created: 1791786664.760172
 edges: [{"target_id": "domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12", "edge_type": "related"}]

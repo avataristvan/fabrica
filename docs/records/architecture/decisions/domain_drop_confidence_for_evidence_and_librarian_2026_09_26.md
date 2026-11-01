@@ -1,6 +1,6 @@
 id: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 type: domain
-area: architecture
+topic: architecture
 created: 1790412160.892275
 edges: [{"target_id": "pattern_confidence_lifecycle", "edge_type": "supersedes"}, {"target_id": "todo_confidence_decay_adsr_design", "edge_type": "supersedes"}, {"target_id": "todo_bibliothekar_haiku_retrieval_agent_2026_09_25", "edge_type": "related"}, {"target_id": "todo_retrieval_confidence_gradient", "edge_type": "supersedes"}, {"target_id": "chunk3_access_count_semantics_shipped_2026_07_31", "edge_type": "related"}, {"target_id": "ai_mem_redesign_2026_06_13", "edge_type": "supersedes"}, {"target_id": "eval_librarian_2026_09_26", "edge_type": "derived_from"}, {"target_id": "todo_retrieval_confidence_gradient", "edge_type": "derived_from"}, {"target_id": "chunk3_access_count_semantics_shipped_2026_07_31", "edge_type": "supersedes"}, {"target_id": "pattern_local_adaptive_learning_from_behavior_2026_10_04", "edge_type": "related"}, {"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}, {"target_id": "pattern_triggers_beat_storage_and_ranking", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "related"}, {"target_id": "pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24", "edge_type": "related"}, {"target_id": "todo_decide_librarian_core_or_optional_2026_10_24", "edge_type": "related"}]
 ---

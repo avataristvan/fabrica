@@ -1,6 +1,6 @@
 id: learning_symlink_following_walk_fixed_python_312_2026_10_15
 type: learning
-area: workflow
+topic: workflow
 perspective: agent
 created: 1792061620.198584
 edges: [{"target_id": "learning_glob_id_injection_missed_by_review_2026_10_04", "edge_type": "related"}, {"target_id": "domain_rebuild_closing_scoped_to_two_todos_2026_10_15", "edge_type": "related"}]

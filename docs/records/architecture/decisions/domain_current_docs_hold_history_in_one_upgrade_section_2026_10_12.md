@@ -1,6 +1,6 @@
 id: domain_current_docs_hold_history_in_one_upgrade_section_2026_10_12
 type: domain
-area: architecture
+topic: architecture
 perspective: the-coder
 created: 1791786665.196913
 superseded_by: domain_current_docs_may_carry_one_short_history_section_2026_10_12

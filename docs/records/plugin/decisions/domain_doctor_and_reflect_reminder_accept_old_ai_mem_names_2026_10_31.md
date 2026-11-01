@@ -1,6 +1,6 @@
 id: domain_doctor_and_reflect_reminder_accept_old_ai_mem_names_2026_10_31
 type: domain
-area: plugin
+topic: plugin
 perspective: agent
 created: 1793485172.745218
 edges: [{"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}]

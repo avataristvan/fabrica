@@ -1,6 +1,6 @@
 id: domain_why_travels_with_chunk_spec_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791634114.755075
 edges: [{"target_id": "learning_context_boundary_is_read_and_write_point_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}]

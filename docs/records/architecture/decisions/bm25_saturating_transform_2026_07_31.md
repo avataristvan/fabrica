@@ -1,6 +1,6 @@
 id: bm25_saturating_transform_2026_07_31
 type: domain
-area: architecture
+topic: architecture
 created: 1789246260.895704
 edges: [{"target_id": "learning_bm25_minmax_floors_irrelevant_top_hit_2026_07_31", "edge_type": "derived_from"}]
 cue: Changing or reviving score fusion of cosine and BM25 in the Chroma rollback backend

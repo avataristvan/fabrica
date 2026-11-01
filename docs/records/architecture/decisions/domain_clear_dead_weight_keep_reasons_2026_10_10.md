@@ -1,6 +1,6 @@
 id: domain_clear_dead_weight_keep_reasons_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791648559.642878
 edges: [{"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_duplicate_ids_delete_covered_copy_2026_10_12", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

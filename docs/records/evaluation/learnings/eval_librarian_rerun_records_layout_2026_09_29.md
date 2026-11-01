@@ -1,6 +1,6 @@
 id: eval_librarian_rerun_records_layout_2026_09_29
 type: learning
-area: evaluation
+topic: evaluation
 created: 1790688662.475277
 edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "eval_librarian_2026_09_26", "edge_type": "confirms"}, {"target_id": "domain_learning_decision_split_subfolders_2026_09_29", "edge_type": "confirms"}, {"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}]
 ---

@@ -1,6 +1,6 @@
 id: pattern_confidence_lifecycle
 type: pattern
-area: architecture
+topic: architecture
 created: 1789255454.224921
 superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790412164.552887

@@ -1,6 +1,6 @@
 id: fix_install_workspace_root_hook_regression_2026_09_27
 type: domain
-area: architecture
+topic: architecture
 created: 1790525010.686958
 edges: [{"target_id": "arch_workspace_root_collection_naming", "edge_type": "related"}, {"target_id": "learning_workspace_root_hook_prefix_lost_on_reinstall_2026_09_27", "edge_type": "derived_from"}, {"target_id": "learning_hooks_do_not_inherit_mcp_env_2026_07_03", "edge_type": "derived_from"}]
 ---

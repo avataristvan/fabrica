@@ -1,6 +1,6 @@
 id: pattern_knowledge_distribution_rule_2026_10_04
 type: pattern
-area: general
+topic: general
 perspective: user
 created: 1791067532.967105
 edges: [{"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: arch_critique_push_vs_pull_synthesis_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1785508020.395156
 ---
 

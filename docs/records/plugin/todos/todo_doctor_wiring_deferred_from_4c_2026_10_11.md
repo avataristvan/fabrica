@@ -1,6 +1,6 @@
 id: todo_doctor_wiring_deferred_from_4c_2026_10_11
 type: todo
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791745728.742956
 edges: [{"target_id": "domain_hook_in_line_canonical_form_is_namespaced_2026_10_12", "edge_type": "related"}]

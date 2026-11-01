@@ -1,6 +1,6 @@
 id: learning_undoing_supersede_removes_both_fields_2026_10_12
 type: learning
-area: records
+topic: records
 perspective: the-coder
 created: 1791756518.654573
 edges: [{"target_id": "domain_mem_unlink_removes_edges_2026_10_13", "edge_type": "related"}]

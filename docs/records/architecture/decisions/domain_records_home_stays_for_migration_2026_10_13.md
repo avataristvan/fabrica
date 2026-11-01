@@ -1,6 +1,6 @@
 id: domain_records_home_stays_for_migration_2026_10_13
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791926219.342161
 edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_archivist_writes_home_and_ancestors_only_2026_10_23", "edge_type": "related"}]

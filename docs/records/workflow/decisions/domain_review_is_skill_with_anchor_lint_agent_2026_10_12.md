@@ -1,6 +1,6 @@
 id: domain_review_is_skill_with_anchor_lint_agent_2026_10_12
 type: domain
-area: workflow
+topic: workflow
 perspective: user
 created: 1791788120.855459
 edges: [{"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}]

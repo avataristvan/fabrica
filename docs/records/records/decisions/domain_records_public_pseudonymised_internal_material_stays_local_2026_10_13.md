@@ -1,6 +1,6 @@
 id: domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13
 type: domain
-area: records
+topic: records
 perspective: user
 created: 1791876534.257867
 edges: [{"target_id": "pattern_text_proposals_replace_body_keep_frontmatter_2026_10_12", "edge_type": "related"}, {"target_id": "learning_public_history_pushed_clean_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_cite_file_or_test_not_unpushed_sha_before_squash_2026_10_13", "edge_type": "related"}, {"target_id": "todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}, {"target_id": "learning_push_check_2026_10_15_was_clean", "edge_type": "related"}, {"target_id": "domain_pseudonymisation_covers_the_whole_public_repo_2026_10_31", "edge_type": "related"}, {"target_id": "domain_internal_material_judged_by_content_and_references_2026_10_31", "edge_type": "related"}, {"target_id": "domain_handoffs_stay_local_records_and_sources_public_2026_11_01", "edge_type": "related"}, {"target_id": "domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01", "edge_type": "related"}]

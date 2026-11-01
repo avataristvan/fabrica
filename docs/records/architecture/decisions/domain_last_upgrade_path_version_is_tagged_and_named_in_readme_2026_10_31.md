@@ -1,6 +1,6 @@
 id: domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1793470086.23224
 edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}]

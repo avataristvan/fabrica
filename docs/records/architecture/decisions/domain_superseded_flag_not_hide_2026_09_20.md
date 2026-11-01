@@ -1,6 +1,6 @@
 id: domain_superseded_flag_not_hide_2026_09_20
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1789927320.601691
 edges: [{"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}, {"target_id": "domain_doctor_lists_external_skills_apart_2026_10_23", "edge_type": "related"}]

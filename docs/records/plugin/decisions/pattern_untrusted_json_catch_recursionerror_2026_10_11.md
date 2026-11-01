@@ -1,6 +1,6 @@
 id: pattern_untrusted_json_catch_recursionerror_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: reviewer
 created: 1791745727.181161
 edges: [{"target_id": "pattern_hook_stdin_is_untrusted_2026_10_11", "edge_type": "related"}, {"target_id": "..:pattern_tool_argument_ids_are_hostile_input", "edge_type": "related"}]

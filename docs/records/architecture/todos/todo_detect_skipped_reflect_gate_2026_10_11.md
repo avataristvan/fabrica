@@ -1,6 +1,6 @@
 id: todo_detect_skipped_reflect_gate_2026_10_11
 type: todo
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791745728.302433
 edges: [{"target_id": "domain_doctor_diagnoses_ritual_erosion_2026_10_10", "edge_type": "related"}, {"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_reflect_between_chunks", "edge_type": "related"}]

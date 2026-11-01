@@ -1,6 +1,6 @@
 id: domain_mem_unlink_removes_edges_2026_10_13
 type: domain
-area: records
+topic: records
 perspective: the-coder
 created: 1791869829.445028
 edges: [{"target_id": "learning_undoing_supersede_removes_both_fields_2026_10_12", "edge_type": "confirms"}, {"target_id": "domain_mem_delete_names_dangling_edges_2026_10_13", "edge_type": "related"}]

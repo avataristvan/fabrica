@@ -1,6 +1,6 @@
 id: todo_show_second_environment_beyond_claude_code_2026_10_24
 type: todo
-area: architecture
+topic: architecture
 perspective: agent
 created: 1792876752.795616
 edges: [{"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}]

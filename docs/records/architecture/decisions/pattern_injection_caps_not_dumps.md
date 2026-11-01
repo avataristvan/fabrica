@@ -1,6 +1,6 @@
 id: pattern_injection_caps_not_dumps
 type: pattern
-area: architecture
+topic: architecture
 created: 1785501516.412131
 ---
 

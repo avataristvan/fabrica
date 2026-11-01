@@ -1,6 +1,6 @@
 id: domain_handoff_points_instead_of_copying_2026_10_19
 type: domain
-area: workflow
+topic: workflow
 perspective: agent
 created: 1792419304.17404
 edges: [{"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "derived_from"}, {"target_id": "pattern_handoff_is_overwritten_not_appended_2026_10_12", "edge_type": "related"}]

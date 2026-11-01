@@ -1,6 +1,6 @@
 id: domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01
 type: domain
-area: records
+topic: records
 perspective: user
 created: 1793491177.422389
 edges: [{"target_id": "domain_handoffs_stay_local_records_and_sources_public_2026_11_01", "edge_type": "supersedes"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

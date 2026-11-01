@@ -1,6 +1,6 @@
 id: pattern_triggers_beat_storage_and_ranking
 type: pattern
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1790409909.376447
 edges: [{"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "derived_from"}, {"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "derived_from"}]

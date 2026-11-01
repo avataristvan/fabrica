@@ -1,6 +1,6 @@
 id: pattern_uninstall_recognises_commands_by_distinctive_shipped_line_2026_10_12
 type: pattern
-area: plugin
+topic: plugin
 perspective: reviewer
 created: 1791833918.658083
 edges: [{"target_id": "pattern_uninstall_matches_hooks_by_module_marker_2026_10_11", "edge_type": "related"}]

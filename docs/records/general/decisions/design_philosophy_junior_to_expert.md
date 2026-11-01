@@ -1,6 +1,6 @@
 id: design_philosophy_junior_to_expert
 type: domain
-area: general
+topic: general
 perspective: user
 created: 1777468396.309518
 ---

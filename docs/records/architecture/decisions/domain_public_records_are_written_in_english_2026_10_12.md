@@ -1,6 +1,6 @@
 id: domain_public_records_are_written_in_english_2026_10_12
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791756505.482973
 edges: [{"target_id": "domain_internal_records_stay_out_of_public_areas_2026_10_12", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}]

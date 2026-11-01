@@ -1,6 +1,6 @@
 id: domain_record_edges_single_line_json_with_ids_2026_10_23
 type: domain
-area: records
+topic: records
 perspective: agent
 created: 1792747015.693336
 edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}]

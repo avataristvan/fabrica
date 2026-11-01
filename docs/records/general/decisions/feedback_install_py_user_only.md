@@ -1,6 +1,6 @@
 id: feedback_install_py_user_only
 type: pattern
-area: general
+topic: general
 created: 1790440444.53689
 edges: [{"target_id": "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29", "edge_type": "related"}]
 ---

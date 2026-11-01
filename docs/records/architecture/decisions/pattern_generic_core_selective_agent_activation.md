@@ -1,6 +1,6 @@
 id: pattern_generic_core_selective_agent_activation
 type: pattern
-area: architecture
+topic: architecture
 created: 1789250498.959187
 edges: [{"target_id": "hook_routing_subagent", "edge_type": "related"}, {"target_id": "domain_dev_team_own_plugin_ai_mem_ships_record_parts_2026_10_12", "edge_type": "related"}]
 cue: I am about to put agent-specific behaviour into the ai-mem core.

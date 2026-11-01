@@ -1,6 +1,6 @@
 id: todo_archivist_flag_cross_area_duplicates_2026_10_13
 type: todo
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791925100.542074
 edges: [{"target_id": "domain_archivist_acceptance_closed_fail_use_carries_2026_10_13", "edge_type": "derived_from"}]

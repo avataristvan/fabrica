@@ -1,6 +1,6 @@
 id: todo_resolve_public_lodge_book_vs_handoffs_local_2026_10_31
 type: todo
-area: records
+topic: records
 perspective: user
 created: 1793470100.005342
 edges: [{"target_id": "domain_internal_material_judged_by_content_and_references_2026_10_31", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

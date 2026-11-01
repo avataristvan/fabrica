@@ -1,6 +1,6 @@
 id: domain_source_status_unprocessed_or_processed_2026_10_12
 type: domain
-area: architecture
+topic: architecture
 perspective: the-coder
 created: 1791758107.216165
 edges: [{"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12", "edge_type": "related"}, {"target_id": "domain_mem_source_sets_status_and_link_find_reach_sources_2026_11_01", "edge_type": "related"}]

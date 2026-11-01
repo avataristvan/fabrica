@@ -1,6 +1,6 @@
 # Decision Records Index
 
-| id | area | type | title | status |
+| id | topic | type | title | status |
 |---|---|---|---|---|
 | ai_mem_redesign_2026_06_13 | general | domain | ai-mem architecture redesign: confidence lifecycle model (2026-06-13) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | anti-pattern-patch-object-requires-existing-attr | general | anti-pattern | Tried: removing an unused import (e.g. WORKSPACE_COLLECTION) from a module after | active |

@@ -1,6 +1,6 @@
 id: todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24
 type: todo
-area: architecture
+topic: architecture
 perspective: user
 created: 1792868400.633387
 cue: I file feedback or evidence from another project as a source in this area.

@@ -1,6 +1,6 @@
 id: todo_librarian_cannot_read_handoffs_2026_10_20
 type: todo
-area: general
+topic: general
 perspective: agent
 created: 1792529761.245283
 edges: [{"target_id": "learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24", "edge_type": "related"}]

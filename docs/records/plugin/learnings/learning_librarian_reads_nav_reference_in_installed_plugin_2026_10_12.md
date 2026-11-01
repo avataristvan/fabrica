@@ -1,6 +1,6 @@
 id: learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: orchestrator
 created: 1791834833.045599
 edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}]

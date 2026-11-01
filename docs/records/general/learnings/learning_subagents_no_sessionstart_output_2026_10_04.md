@@ -1,6 +1,6 @@
 id: learning_subagents_no_sessionstart_output_2026_10_04
 type: learning
-area: general
+topic: general
 perspective: agent
 created: 1791067532.967105
 edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "confirms"}]

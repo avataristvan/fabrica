@@ -1,6 +1,6 @@
 id: domain_rebuild_closing_scoped_to_three_todos_2026_10_15
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792061047.277119
 superseded_by: domain_rebuild_closing_scoped_to_two_todos_2026_10_15

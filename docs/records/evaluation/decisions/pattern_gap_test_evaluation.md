@@ -1,6 +1,6 @@
 id: pattern_gap_test_evaluation
 type: pattern
-area: evaluation
+topic: evaluation
 created: 1780074962.830917
 edges: [{"target_id": "learning_gap_test_first_run_and_blindtest_2026_07_31", "edge_type": "derived_from"}, {"target_id": "pattern_eval_artifacts_outside_agent_readable_corpus", "edge_type": "related"}]
 ---

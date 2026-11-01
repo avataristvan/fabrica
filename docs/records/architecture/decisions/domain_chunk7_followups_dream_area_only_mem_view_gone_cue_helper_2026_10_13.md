@@ -1,6 +1,6 @@
 id: domain_chunk7_followups_dream_area_only_mem_view_gone_cue_helper_2026_10_13
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791869829.225011
 edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}]

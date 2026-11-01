@@ -1,6 +1,6 @@
 id: pattern_duplicate_ids_delete_covered_copy_2026_10_12
 type: pattern
-area: records
+topic: records
 perspective: user
 created: 1791756513.147468
 edges: [{"target_id": "domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "related"}]

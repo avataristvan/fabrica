@@ -1,6 +1,6 @@
 id: pattern_ask_selfreport_with_provenance_marks_2026_10_24
 type: pattern
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792868398.590897
 edges: [{"target_id": "learning_agent_selfreport_about_subagent_output_can_be_confabulated_2026_10_23", "edge_type": "derived_from"}]

@@ -1,6 +1,6 @@
 id: domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12
 type: domain
-area: architecture
+topic: architecture
 perspective: the-coder
 created: 1791758106.579595
 edges: [{"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "derived_from"}, {"target_id": "learning_doctor_effect_retro_missing_signal_unreliable_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_doctor_exit_criterion_check_scanner_covers_destination_2026_10_12", "edge_type": "related"}, {"target_id": "todo_doctor_retired_system_check_sidestepped_by_softer_wording_2026_10_12", "edge_type": "related"}]

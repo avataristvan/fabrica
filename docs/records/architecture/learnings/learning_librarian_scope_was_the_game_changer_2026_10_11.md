@@ -1,6 +1,6 @@
 id: learning_librarian_scope_was_the_game_changer_2026_10_11
 type: learning
-area: architecture
+topic: architecture
 perspective: user
 created: 1791725662.051604
 edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "confirms"}, {"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: domain_domain_decisions_immediate_capture_2026_10_04
 type: domain
-area: general
+topic: general
 perspective: user
 created: 1791067532.967105
 ---

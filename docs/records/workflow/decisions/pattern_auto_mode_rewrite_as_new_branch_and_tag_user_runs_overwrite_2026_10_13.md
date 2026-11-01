@@ -1,6 +1,6 @@
 id: pattern_auto_mode_rewrite_as_new_branch_and_tag_user_runs_overwrite_2026_10_13
 type: pattern
-area: workflow
+topic: workflow
 perspective: agent
 created: 1791889506.054793
 edges: [{"target_id": "pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: pattern_install_plugin_from_clean_clone_2026_10_12
 type: pattern
-area: plugin
+topic: plugin
 perspective: user
 created: 1791821370.407105
 edges: [{"target_id": "learning_plugin_from_local_marketplace_loads_in_place_2026_10_12", "edge_type": "related"}, {"target_id": "../briefing-interviewer:domain_install_plugin_from_area_folder_for_now_2026_10_21", "edge_type": "related"}, {"target_id": "learning_plugin_keeps_loading_from_clean_clone_when_marketplace_repointed_2026_10_31", "edge_type": "related"}]

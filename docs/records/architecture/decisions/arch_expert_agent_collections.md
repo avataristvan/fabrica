@@ -1,6 +1,6 @@
 id: arch_expert_agent_collections
 type: domain
-area: architecture
+topic: architecture
 created: 1778534874.026325
 superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10
 valid_until: 1793471384.110904

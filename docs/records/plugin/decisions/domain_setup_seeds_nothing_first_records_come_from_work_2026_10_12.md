@@ -1,6 +1,6 @@
 id: domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12
 type: domain
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791833918.959855
 edges: [{"target_id": "domain_archivist_mechanism_mem_and_mem_dream_2026_10_11", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}]

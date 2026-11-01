@@ -1,6 +1,6 @@
 id: chunk3_access_count_semantics_shipped_2026_07_31
 type: learning
-area: general
+topic: general
 created: 1785512083.147452
 superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790699174.460505

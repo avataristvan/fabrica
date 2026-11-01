@@ -1,6 +1,6 @@
 id: pattern_prospective_plan_validation
 type: pattern
-area: general
+topic: general
 perspective: user
 created: 1779228087.465341
 ---

@@ -1,6 +1,6 @@
 id: learning_push_check_2026_10_15_was_clean
 type: learning
-area: records
+topic: records
 perspective: agent
 created: 1792061047.051278
 edges: [{"target_id": "todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

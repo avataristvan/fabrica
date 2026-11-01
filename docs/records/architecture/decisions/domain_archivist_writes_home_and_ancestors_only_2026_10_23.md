@@ -1,6 +1,6 @@
 id: domain_archivist_writes_home_and_ancestors_only_2026_10_23
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792761669.127496
 edges: [{"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_home_stays_for_migration_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]

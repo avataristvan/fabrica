@@ -1,6 +1,6 @@
 id: domain_direction_judgment_over_scores_2026_09_20
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1789925427.11298
 edges: [{"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "pattern_confidence_lifecycle", "edge_type": "related"}, {"target_id": "todo_retrieval_confidence_gradient", "edge_type": "related"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "derived_from"}]

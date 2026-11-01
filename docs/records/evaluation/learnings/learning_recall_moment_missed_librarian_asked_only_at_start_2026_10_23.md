@@ -1,6 +1,6 @@
 id: learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792789845.565192
 edges: [{"target_id": "learning_trigger_must_name_observable_moment_2026_10_10", "edge_type": "confirms"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}, {"target_id": "learning_knowledge_loses_against_the_order_2026_10_18", "edge_type": "related"}, {"target_id": "eval_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "todo_pull_trigger_points_per_situation", "edge_type": "related"}, {"target_id": "learning_librarian_answer_must_be_in_before_first_edit_at_chunk_start_2026_10_31", "edge_type": "related"}]

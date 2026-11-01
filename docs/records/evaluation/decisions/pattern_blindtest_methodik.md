@@ -1,6 +1,6 @@
 id: pattern_blindtest_methodik
 type: pattern
-area: evaluation
+topic: evaluation
 created: 1780077541.217354
 edges: [{"target_id": "learning_hooks_do_not_inherit_mcp_env_2026_07_03", "edge_type": "derived_from"}, {"target_id": "pattern_rubric_levels_defined_with_boundary_examples_2026_10_18", "edge_type": "related"}]
 ---

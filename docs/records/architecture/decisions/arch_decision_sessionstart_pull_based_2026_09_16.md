@@ -1,6 +1,6 @@
 id: arch_decision_sessionstart_pull_based_2026_09_16
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791758069.215956
 edges: [{"target_id": "arch_decision_pretool_push_removed_2026_09_12", "edge_type": "related"}, {"target_id": "arch_decision_userprompt_push_removed_2026_09_13", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "contradicts"}]

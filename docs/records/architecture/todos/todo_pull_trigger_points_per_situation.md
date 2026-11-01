@@ -1,6 +1,6 @@
 id: todo_pull_trigger_points_per_situation
 type: todo
-area: architecture
+topic: architecture
 created: 1791138592.545231
 edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12", "edge_type": "related"}, {"target_id": "learning_pull_needs_situation_triggers_2026_10_04", "edge_type": "derived_from"}, {"target_id": "domain_why_travels_with_chunk_spec_2026_10_10", "edge_type": "related"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}]
 cue: You are defining or testing a pull trigger point (review, session start, coding, bugfixing, operator) for the librarian.

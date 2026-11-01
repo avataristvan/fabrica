@@ -1,6 +1,6 @@
 id: learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31
 type: learning
-area: architecture
+topic: architecture
 perspective: user
 created: 1793470099.609578
 edges: [{"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "confirms"}]

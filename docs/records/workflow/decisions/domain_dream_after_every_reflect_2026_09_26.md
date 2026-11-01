@@ -1,6 +1,6 @@
 id: domain_dream_after_every_reflect_2026_09_26
 type: domain
-area: workflow
+topic: workflow
 created: 1790440444.53689
 edges: [{"target_id": "todo_dream_trigger_candidates_not_count_2026_09_25", "edge_type": "supersedes"}, {"target_id": "feedback_install_py_user_only", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}]
 ---

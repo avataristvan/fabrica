@@ -1,6 +1,6 @@
 id: pattern_sync_commands_only_from_main_checkout_2026_10_11
 type: pattern
-area: workflow
+topic: workflow
 perspective: the-coder
 created: 1791738307.581806
 edges: [{"target_id": "learning_bang_commands_have_no_stdin_2026_10_12", "edge_type": "related"}]

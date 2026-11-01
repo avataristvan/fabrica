@@ -1,6 +1,6 @@
 id: learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791821370.176491
 edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}, {"target_id": "learning_skill_model_frontmatter_honored_eval_under_real_model_2026_10_12", "edge_type": "related"}, {"target_id": "learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12", "edge_type": "related"}, {"target_id": "learning_plugin_from_local_marketplace_loads_in_place_2026_10_12", "edge_type": "related"}, {"target_id": "learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12", "edge_type": "related"}, {"target_id": "domain_mem_delete_names_dangling_edges_2026_10_13", "edge_type": "related"}]

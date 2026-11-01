@@ -1,6 +1,6 @@
 id: pattern_english_output_strings
 type: pattern
-area: workflow
+topic: workflow
 created: 1779055358.898205
 cue: I am about to write user-visible strings or error messages in ai-mem code.
 ---

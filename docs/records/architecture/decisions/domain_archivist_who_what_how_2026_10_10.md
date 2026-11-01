@@ -1,6 +1,6 @@
 id: domain_archivist_who_what_how_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629321.361651
 edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_user_records_as_role_perspective_2026_10_04", "edge_type": "related"}, {"target_id": "learning_handwritten_records_drift_from_format_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}, {"target_id": "todo_archivist_report_names_searched_areas_2026_10_11", "edge_type": "related"}, {"target_id": "domain_archivist_acceptance_closed_fail_use_carries_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_integration_visible_to_navigator_2026_10_15", "edge_type": "related"}]

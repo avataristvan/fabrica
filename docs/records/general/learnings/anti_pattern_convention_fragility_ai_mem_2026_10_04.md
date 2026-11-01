@@ -1,6 +1,6 @@
 id: anti_pattern_convention_fragility_ai_mem_2026_10_04
 type: learning
-area: general
+topic: general
 perspective: agent
 created: 1791067532.967105
 ---

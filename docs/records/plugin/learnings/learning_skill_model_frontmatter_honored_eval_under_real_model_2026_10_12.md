@@ -1,6 +1,6 @@
 id: learning_skill_model_frontmatter_honored_eval_under_real_model_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791833917.45286
 edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}]

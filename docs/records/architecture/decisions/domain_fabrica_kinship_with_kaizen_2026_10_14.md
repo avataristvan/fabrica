@@ -1,6 +1,6 @@
 id: domain_fabrica_kinship_with_kaizen_2026_10_14
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792003438.275608
 edges: [{"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: pattern_always_parse_agent_type_2026_10_04
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1791067532.967105
 ---

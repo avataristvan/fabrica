@@ -1,6 +1,6 @@
 id: domain_fabrica_records_public_as_self_proof_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791635778.237949
 edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}, {"target_id": "domain_internal_records_stay_out_of_public_areas_2026_10_12", "edge_type": "related"}, {"target_id": "domain_public_records_are_written_in_english_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_text_proposals_replace_body_keep_frontmatter_2026_10_12", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_public_face_experience_report_not_launch_2026_10_24", "edge_type": "related"}, {"target_id": "domain_pseudonymisation_covers_the_whole_public_repo_2026_10_31", "edge_type": "related"}, {"target_id": "domain_handoffs_stay_local_records_and_sources_public_2026_11_01", "edge_type": "related"}, {"target_id": "domain_handoffs_may_be_published_pseudonymised_after_review_2026_11_01", "edge_type": "related"}]

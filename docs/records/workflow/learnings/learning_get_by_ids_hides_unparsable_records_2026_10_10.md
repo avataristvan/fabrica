@@ -1,6 +1,6 @@
 id: learning_get_by_ids_hides_unparsable_records_2026_10_10
 type: learning
-area: workflow
+topic: workflow
 created: 1791668231.552412
 cue: when writing an exists-check before overwriting a record file
 ---

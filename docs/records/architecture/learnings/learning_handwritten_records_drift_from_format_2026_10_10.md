@@ -1,6 +1,6 @@
 id: learning_handwritten_records_drift_from_format_2026_10_10
 type: learning
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791629940.055744
 cue: I find records in an area that were written by hand and do not match the generated format

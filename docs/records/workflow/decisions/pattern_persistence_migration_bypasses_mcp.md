@@ -1,6 +1,6 @@
 id: pattern_persistence_migration_bypasses_mcp
 type: pattern
-area: workflow
+topic: workflow
 created: 1790678885.521196
 edges: [{"target_id": "learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29", "edge_type": "derived_from"}, {"target_id": "learning_migrate_apply_exit1_has_two_meanings_2026_10_11", "edge_type": "related"}]
 ---

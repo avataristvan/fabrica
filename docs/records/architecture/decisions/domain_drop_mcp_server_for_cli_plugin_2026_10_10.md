@@ -1,6 +1,6 @@
 id: domain_drop_mcp_server_for_cli_plugin_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 created: 1791613170.126814
 edges: [{"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "derived_from"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "derived_from"}, {"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}, {"target_id": "learning_guard_on_old_backend_artefact_silenced_sessionstart_2026_10_12", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_record_edges_single_line_json_with_ids_2026_10_23", "edge_type": "related"}]
 ---

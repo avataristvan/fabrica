@@ -1,6 +1,6 @@
 id: pattern_lint_hook_reports_codes_only_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791738296.180107
 edges: [{"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}, {"target_id": "../..:pattern_hooks_must_not_raise", "edge_type": "related"}]

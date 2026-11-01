@@ -1,6 +1,6 @@
 id: pattern_hook_stdin_is_untrusted_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791738295.910154
 edges: [{"target_id": "pattern_lint_hook_reports_codes_only_2026_10_11", "edge_type": "related"}, {"target_id": "learning_glob_id_injection_missed_by_review_2026_10_04", "edge_type": "related"}, {"target_id": "pattern_untrusted_json_catch_recursionerror_2026_10_11", "edge_type": "related"}, {"target_id": "domain_hooks_enforce_that_roles_decide_how_2026_10_10", "edge_type": "related"}]

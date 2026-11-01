@@ -1,6 +1,6 @@
 id: domain_dream_proposes_never_applies_2026_10_13
 type: domain
-area: workflow
+topic: workflow
 perspective: user
 created: 1791869828.778418
 edges: [{"target_id": "domain_dream_after_every_reflect_2026_09_26", "edge_type": "related"}, {"target_id": "domain_archivist_mechanism_mem_and_mem_dream_2026_10_11", "edge_type": "related"}, {"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}]

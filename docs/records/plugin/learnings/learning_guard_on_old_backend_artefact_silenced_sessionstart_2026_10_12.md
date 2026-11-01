@@ -1,6 +1,6 @@
 id: learning_guard_on_old_backend_artefact_silenced_sessionstart_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791821370.909383
 edges: [{"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: todo_decide_librarian_core_or_optional_2026_10_24
 type: todo
-area: evaluation
+topic: evaluation
 perspective: user
 created: 1792876752.229569
 edges: [{"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "learning_field_use_handoff_files_helped_most_librarian_scope_2026_10_24", "edge_type": "related"}, {"target_id": "eval_seniority_available_not_used_confirms_pull_gap_2026_10_18", "edge_type": "related"}]

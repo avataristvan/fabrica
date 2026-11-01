@@ -1,6 +1,6 @@
 id: domain_mem_source_sets_status_and_link_find_reach_sources_2026_11_01
 type: domain
-area: records
+topic: records
 perspective: agent
 created: 1793524156.530212
 edges: [{"target_id": "domain_source_status_unprocessed_or_processed_2026_10_12", "edge_type": "related"}, {"target_id": "todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12", "edge_type": "related"}]

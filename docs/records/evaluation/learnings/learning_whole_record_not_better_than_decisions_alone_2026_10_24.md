@@ -1,6 +1,6 @@
 id: learning_whole_record_not_better_than_decisions_alone_2026_10_24
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792876751.636788
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "domain_fabrica_seniority_from_the_record_2026_10_14", "edge_type": "related"}, {"target_id": "eval_seniority_available_not_used_confirms_pull_gap_2026_10_18", "edge_type": "related"}]

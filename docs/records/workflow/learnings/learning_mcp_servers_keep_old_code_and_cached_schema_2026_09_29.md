@@ -1,6 +1,6 @@
 id: learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29
 type: learning
-area: workflow
+topic: workflow
 created: 1790678885.521196
 edges: [{"target_id": "pattern_blindtest_methodik", "edge_type": "contradicts"}]
 ---

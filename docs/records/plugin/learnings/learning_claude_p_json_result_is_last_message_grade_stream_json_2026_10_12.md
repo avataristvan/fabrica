@@ -1,6 +1,6 @@
 id: learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791833918.376278
 cue: I am writing a mechanical eval that grades the output of claude -p runs of a skill that spawns agents

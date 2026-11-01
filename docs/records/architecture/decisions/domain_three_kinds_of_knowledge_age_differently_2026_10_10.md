@@ -1,6 +1,6 @@
 id: domain_three_kinds_of_knowledge_age_differently_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629954.244394
 edges: [{"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "domain_glossary_is_state_per_area_2026_10_19", "edge_type": "related"}, {"target_id": "pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24", "edge_type": "related"}]

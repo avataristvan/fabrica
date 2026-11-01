@@ -1,6 +1,6 @@
 id: daemon_embedding_cache_per_key_locking_2026_08_23
 type: domain
-area: architecture
+topic: architecture
 created: 1790700224.810241
 edges: [{"target_id": "learning_daemon_latency_and_record_access_race_2026_08_23", "edge_type": "derived_from"}, {"target_id": "daemon_concurrency_and_embedding_cache_2026_08_23", "edge_type": "related"}]
 ---

@@ -1,6 +1,6 @@
 id: decision_hybrid_fusion_cosine_saturated_bm25_2026_10_04
 type: domain
-area: general
+topic: general
 created: 1791067532.967105
 superseded_by: domain_file_backend_replaces_chroma_2026_10_04
 valid_until: 1791139067.668012

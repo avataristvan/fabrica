@@ -1,6 +1,6 @@
 id: domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792789846.164136
 edges: [{"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "derived_from"}, {"target_id": "arch_decision_pretool_push_removed_2026_09_12", "edge_type": "related"}]

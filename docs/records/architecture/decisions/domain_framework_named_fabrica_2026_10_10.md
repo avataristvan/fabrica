@@ -1,6 +1,6 @@
 id: domain_framework_named_fabrica_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791635457.277327
 edges: [{"target_id": "domain_fabrica_method_ai_mem_build_user_environment_use_2026_10_13", "edge_type": "related"}, {"target_id": "domain_fabrica_practice_not_process_pattern_language_2026_10_14", "edge_type": "related"}, {"target_id": "domain_fabrica_name_collision_checked_2026_10_15", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}]

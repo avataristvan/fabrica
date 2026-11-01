@@ -1,6 +1,6 @@
 id: learning_index_status_stale_after_supersede_2026_09_27
 type: learning
-area: architecture
+topic: architecture
 perspective: agent
 created: 1790678553.613667
 cue: INDEX.md shows a superseded record as active after a supersede link

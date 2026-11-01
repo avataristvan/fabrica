@@ -1,6 +1,6 @@
 id: antipattern_document_symptom_not_cause
 type: anti-pattern
-area: general
+topic: general
 perspective: agent
 created: 1779056766.200665
 ---

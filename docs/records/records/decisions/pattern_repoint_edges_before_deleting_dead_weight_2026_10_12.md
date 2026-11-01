@@ -1,6 +1,6 @@
 id: pattern_repoint_edges_before_deleting_dead_weight_2026_10_12
 type: pattern
-area: records
+topic: records
 perspective: the-coder
 created: 1791756528.108819
 edges: [{"target_id": "pattern_duplicate_ids_delete_covered_copy_2026_10_12", "edge_type": "related"}, {"target_id": "domain_mem_delete_names_dangling_edges_2026_10_13", "edge_type": "related"}]

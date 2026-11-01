@@ -1,6 +1,6 @@
 id: domain_internal_material_judged_by_content_and_references_2026_10_31
 type: domain
-area: records
+topic: records
 perspective: agent
 created: 1793470087.224786
 edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "learning_librarian_files_only_eval_chunk3_2026_10_11", "edge_type": "related"}]

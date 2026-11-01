@@ -1,6 +1,6 @@
 id: domain_current_docs_may_carry_one_short_history_section_2026_10_12
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791839311.376888
 edges: [{"target_id": "domain_current_docs_hold_history_in_one_upgrade_section_2026_10_12", "edge_type": "supersedes"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

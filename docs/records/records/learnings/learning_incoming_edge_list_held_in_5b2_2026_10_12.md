@@ -1,6 +1,6 @@
 id: learning_incoming_edge_list_held_in_5b2_2026_10_12
 type: learning
-area: records
+topic: records
 perspective: agent
 created: 1791786665.841492
 edges: [{"target_id": "pattern_list_incoming_edges_before_moving_or_merging_a_doc_2026_10_12", "edge_type": "confirms"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}]

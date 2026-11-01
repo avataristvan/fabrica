@@ -1,6 +1,6 @@
 id: pattern_bypass_gate_for_safety_signals
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1779056778.55903
 ---

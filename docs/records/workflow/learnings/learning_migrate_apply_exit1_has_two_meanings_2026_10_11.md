@@ -1,6 +1,6 @@
 id: learning_migrate_apply_exit1_has_two_meanings_2026_10_11
 type: learning
-area: workflow
+topic: workflow
 perspective: the-coder
 created: 1791738301.237421
 edges: [{"target_id": "pattern_persistence_migration_bypasses_mcp", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

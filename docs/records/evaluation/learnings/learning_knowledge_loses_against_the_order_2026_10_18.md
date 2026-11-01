@@ -1,6 +1,6 @@
 id: learning_knowledge_loses_against_the_order_2026_10_18
 type: learning
-area: evaluation
+topic: evaluation
 perspective: user
 created: 1792360315.821311
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "../..:domain_dev_team_stops_on_contradiction_blocked_2026_10_19", "edge_type": "related"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}]

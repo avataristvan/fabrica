@@ -1,6 +1,6 @@
 id: learning_workspace_root_hook_prefix_lost_on_reinstall_2026_09_27
 type: learning
-area: architecture
+topic: architecture
 created: 1790678554.072722
 ---
 

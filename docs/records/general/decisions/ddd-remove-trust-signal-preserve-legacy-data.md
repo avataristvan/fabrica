@@ -1,6 +1,6 @@
 id: ddd-remove-trust-signal-preserve-legacy-data
 type: pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1790438437.090794
 ---

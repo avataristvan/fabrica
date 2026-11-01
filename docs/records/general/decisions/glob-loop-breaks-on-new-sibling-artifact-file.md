@@ -1,6 +1,6 @@
 id: glob-loop-breaks-on-new-sibling-artifact-file
 type: anti-pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1790370754.111794
 ---

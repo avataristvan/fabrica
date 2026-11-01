@@ -1,6 +1,6 @@
 id: domain_docs_split_into_documentation_and_sources_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 created: 1791634292.098856
 edges: [{"target_id": "domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12", "edge_type": "related"}, {"target_id": "domain_source_status_unprocessed_or_processed_2026_10_12", "edge_type": "related"}, {"target_id": "todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12", "edge_type": "related"}, {"target_id": "domain_current_docs_hold_history_in_one_upgrade_section_2026_10_12", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "derived_from"}]
 ---

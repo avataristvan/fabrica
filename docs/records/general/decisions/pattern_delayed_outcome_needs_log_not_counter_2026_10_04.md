@@ -1,6 +1,6 @@
 id: pattern_delayed_outcome_needs_log_not_counter_2026_10_04
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1791067532.967105
 cue: Designing a live counter for whether a pushed item was later used

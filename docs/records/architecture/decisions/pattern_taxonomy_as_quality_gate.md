@@ -1,6 +1,6 @@
 id: pattern_taxonomy_as_quality_gate
 type: pattern
-area: architecture
+topic: architecture
 created: 1779228062.47625
 edges: [{"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "related"}]
 ---

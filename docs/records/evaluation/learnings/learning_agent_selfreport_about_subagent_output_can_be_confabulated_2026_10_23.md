@@ -1,6 +1,6 @@
 id: learning_agent_selfreport_about_subagent_output_can_be_confabulated_2026_10_23
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792789845.875828
 edges: [{"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}, {"target_id": "pattern_ask_selfreport_with_provenance_marks_2026_10_24", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791838321.007471
 edges: [{"target_id": "the-coder_stop_list_complete_both_directions", "edge_type": "related"}, {"target_id": "learning_chunk0_upgrade_acceptance_passed_2026_10_15", "edge_type": "related"}, {"target_id": "pattern_duties_belong_in_enforcing_mechanisms_not_learnings_2026_10_18", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

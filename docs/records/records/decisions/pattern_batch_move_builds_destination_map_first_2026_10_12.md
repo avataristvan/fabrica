@@ -1,6 +1,6 @@
 id: pattern_batch_move_builds_destination_map_first_2026_10_12
 type: pattern
-area: records
+topic: records
 perspective: the-coder
 created: 1791756496.958505
 edges: [{"target_id": "..:pattern_bulk_changes_as_deterministic_plan_apply_command_2026_10_12", "edge_type": "related"}]

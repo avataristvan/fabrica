@@ -1,6 +1,6 @@
 id: pattern_reflect_between_chunks
 type: pattern
-area: general
+topic: general
 perspective: user
 created: 1782731914.074017
 edges: [{"target_id": "todo_detect_skipped_reflect_gate_2026_10_11", "edge_type": "related"}]

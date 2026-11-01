@@ -1,6 +1,6 @@
 id: domain_learning_decision_split_subfolders_2026_09_29
 type: domain
-area: architecture
+topic: architecture
 created: 1790673307.427194
 edges: [{"target_id": "chunk5_adr_backfill_shipped_2026_09_25", "edge_type": "supersedes"}]
 ---

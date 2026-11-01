@@ -1,6 +1,6 @@
 id: fix_index_reindex_on_supersede_2026_09_27
 type: domain
-area: architecture
+topic: architecture
 created: 1790524300.309417
 edges: [{"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "learning_index_status_stale_after_supersede_2026_09_27", "edge_type": "derived_from"}]
 ---

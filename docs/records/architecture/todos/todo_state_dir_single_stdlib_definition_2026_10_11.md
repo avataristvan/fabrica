@@ -1,6 +1,6 @@
 id: todo_state_dir_single_stdlib_definition_2026_10_11
 type: todo
-area: architecture
+topic: architecture
 perspective: user
 created: 1791738308.131693
 cue: I am reading or changing the default of $AI_MEM_PATH (the default store directory) in any module

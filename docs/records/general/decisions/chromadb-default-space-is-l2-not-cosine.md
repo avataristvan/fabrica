@@ -1,6 +1,6 @@
 id: chromadb-default-space-is-l2-not-cosine
 type: anti-pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1785504094.286085
 cue: Computing a similarity score from a vector DB distance without checking its metric

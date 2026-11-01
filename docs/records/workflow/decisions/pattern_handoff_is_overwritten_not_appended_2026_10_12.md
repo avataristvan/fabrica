@@ -1,6 +1,6 @@
 id: pattern_handoff_is_overwritten_not_appended_2026_10_12
 type: pattern
-area: workflow
+topic: workflow
 perspective: agent
 created: 1791821372.671895
 edges: [{"target_id": "domain_handoff_points_instead_of_copying_2026_10_19", "edge_type": "related"}]

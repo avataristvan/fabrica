@@ -1,6 +1,6 @@
 id: design_three_tier_pull_the_coder_2026_09_12
 type: domain
-area: workflow
+topic: workflow
 created: 1789229274.183399
 edges: [{"target_id": "arch_decision_pretool_push_removed_2026_09_12", "edge_type": "related"}, {"target_id": "learning_gap_test_first_run_and_blindtest_2026_07_31", "edge_type": "derived_from"}]
 ---

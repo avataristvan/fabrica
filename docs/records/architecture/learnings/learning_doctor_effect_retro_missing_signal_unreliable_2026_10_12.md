@@ -1,6 +1,6 @@
 id: learning_doctor_effect_retro_missing_signal_unreliable_2026_10_12
 type: learning
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791758109.768173
 edges: [{"target_id": "domain_doctor_diagnoses_ritual_erosion_2026_10_10", "edge_type": "related"}, {"target_id": "todo_verify_retro_log_measurement_against_real_report_2026_10_12", "edge_type": "related"}, {"target_id": "domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12", "edge_type": "related"}]

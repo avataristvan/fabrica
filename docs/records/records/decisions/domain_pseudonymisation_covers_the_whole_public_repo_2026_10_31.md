@@ -1,6 +1,6 @@
 id: domain_pseudonymisation_covers_the_whole_public_repo_2026_10_31
 type: domain
-area: records
+topic: records
 perspective: user
 created: 1793470086.891643
 edges: [{"target_id": "domain_internal_material_judged_by_content_and_references_2026_10_31", "edge_type": "related"}, {"target_id": "domain_fabrica_records_public_as_self_proof_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13
 type: pattern
-area: records
+topic: records
 perspective: agent
 created: 1791889505.517126
 edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "learning_old_agent_worktree_branches_covered_by_pre_squash_tags_2026_10_31", "edge_type": "related"}]

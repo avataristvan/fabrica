@@ -1,6 +1,6 @@
 id: domain_mem_delete_names_dangling_edges_2026_10_13
 type: domain
-area: records
+topic: records
 perspective: user
 created: 1791876533.8049
 edges: [{"target_id": "domain_mem_unlink_removes_edges_2026_10_13", "edge_type": "related"}, {"target_id": "pattern_repoint_edges_before_deleting_dead_weight_2026_10_12", "edge_type": "related"}]

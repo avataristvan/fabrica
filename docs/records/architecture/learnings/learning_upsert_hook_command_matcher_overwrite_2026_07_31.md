@@ -1,6 +1,6 @@
 id: learning_upsert_hook_command_matcher_overwrite_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1790700223.860418
 edges: [{"target_id": "fix_install_hook_registration_2026_07_31", "edge_type": "related"}]
 ---

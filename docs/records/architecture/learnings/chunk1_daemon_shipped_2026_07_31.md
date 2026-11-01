@@ -1,6 +1,6 @@
 id: chunk1_daemon_shipped_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1785509735.991885
 ---
 

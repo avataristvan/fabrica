@@ -1,6 +1,6 @@
 id: domain_area_path_is_the_address_of_knowledge_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629954.244394
 edges: [{"target_id": "learning_organizational_not_personal_memory_2026_10_10", "edge_type": "derived_from"}, {"target_id": "domain_drop_mcp_server_for_cli_plugin_2026_10_10", "edge_type": "related"}, {"target_id": "domain_agents_learn_environment_never_edit_external_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_bubble_up_lookup_stops_at_root_2026_10_11", "edge_type": "related"}, {"target_id": "pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "arch_workspace_root_collection_naming", "edge_type": "supersedes"}, {"target_id": "arch_expert_agent_collections", "edge_type": "supersedes"}]

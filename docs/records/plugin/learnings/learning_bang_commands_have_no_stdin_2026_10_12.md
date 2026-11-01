@@ -1,6 +1,6 @@
 id: learning_bang_commands_have_no_stdin_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791821371.170303
 edges: [{"target_id": "pattern_sync_commands_only_from_main_checkout_2026_10_11", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: pattern_runtime_lookup_for_patchable_path_constants_2026_10_12
 type: pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1791758033.771845
 edges: [{"target_id": "the-coder_python_patchability", "edge_type": "related"}]

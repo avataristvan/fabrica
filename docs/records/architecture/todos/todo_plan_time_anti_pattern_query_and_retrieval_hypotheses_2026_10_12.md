@@ -1,6 +1,6 @@
 id: todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12
 type: todo
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791758034.413463
 edges: [{"target_id": "todo_pull_trigger_points_per_situation", "edge_type": "related"}]

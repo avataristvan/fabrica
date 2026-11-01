@@ -1,6 +1,6 @@
 id: learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791838323.276697
 edges: [{"target_id": "learning_plugin_mechanics_verified_claude_2_1_296_2026_10_12", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: domain_hook_in_line_canonical_form_is_namespaced_2026_10_12
 type: domain
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791833919.258636
 edges: [{"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}, {"target_id": "todo_doctor_wiring_deferred_from_4c_2026_10_11", "edge_type": "related"}, {"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: antipattern_mem_add_metadata_repass
 type: anti-pattern
-area: workflow
+topic: workflow
 created: 1781434290.659998
 cue: I am about to update an existing record via mem_add.
 ---

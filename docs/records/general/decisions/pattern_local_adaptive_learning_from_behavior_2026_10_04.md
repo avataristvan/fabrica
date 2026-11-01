@@ -1,6 +1,6 @@
 id: pattern_local_adaptive_learning_from_behavior_2026_10_04
 type: domain
-area: general
+topic: general
 perspective: user
 created: 1791067532.967105
 edges: [{"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}, {"target_id": "domain_file_backend_replaces_chroma_2026_10_04", "edge_type": "related"}]

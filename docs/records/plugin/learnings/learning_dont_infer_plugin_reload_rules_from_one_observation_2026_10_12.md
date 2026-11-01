@@ -1,6 +1,6 @@
 id: learning_dont_infer_plugin_reload_rules_from_one_observation_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791834833.457978
 edges: [{"target_id": "learning_plugin_from_local_marketplace_loads_in_place_2026_10_12", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: domain_user_records_as_role_perspective_2026_10_04
 type: domain
-area: architecture
+topic: architecture
 created: 1791133727.801265
 edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "pattern_triggers_beat_storage_and_ranking", "edge_type": "related"}, {"target_id": "domain_plugin_target_picture_implemented_and_closed_2026_10_15", "edge_type": "related"}]
 ---

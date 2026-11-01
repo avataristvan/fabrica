@@ -1,6 +1,6 @@
 id: cross-store-move-bypasses-add-usecase
 type: anti-pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1783086058.384481
 ---

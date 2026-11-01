@@ -1,6 +1,6 @@
 id: learning_context_load_after_pull_switch_2026_10_04
 type: learning
-area: evaluation
+topic: evaluation
 created: 1791134292.96881
 edges: [{"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "confirms"}]
 ---

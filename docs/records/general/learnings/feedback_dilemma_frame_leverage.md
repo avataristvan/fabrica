@@ -1,6 +1,6 @@
 id: feedback_dilemma_frame_leverage
 type: learning
-area: general
+topic: general
 perspective: user
 created: 1779057362.981179
 ---

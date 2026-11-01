@@ -1,6 +1,6 @@
 id: pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12
 type: pattern
-area: records
+topic: records
 perspective: the-coder
 created: 1791756505.762109
 edges: [{"target_id": "pattern_batch_move_builds_destination_map_first_2026_10_12", "edge_type": "related"}, {"target_id": "domain_clear_dead_weight_keep_reasons_2026_10_10", "edge_type": "confirms"}, {"target_id": "domain_mem_move_area_renames_with_references_rename_first_2026_11_01", "edge_type": "related"}]

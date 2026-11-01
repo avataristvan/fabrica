@@ -1,6 +1,6 @@
 id: todo_confidence_decay_adsr_design
 type: learning
-area: general
+topic: general
 created: 1785505681.516074
 superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790412165.713779

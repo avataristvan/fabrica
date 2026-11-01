@@ -1,6 +1,6 @@
 id: todo_adr_migration_2026_09_25
 type: learning
-area: general
+topic: general
 created: 1790366791.438984
 edges: [{"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "related"}]
 ---

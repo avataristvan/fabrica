@@ -1,6 +1,6 @@
 id: domain_perspective_is_a_lens_not_a_location_2026_10_10
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1791634114.755075
 edges: [{"target_id": "domain_area_path_is_the_address_of_knowledge_2026_10_10", "edge_type": "related"}, {"target_id": "domain_user_records_as_role_perspective_2026_10_04", "edge_type": "related"}]

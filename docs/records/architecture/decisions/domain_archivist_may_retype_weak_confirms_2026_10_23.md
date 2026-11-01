@@ -1,6 +1,6 @@
 id: domain_archivist_may_retype_weak_confirms_2026_10_23
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792757456.731845
 edges: [{"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]

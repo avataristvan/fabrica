@@ -1,6 +1,6 @@
 id: learning_librarian_answer_must_be_in_before_first_edit_at_chunk_start_2026_10_31
 type: learning
-area: workflow
+topic: workflow
 perspective: the-coder
 created: 1793470087.817007
 edges: [{"target_id": "learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31", "edge_type": "related"}, {"target_id": "domain_librarian_at_review_handoff_2026_10_10", "edge_type": "related"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}]

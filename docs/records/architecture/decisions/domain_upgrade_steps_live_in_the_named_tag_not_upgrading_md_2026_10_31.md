@@ -1,6 +1,6 @@
 id: domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1793470086.577955
 edges: [{"target_id": "domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31", "edge_type": "derived_from"}, {"target_id": "domain_current_docs_may_carry_one_short_history_section_2026_10_12", "edge_type": "related"}, {"target_id": "learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12", "edge_type": "related"}, {"target_id": "domain_acceptance_checksum_skips_hook_written_paths_2026_10_13", "edge_type": "related"}, {"target_id": "learning_migrate_apply_exit1_has_two_meanings_2026_10_11", "edge_type": "related"}, {"target_id": "learning_chunk0_upgrade_acceptance_passed_2026_10_15", "edge_type": "related"}, {"target_id": "learning_guard_on_old_backend_artefact_silenced_sessionstart_2026_10_12", "edge_type": "related"}, {"target_id": "domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13", "edge_type": "related"}]

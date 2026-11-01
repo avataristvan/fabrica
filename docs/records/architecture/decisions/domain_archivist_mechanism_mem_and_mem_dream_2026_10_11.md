@@ -1,6 +1,6 @@
 id: domain_archivist_mechanism_mem_and_mem_dream_2026_10_11
 type: domain
-area: architecture
+topic: architecture
 perspective: agent
 created: 1791754873.605618
 edges: [{"target_id": "domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "derived_from"}]

@@ -1,6 +1,6 @@
 id: learning_organizational_not_personal_memory_2026_10_10
 type: learning
-area: architecture
+topic: architecture
 perspective: user
 created: 1791629940.055744
 edges: [{"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "related"}]

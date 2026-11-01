@@ -1,6 +1,6 @@
 id: userprompt_hook_threshold_recalibration_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1785504672.145765
 ---
 

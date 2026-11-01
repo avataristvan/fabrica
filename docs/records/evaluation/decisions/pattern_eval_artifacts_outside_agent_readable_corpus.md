@@ -1,6 +1,6 @@
 id: pattern_eval_artifacts_outside_agent_readable_corpus
 type: pattern
-area: evaluation
+topic: evaluation
 created: 1790700225.163243
 edges: [{"target_id": "eval_librarian_rerun_records_layout_2026_09_29", "edge_type": "derived_from"}, {"target_id": "pattern_gap_test_evaluation", "edge_type": "related"}]
 ---

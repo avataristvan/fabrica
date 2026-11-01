@@ -1,6 +1,6 @@
 id: ddd-usecase-preserved-field-needs-followup-upsert-on-fresh-insert
 type: pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1790370317.478376
 ---

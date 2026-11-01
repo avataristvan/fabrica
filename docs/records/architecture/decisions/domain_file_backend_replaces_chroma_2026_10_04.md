@@ -1,6 +1,6 @@
 id: domain_file_backend_replaces_chroma_2026_10_04
 type: domain
-area: architecture
+topic: architecture
 created: 1791111270.18417
 edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "derived_from"}, {"target_id": "domain_librarian_replaces_experience_index_2026_10_04", "edge_type": "related"}, {"target_id": "pattern_taxonomy_as_quality_gate", "edge_type": "related"}, {"target_id": "decision_hybrid_fusion_cosine_saturated_bm25_2026_10_04", "edge_type": "supersedes"}, {"target_id": "pattern_local_adaptive_learning_from_behavior_2026_10_04", "edge_type": "related"}, {"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_direction_judgment_over_scores_2026_09_20", "edge_type": "confirms"}]
 ---

@@ -1,6 +1,6 @@
 id: learning_bm25_minmax_floors_irrelevant_top_hit_2026_07_31
 type: learning
-area: architecture
+topic: architecture
 created: 1790678547.683646
 ---
 

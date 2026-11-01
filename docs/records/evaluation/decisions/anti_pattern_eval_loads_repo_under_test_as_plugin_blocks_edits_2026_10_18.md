@@ -1,6 +1,6 @@
 id: anti_pattern_eval_loads_repo_under_test_as_plugin_blocks_edits_2026_10_18
 type: anti-pattern
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792360317.380537
 edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}, {"target_id": "learning_plugin_keeps_loading_from_clean_clone_when_marketplace_repointed_2026_10_31", "edge_type": "related"}]

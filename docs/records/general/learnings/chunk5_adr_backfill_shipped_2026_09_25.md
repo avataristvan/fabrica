@@ -1,6 +1,6 @@
 id: chunk5_adr_backfill_shipped_2026_09_25
 type: learning
-area: general
+topic: general
 created: 1790371199.982845
 superseded_by: domain_learning_decision_split_subfolders_2026_09_29
 valid_until: 1790699174.850422

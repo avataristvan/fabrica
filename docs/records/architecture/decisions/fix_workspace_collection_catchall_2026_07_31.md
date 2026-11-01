@@ -1,6 +1,6 @@
 id: fix_workspace_collection_catchall_2026_07_31
 type: domain
-area: architecture
+topic: architecture
 created: 1789252784.944877
 edges: [{"target_id": "learning_workspace_collection_catchall_dumped_unrelated_entries_2026_07_31", "edge_type": "derived_from"}]
 ---

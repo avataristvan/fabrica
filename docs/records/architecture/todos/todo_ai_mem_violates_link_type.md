@@ -1,6 +1,6 @@
 id: todo_ai_mem_violates_link_type
 type: todo
-area: architecture
+topic: architecture
 created: 1783085186.096779
 ---
 

@@ -1,6 +1,6 @@
 id: domain_librarian_replaces_experience_index_2026_10_04
 type: domain
-area: architecture
+topic: architecture
 created: 1791109782.687738
 edges: [{"target_id": "eval_experience_index_ab_2026_09_21", "edge_type": "related"}, {"target_id": "arch_decision_sessionstart_pull_based_2026_09_16", "edge_type": "related"}, {"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "derived_from"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}]
 cue: I am about to push records, an index or cue lines into SessionStart (or other always-loaded context) instead of a pointer to the librarian

@@ -1,6 +1,6 @@
 id: domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13
 type: domain
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791876534.034085
 edges: [{"target_id": "pattern_uninstall_matches_hooks_by_module_marker_2026_10_11", "edge_type": "related"}, {"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]

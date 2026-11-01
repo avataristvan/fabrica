@@ -1,6 +1,6 @@
 id: pattern_retrieval_needs_fixed_trigger_in_role_prompt
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1791140685.017904
 edges: [{"target_id": "pattern_look_up_records_when_task_feels_trivial_2026_10_18", "edge_type": "related"}]

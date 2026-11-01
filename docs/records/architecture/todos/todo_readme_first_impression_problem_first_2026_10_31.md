@@ -1,6 +1,6 @@
 id: todo_readme_first_impression_problem_first_2026_10_31
 type: todo
-area: architecture
+topic: architecture
 perspective: user
 created: 1793470101.171786
 edges: [{"target_id": "domain_public_face_experience_report_not_launch_2026_10_24", "edge_type": "related"}]

@@ -1,6 +1,6 @@
 id: learning_haiku_can_run_setup_skill_mostly_eval_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791833919.862938
 edges: [{"target_id": "learning_skill_model_frontmatter_honored_eval_under_real_model_2026_10_12", "edge_type": "derived_from"}]

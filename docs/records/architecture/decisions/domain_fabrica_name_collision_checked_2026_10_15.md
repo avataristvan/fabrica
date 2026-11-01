@@ -1,6 +1,6 @@
 id: domain_fabrica_name_collision_checked_2026_10_15
 type: domain
-area: architecture
+topic: architecture
 perspective: user
 created: 1792061046.611662
 edges: [{"target_id": "domain_framework_named_fabrica_2026_10_10", "edge_type": "related"}]

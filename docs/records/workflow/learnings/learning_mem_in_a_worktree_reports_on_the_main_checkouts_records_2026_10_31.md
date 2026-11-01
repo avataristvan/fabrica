@@ -1,6 +1,6 @@
 id: learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31
 type: learning
-area: workflow
+topic: workflow
 perspective: the-coder
 created: 1793471377.493848
 edges: [{"target_id": "learning_editable_install_python_i_resolves_main_checkout_not_worktree_2026_10_12", "edge_type": "related"}]

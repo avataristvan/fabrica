@@ -1,6 +1,6 @@
 id: pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24
 type: pattern
-area: architecture
+topic: architecture
 perspective: user
 created: 1792868078.426736
 edges: [{"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}, {"target_id": "domain_drop_confidence_for_evidence_and_librarian_2026_09_26", "edge_type": "related"}]

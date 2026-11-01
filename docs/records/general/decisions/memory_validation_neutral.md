@@ -1,6 +1,6 @@
 id: memory_validation_neutral
 type: pattern
-area: general
+topic: general
 perspective: agent
 created: 1785497100.714465
 ---

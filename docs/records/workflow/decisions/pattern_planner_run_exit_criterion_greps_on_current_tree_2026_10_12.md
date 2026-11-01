@@ -1,6 +1,6 @@
 id: pattern_planner_run_exit_criterion_greps_on_current_tree_2026_10_12
 type: pattern
-area: workflow
+topic: workflow
 perspective: reviewer
 created: 1791788133.506723
 cue: I am planning a chunk that adds an agent to a symlink-deployed set

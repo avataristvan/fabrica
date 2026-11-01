@@ -1,6 +1,6 @@
 id: domain_todo_prefix_ambiguity_2026_10_04
 type: domain
-area: workflow
+topic: workflow
 created: 1791140688.298982
 ---
 

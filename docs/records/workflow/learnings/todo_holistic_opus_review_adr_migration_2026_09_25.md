@@ -1,6 +1,6 @@
 id: todo_holistic_opus_review_adr_migration_2026_09_25
 type: learning
-area: workflow
+topic: workflow
 created: 1790371769.29916
 ---
 

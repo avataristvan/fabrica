@@ -1,6 +1,6 @@
 id: learning_setting_sources_drops_user_claude_md_for_claude_p_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791833917.812942
 edges: [{"target_id": "learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12", "edge_type": "related"}, {"target_id": "learning_temp_home_cannot_run_claude_p_2026_10_12", "edge_type": "related"}]

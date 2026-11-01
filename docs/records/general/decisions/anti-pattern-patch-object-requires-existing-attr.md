@@ -1,6 +1,6 @@
 id: anti-pattern-patch-object-requires-existing-attr
 type: anti-pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1785488483.958318
 edges: [{"target_id": "the-coder_python_patchability", "edge_type": "contradicts"}]

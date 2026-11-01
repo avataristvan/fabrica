@@ -1,6 +1,6 @@
 id: pattern_rewiring_grep_old_collection_names_2026_10_11
 type: pattern
-area: plugin
+topic: plugin
 perspective: the-coder
 created: 1791745727.636475
 edges: [{"target_id": "..:pattern_retirement_leaves_stale_consumers", "edge_type": "confirms"}]

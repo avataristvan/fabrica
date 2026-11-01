@@ -1,6 +1,6 @@
 id: learning_config_rewrite_keeps_file_mode_and_backs_up_once_2026_10_12
 type: learning
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791838324.015333
 cue: I am writing an installer or uninstaller that rewrites a user config file such as ~/.claude.json

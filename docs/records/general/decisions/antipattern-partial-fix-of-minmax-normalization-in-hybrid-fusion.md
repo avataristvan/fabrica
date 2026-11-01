@@ -1,6 +1,6 @@
 id: antipattern-partial-fix-of-minmax-normalization-in-hybrid-fusion
 type: anti-pattern
-area: general
+topic: general
 perspective: the-coder
 created: 1785504680.937064
 ---

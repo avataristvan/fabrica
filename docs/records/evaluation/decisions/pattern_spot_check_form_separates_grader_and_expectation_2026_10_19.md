@@ -1,6 +1,6 @@
 id: pattern_spot_check_form_separates_grader_and_expectation_2026_10_19
 type: pattern
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1792362455.907015
 edges: [{"target_id": "pattern_rubric_levels_defined_with_boundary_examples_2026_10_18", "edge_type": "related"}, {"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}]

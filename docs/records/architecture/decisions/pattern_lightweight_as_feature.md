@@ -1,6 +1,6 @@
 id: pattern_lightweight_as_feature
 type: pattern
-area: architecture
+topic: architecture
 created: 1778849285.957444
 edges: [{"target_id": "pattern_quality_at_write_time", "edge_type": "related"}, {"target_id": "pattern_confidence_lifecycle", "edge_type": "related"}]
 ---

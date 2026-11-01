@@ -1,6 +1,6 @@
 id: learning_librarian_matched_out_of_scope_files_again_2026_10_12
 type: learning
-area: evaluation
+topic: evaluation
 perspective: agent
 created: 1791788134.073827
 edges: [{"target_id": "learning_librarian_read_plan_and_handoff_outside_scope_2026_10_12", "edge_type": "confirms"}, {"target_id": "learning_librarian_grepped_outside_scope_again_2026_10_24", "edge_type": "related"}]

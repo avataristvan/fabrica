@@ -1,6 +1,6 @@
 id: todo_mem_cli_simplify_deferred_from_1b4_2026_10_11
 type: todo
-area: plugin
+topic: plugin
 perspective: agent
 created: 1791745728.520275
 edges: [{"target_id": "pattern_lookup_refs_use_consumer_validation_2026_10_11", "edge_type": "related"}]

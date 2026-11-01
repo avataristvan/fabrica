@@ -1,6 +1,6 @@
 id: pattern_quality_at_write_time
 type: pattern
-area: architecture
+topic: architecture
 created: 1789255454.224921
 edges: [{"target_id": "pattern_lightweight_as_feature", "edge_type": "related"}, {"target_id": "domain_archivist_write_threshold_2026_10_19", "edge_type": "related"}]
 ---

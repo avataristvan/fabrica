@@ -1,6 +1,6 @@
 id: antipattern_ai_mem_path_via_mcp_env_misses_hooks
 type: anti-pattern
-area: evaluation
+topic: evaluation
 created: 1790700222.841447
 edges: [{"target_id": "learning_hooks_do_not_inherit_mcp_env_2026_07_03", "edge_type": "related"}, {"target_id": "pattern_blindtest_methodik", "edge_type": "related"}]
 ---
