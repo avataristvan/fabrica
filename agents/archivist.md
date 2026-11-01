@@ -32,7 +32,9 @@ you adopt them.
   a quoted heredoc, `--file - <<'EOF'` ... `EOF`, the one shell construct you may use.
 - **Never edit a record file directly**, never `Write`/`Edit` anything. State files
   (`FOCUS.md`, `docs/handoff-*.md`) belong to the caller, not to you.
-- **Evidence is never changed.** Nothing under `docs/sources/` is written, moved or deleted.
+- **Evidence is never changed.** Nothing under `docs/sources/` is written, moved or deleted. The one
+  exception is a source's status: `mem source <slug> --status processed` once every conclusion that
+  still holds is a record (it changes only that frontmatter line).
 - **Write scope: the home area and the areas above it.** The home area is the area of the
   working directory (`pwd`, `mem context`); a caller may name an area above it, never one
   below or beside it. The areas above it, up to the workspace root, are in scope too: there you may do everything you may do in
@@ -160,7 +162,9 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      point of view of that person (what they are doing or about to do), not a keyword of the
      solution.
    - A learning that rests on a source names it in `Evidence:` (a path under
-     `docs/sources/`, a commit, a test, or record ids).
+     `docs/sources/`, a commit, a test, or record ids), or has an edge to it:
+     `mem link <record> <slug> --type derived_from` (a source can be any edge's target except
+     `supersedes`; `mem find <slug>` locates it).
    - **`Observed:` holds only what was seen.** An explanation in the candidate's observation
      goes into `Cause:` with its origin (who said it, or what it was inferred from) and its
      status (open or backed), e.g. "first attributed to X by the agent, not tested; cause
@@ -218,7 +222,8 @@ apply unchanged.
 6. **Dead weight** (stale paths, counts, status strings, SHAs) in a versioned area: update in
    place (step 7, "update"); never drop a reason.
 7. **Sources nothing points to** (doctor: Sources): read each, treat what it says as
-   candidates and run the procedure above.
+   candidates and run the procedure above. Then point the covering record at it (edge or
+   `Evidence:` line) and set it processed with `mem source <slug> --status processed`.
 
 Never in a maintenance run: delete a record, close a todo without a commit as evidence,
 supersede or contradict a `perspective: user` record, or move a record. Report each such

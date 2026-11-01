@@ -967,3 +967,73 @@ def test_batch_into_hand_kept_target_is_refused(env, tmp_path, capsys):
 
     assert "hand-kept" in capsys.readouterr().err
     assert _tree(tmp_path / "ws") == before
+
+
+def _source(area, slug, text):
+    path = area.records_dir.parent / "sources" / f"{slug}.md"
+    path.parent.mkdir(exist_ok=True)
+    path.write_bytes(text.encode())
+    return path
+
+
+_SOURCE = "---\ntype: research\ndate: 2026-10-01\norigin: a talk\nstatus: unprocessed\n---\n\nstatus: unprocessed is quoted here.\n"
+
+
+def test_source_status_changes_only_the_frontmatter_line(env, capsys):
+    _, _, proj, _ = env
+    path = _source(proj, "talk_x", _SOURCE)
+    assert main(["source", "talk_x", "--status", "processed"]) == 0
+    assert path.read_text() == _SOURCE.replace("status: unprocessed\n---", "status: processed\n---")
+    assert "updated talk_x" in capsys.readouterr().out
+    assert main(["source", "talk_x", "--status", "processed"]) == 0
+    assert "unchanged talk_x" in capsys.readouterr().out
+
+
+def test_source_status_keeps_crlf_line_endings(env):
+    _, _, proj, _ = env
+    path = _source(proj, "talk_x", _SOURCE.replace("\n", "\r\n"))
+    assert main(["source", "talk_x", "--status", "processed"]) == 0
+    assert path.read_bytes() == _SOURCE.replace("status: unprocessed\n---", "status: processed\n---").replace("\n", "\r\n").encode()
+
+
+def test_source_status_refusals(env):
+    _, _, proj, _ = env
+    assert main(["source", "missing", "--status", "processed"]) == 1
+    assert main(["source", "../escape", "--status", "processed"]) == 2
+    bare = _source(proj, "no_front", "just text\n")
+    assert main(["source", "no_front", "--status", "processed"]) == 1
+    assert bare.read_text() == "just text\n"
+    _source(proj, "no_status", "---\ntype: research\n---\nbody\n")
+    assert main(["source", "no_status", "--status", "processed"]) == 1
+    with pytest.raises(SystemExit):
+        main(["source", "no_status", "--status", "done"])
+
+
+def test_link_to_a_source_same_and_cross_area(env):
+    _, _, proj, other = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    _source(proj, "talk_x", _SOURCE)
+    _source(other, "talk_y", _SOURCE)
+    before = (proj.records_dir.parent / "sources" / "talk_x.md").read_bytes()
+
+    assert main(["link", "learning_a", "talk_x", "--type", "derived_from"]) == 0
+    assert main(["link", "learning_a", "talk_y", "--type", "related", "--to-area", str(other.root)]) == 0
+    targets = {edge["target_id"] for edge in _edges_of(proj, "learning_a")}
+    assert targets == {"talk_x", "../other:talk_y"}
+    assert (proj.records_dir.parent / "sources" / "talk_x.md").read_bytes() == before
+
+
+def test_link_refuses_superseding_a_source(env):
+    _, _, proj, _ = env
+    _add("--id", "learning_a", "--type", "learning", "--text", "A.")
+    path = _source(proj, "talk_x", _SOURCE)
+    assert main(["link", "learning_a", "talk_x", "--type", "supersedes"]) == 1
+    assert path.read_text() == _SOURCE
+    assert _edges_of(proj, "learning_a") == []
+
+
+def test_find_hit_in_source(env, capsys):
+    _, _, _, other = env
+    path = _source(other, "talk_y", _SOURCE)
+    assert main(["find", "talk_y"]) == 0
+    assert capsys.readouterr().out.strip() == f"../other:talk_y  {path.resolve()}"

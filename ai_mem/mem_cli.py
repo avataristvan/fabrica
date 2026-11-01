@@ -49,6 +49,7 @@ from ai_mem.infrastructure.areas import (
     search_order,
 )
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
+from ai_mem.infrastructure.source_files import SOURCE_STATUSES, set_status, source_file
 
 OK, CONFLICT, USAGE = 0, 1, 2
 
@@ -166,8 +167,14 @@ def _usable_ref(home: Area, area: Area, entry_id: str) -> bool:
     return True
 
 
+def _source_exists(key: str, slug: str) -> bool:
+    """For AddEdgeUseCase: does the area behind `key` hold the source `slug`?"""
+    area = area_for_key(key)
+    return area is not None and source_file(area.records_dir, slug) is not None
+
+
 def _locate(entry_id: str, home: Area, root: str | None) -> tuple[list[tuple[Area, Path]], int]:
-    """Every record or docs/reference doc named `entry_id` (read-only). Files resolving outside their directory are skipped."""
+    """Every record, docs/reference doc or source named `entry_id` (read-only). Files resolving outside their directory are skipped."""
     if not is_safe_entry_id(entry_id):
         return [], 0
     areas = search_order(home, _search_root(home, root))
@@ -178,6 +185,8 @@ def _locate(entry_id: str, home: Area, root: str | None) -> tuple[list[tuple[Are
         doc = reference_dir(area.records_dir) / f"{entry_id}.md"
         if doc.is_file():
             found.append((doc.parent, doc))
+        if (source := source_file(area.records_dir, entry_id)) is not None:
+            found.append((source.parent, source))
         if found and _usable_ref(home, area, entry_id):
             hits += [(area, path) for directory, path in found if is_contained(path, directory, allow_symlink=False)]
     return hits, len(areas)
@@ -212,7 +221,7 @@ def _link(args: argparse.Namespace) -> int:
 
     repo, key = _repository(), str(area.root)
     try:
-        AddEdgeUseCase(repo, area_refs=AreaRefResolver()).execute(key, source, target, args.type)
+        AddEdgeUseCase(repo, area_refs=AreaRefResolver(), source_exists=_source_exists).execute(key, source, target, args.type)
     except ValueError as exc:
         about_target = not args.to_area and "not found" in str(exc) and repr(args.target) in str(exc)
         raise CliError(f"{exc}{_found_at_hint(area, args.target) if about_target else ''}", CONFLICT) from exc
@@ -232,6 +241,22 @@ def _unlink(args: argparse.Namespace) -> int:
         raise CliError(str(exc), CONFLICT) from exc
     _emit(args, {"action": "unlinked", "source": source, "target": args.target, "types": removed, "area": key},
           f"unlinked {source} --{','.join(removed)}--> {args.target}")
+    return OK
+
+
+def _source(args: argparse.Namespace) -> int:
+    slug = _bare_id(args.slug)
+    area = _area(args.area)
+    path = source_file(area.records_dir, slug)
+    if path is None:
+        raise CliError(f"no source {slug!r} in {area.root} (docs/sources/{slug}.md)", CONFLICT)
+    try:
+        changed = set_status(path, args.status)
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise CliError(str(exc), CONFLICT) from exc
+    action = "updated" if changed else "unchanged"
+    _emit(args, {"action": action, "source": slug, "status": args.status, "path": str(path)},
+          f"{action} {slug}: status {args.status}")
     return OK
 
 
@@ -542,7 +567,12 @@ def _build_parser() -> argparse.ArgumentParser:
     move.add_argument("--scan-root", metavar="DIR", help="where to look for referrers to report (default: common parent of both areas)")
     move.set_defaults(handler=_move)
 
-    find = sub.add_parser("find", parents=[common], help="where an id exists: home area, ancestor areas, then all areas below --root (read-only)")
+    source = sub.add_parser("source", parents=[common], help="set a source's status (only its `status:` frontmatter line changes)")
+    source.add_argument("slug", help="the source's slug: docs/sources/<slug>.md")
+    source.add_argument("--status", required=True, choices=SOURCE_STATUSES)
+    source.set_defaults(handler=_source)
+
+    find = sub.add_parser("find", parents=[common], help="where an id (record, reference doc or source) exists: home area, ancestor areas, then all areas below --root (read-only)")
     find.add_argument("id")
     find.add_argument("--root", metavar="DIR", help="where to look for areas (default: $AI_MEM_WORKSPACE_ROOT, else the parent of the home area)")
     find.set_defaults(handler=_find)

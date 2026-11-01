@@ -97,7 +97,7 @@ status: <unprocessed | processed>
 <ours, dated; the only part that may grow>
 ```
 
-`status: unprocessed` means the archivist has not yet derived what still holds from it. `processed` means every conclusion that still holds exists as a record. A learning or decision that rests on a source names it in its `Evidence:` line by path (`Evidence: docs/sources/<slug>.md`), or has an edge to `<slug>` (lint accepts source slugs as edge targets).
+`status: unprocessed` means the archivist has not yet derived what still holds from it. `processed` means every conclusion that still holds exists as a record. A learning or decision that rests on a source names it in its `Evidence:` line by path (`Evidence: docs/sources/<slug>.md`), or has an edge to `<slug>` (`mem link <record> <slug> --type derived_from`; lint accepts source slugs as edge targets). `mem source <slug> --status processed` sets the status; it is the only change `mem` makes to a source.
 
 `mem doctor` (section Sources) lists sources that are `processed` yet pointed to by no record, sources with a missing field or an unknown status, and current docs that still describe a retired system as current. A doc is marked history on purpose by a `status: historical` frontmatter, or by a `>` banner naming "superseded", "dropped", "historical" or "retired" within its first five lines; the keyword list is `RETIRED_KEYWORDS` in `ai_mem/doctor_sources.py`. Sources with private matter stay out of version control (`.gitignore`) until the user releases them.
 

@@ -11,9 +11,9 @@ from pathlib import Path
 
 from ai_mem.infrastructure.adr_paths import sources_dir
 from ai_mem.infrastructure.areas import Area
+from ai_mem.infrastructure.source_files import SOURCE_STATUSES
 
 SOURCE_FIELDS = ("type", "date", "origin", "status")
-SOURCE_STATUSES = ("unprocessed", "processed")
 RETIRED_KEYWORDS = ("ChromaDB", "MCP server", "BM25", "daemon", "experience index")
 _HISTORICAL_STATUSES = ("historical", "plan")
 _DOC_FOLDERS = ("tutorial", "how-to", "reference", "explanation")

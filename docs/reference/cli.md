@@ -18,6 +18,7 @@ mem add --id current_focus --text "..."                      # writes FOCUS.md
 mem link SOURCE TARGET --type related [--to-area PATH]       # TARGET bare, or <rel-area-path>:<id>
 mem unlink SOURCE TARGET [--type T]                          # TARGET as stored; every type unless --type
 mem find ID [--root DIR] [--json]                            # where an id exists (read-only); exit 1 when nowhere
+mem source SLUG --status processed|unprocessed               # a source's status; only that frontmatter line changes
 mem delete ID...                                             # also prints `dangling: REF --TYPE--> ID` per edge left pointing at it
 mem context [PATH] [--json]                                  # area root, records dir, INDEX/FOCUS paths
 mem context --map [--root DIR] [--json]                      # areas below DIR and the edges between them
@@ -27,11 +28,11 @@ mem lint [--fix] [--json]                                    # check (and normal
 mem doctor [--root DIR] [--days N] [--json]                  # diagnosis of the whole practice, changes nothing
 ```
 
-Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`, `derived_from`. `mem delete` changes no other record: it names each edge in the area that pointed at a deleted record (`dangling:` lines; edges from other areas are left to `mem doctor`), to be repointed with `mem link` or dropped with `mem unlink`. `mem unlink` removes an edge, also one whose target no longer exists; removing a `supersedes` edge also clears `superseded_by` and `valid_until` on the target. The format of the files these commands write: [record format](record-format.md).
+Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`, `derived_from`. `mem delete` changes no other record: it names each edge in the area that pointed at a deleted record (`dangling:` lines; edges from other areas are left to `mem doctor`), to be repointed with `mem link` or dropped with `mem unlink`. A link target may also be a source slug, for every edge type except `supersedes` (a source is frozen); nothing is written into the source. `mem unlink` removes an edge, also one whose target no longer exists; removing a `supersedes` edge also clears `superseded_by` and `valid_until` on the target. The format of the files these commands write: [record format](record-format.md).
 
 ### `mem find`
 
-Searches the home area, its ancestor areas (nearest first), then every other area below `--root` (default `$AI_MEM_WORKSPACE_ROOT`, else the home area's parent); records and `docs/reference/` docs count. Each hit is printed as the reference `mem link` accepts from the home area (bare id, else `<rel-area-path>:<id>`) plus the file path. `mem link` with a bare target missing in the home area still fails, but its error names where `mem find` would find it; it never qualifies for you.
+Searches the home area, its ancestor areas (nearest first), then every other area below `--root` (default `$AI_MEM_WORKSPACE_ROOT`, else the home area's parent); records, `docs/reference/` docs and sources (`docs/sources/<slug>.md`) count. Each hit is printed as the reference `mem link` accepts from the home area (bare id, else `<rel-area-path>:<id>`) plus the file path. `mem link` with a bare target missing in the home area still fails, but its error names where `mem find` would find it; it never qualifies for you.
 
 ### `mem move`
 
