@@ -2,7 +2,7 @@
 
 | id | area | type | title | status |
 |---|---|---|---|---|
-| ai_mem_redesign_2026_06_13 | general | domain | # ai-mem architecture redesign: confidence lifecycle model (2026-06-13) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
+| ai_mem_redesign_2026_06_13 | general | domain | ai-mem architecture redesign: confidence lifecycle model (2026-06-13) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | anti-pattern-patch-object-requires-existing-attr | general | anti-pattern | Tried: removing an unused import (e.g. WORKSPACE_COLLECTION) from a module after | active |
 | anti_pattern_convention_fragility_ai_mem_2026_10_04 | general | learning | Observed: Primary operational risk of ai-mem (assessed 2026-05-08) is convention | active |
 | anti_pattern_eval_loads_repo_under_test_as_plugin_blocks_edits_2026_10_18 | evaluation | anti-pattern | Tried: Running the arm with --plugin-dir pointing at the arm (the repo under tes | active |
@@ -12,21 +12,21 @@
 | antipattern_document_symptom_not_cause | general | anti-pattern | Tried: documenting only the symptom of a hook/component failure (e.g. 'Stop hook | active |
 | antipattern_mem_add_metadata_repass | workflow | anti-pattern | Tried: Manually re-passing all existing metadata fields (access_count, boost_cou | active |
 | arch_critique_push_vs_pull_synthesis_2026_07_31 | architecture | learning | Observed: Two independent devil's-advocate runs (Sonnet, Opus) against ai-mem's  | active |
-| arch_decision_pretool_push_removed_2026_09_12 | architecture | domain | # PreToolUse push removed: return to pure pull for Edit/Write (2026-09-12) | active |
-| arch_decision_push_vs_pull_2026_07_31 | architecture | domain | # Push-vs-pull architecture: decision (2026-07-31) | active |
-| arch_decision_sessionstart_pull_based_2026_09_16 | architecture | domain | # SessionStart becomes pull-based by default (2026-09-16) | active |
-| arch_decision_userprompt_push_removed_2026_09_13 | architecture | domain | # UserPromptSubmit push removed (2026-09-13) | active |
+| arch_decision_pretool_push_removed_2026_09_12 | architecture | domain | PreToolUse push removed: return to pure pull for Edit/Write (2026-09-12) | active |
+| arch_decision_push_vs_pull_2026_07_31 | architecture | domain | Push-vs-pull architecture: decision (2026-07-31) | active |
+| arch_decision_sessionstart_pull_based_2026_09_16 | architecture | domain | SessionStart becomes pull-based by default (2026-09-16) | active |
+| arch_decision_userprompt_push_removed_2026_09_13 | architecture | domain | UserPromptSubmit push removed (2026-09-13) | active |
 | arch_expert_agent_collections | architecture | domain | Decision: subagent.<name> collections serve as a cross-project experience layer  | superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10 |
 | arch_workspace_root_collection_naming | architecture | domain | Decision: When AI_MEM_WORKSPACE_ROOT is set, detect_repo_context() names collect | superseded_by: domain_area_path_is_the_address_of_knowledge_2026_10_10 |
-| bm25_saturating_transform_2026_07_31 | architecture | domain | # BM25 residual min-max flooring: decision & final shipped state (2026-07-31) | active |
+| bm25_saturating_transform_2026_07_31 | architecture | domain | BM25 residual min-max flooring: decision & final shipped state (2026-07-31) | active |
 | chromadb-default-space-is-l2-not-cosine | general | anti-pattern | Tried: assuming ChromaDB get_or_create_collection(name) with no explicit metadat | active |
 | chunk1_daemon_shipped_2026_07_31 | architecture | learning | Observed: A Unix-socket daemon (ai_mem/daemon.py) keeps a warm ChromaMemoryRepos | active |
-| chunk3_access_count_semantics_shipped_2026_07_31 | general | learning | # Push-vs-Pull Chunk 3 shipped: access_count means deliberate use (2026-07-31) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
+| chunk3_access_count_semantics_shipped_2026_07_31 | general | learning | Push-vs-Pull Chunk 3 shipped: access_count means deliberate use (2026-07-31) | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
 | chunk3b_adr_index_shipped_2026_09_25 | architecture | learning | Observed: A second .md file (INDEX.md) in a directory that another command globs | active |
 | chunk5_adr_backfill_shipped_2026_09_25 | general | learning | Chunk 5 shipped: ADR backfill + Decision Records CLAUDE.md section (2026-09-25,  | superseded_by: domain_learning_decision_split_subfolders_2026_09_29 |
 | cross-store-move-bypasses-add-usecase | general | anti-pattern | Tried: implement a cross-store 'move' operation (moving an entity between collec | active |
-| daemon_concurrency_and_embedding_cache_2026_08_23 | architecture | domain | # Daemon concurrency fix (commit 5419baa, 2026-08-23; formerly cited as 7e4b87f) | active |
-| daemon_embedding_cache_per_key_locking_2026_08_23 | architecture | domain | # Embedding cache in ChromaMemoryRepository (commit 5419baa, 2026-08-23; formerl | active |
+| daemon_concurrency_and_embedding_cache_2026_08_23 | architecture | domain | Daemon concurrency fix (commit 5419baa, 2026-08-23; formerly cited as 7e4b87f) | active |
+| daemon_embedding_cache_per_key_locking_2026_08_23 | architecture | domain | Embedding cache in ChromaMemoryRepository (commit 5419baa, 2026-08-23; formerly  | active |
 | ddd-remove-trust-signal-preserve-legacy-data | general | pattern | Removing a numeric trust/score signal (e.g. confidence) that's threaded through  | active |
 | ddd-usecase-preserved-field-needs-followup-upsert-on-fresh-insert | general | pattern | Rule: When a use-case (e.g. AddMemoryUseCase) deliberately preserves a field onl | active |
 | decision_hybrid_fusion_cosine_saturated_bm25_2026_10_04 | general | domain | Decision: BM25 hybrid score = alpha x cosine_raw + (1-alpha) x bm25_sat, with co | superseded_by: domain_file_backend_replaces_chroma_2026_10_04 |
@@ -206,7 +206,7 @@
 | pattern_auto_mode_rewrite_as_new_branch_and_tag_user_runs_overwrite_2026_10_13 | workflow | pattern | Rule: Build the rewritten target as a new branch and a new tag (git commit-tree  | active |
 | pattern_batch_move_builds_destination_map_first_2026_10_12 | records | pattern | Rule: Build the destination map for all rows of a batch first, before planning a | active |
 | pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12 | records | pattern | Rule: A batch move rewrites referrers only in versioned source areas. Referrers  | active |
-| pattern_blindtest_methodik | evaluation | pattern | # Blind-test methodology for ai-mem evaluation | active |
+| pattern_blindtest_methodik | evaluation | pattern | Blind-test methodology for ai-mem evaluation | active |
 | pattern_bubble_up_lookup_stops_at_root_2026_10_11 | plugin | pattern | Rule: A bubble-up (ancestor-walk) search names its stop explicitly (the root) an | active |
 | pattern_bypass_gate_for_safety_signals | general | pattern | Rule: Safety/warning signals (anti-patterns, contradiction alerts) should bypass | active |
 | pattern_check_secondary_edges_before_public_move_2026_10_12 | records | pattern | Rule: Before a move into a public area, check the secondary edges (`related`, `d | active |
@@ -222,7 +222,7 @@
 | pattern_eval_artifacts_outside_agent_readable_corpus | evaluation | pattern | Rule: Eval cases, gold IDs and discriminators are not stored where the tested ag | active |
 | pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13 | records | pattern | Rule: Before making a history public, every ref that is pushed must be clean, no | active |
 | pattern_findings_about_outside_files_go_to_their_topic_area_2026_10_13 | architecture | pattern | Rule: Separate three levels of work in an ai-mem session. (1) Method: the Fabric | active |
-| pattern_gap_test_evaluation | evaluation | pattern | # Gap test: objective evaluation of whether ai-mem helps the agent | active |
+| pattern_gap_test_evaluation | evaluation | pattern | Gap test: objective evaluation of whether ai-mem helps the agent | active |
 | pattern_generic_core_selective_agent_activation | architecture | pattern | Rule: ai-mem's own source must stay agent-agnostic. Per-agent behavior is opt-in | active |
 | pattern_handoff_is_overwritten_not_appended_2026_10_12 | workflow | pattern | Rule: Overwrite the handoff with the current state each time; never only append. | active |
 | pattern_hook_stdin_is_untrusted_2026_10_11 | plugin | pattern | Rule: Treat hook stdin and state paths as untrusted. (1) Accept session_id and o | active |

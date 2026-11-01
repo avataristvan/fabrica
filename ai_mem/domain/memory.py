@@ -121,9 +121,9 @@ _MAX_TITLE_LEN = 80
 
 
 def title_of(text: str, max_len: int = _MAX_TITLE_LEN) -> str:
-    """First non-empty line of an entry's text, truncated: the title in listings, INDEX.md and queries."""
+    """First non-empty line of an entry's text, without a Markdown heading marker, truncated: the title in listings, INDEX.md and queries."""
     for line in text.splitlines():
-        stripped = line.strip()
+        stripped = line.strip().lstrip("#").strip()
         if stripped:
             return stripped[:max_len]
     return ""
