@@ -1,3 +1,5 @@
+> **Historical harness.** `build.py` and `run.sh` mirror the retired collection mode (`ai-mem-records/<collection>`, `AI_MEM_RECORDS_HOME`), removed in commit `fe8403f`; run them from the tag `v1-last-upgrade-path`. The candidates, the expected edges and `result.md` stay as evidence of how the archivist was accepted.
+
 # Archivist acceptance run (chunks 2v, 2a-2)
 
 Does the archivist, given the 18 record candidates of the 2026-10-10 briefing session as plain text and a copy of the
