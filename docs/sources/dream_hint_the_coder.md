@@ -2,7 +2,7 @@
 type: config-note
 date: 2026-10-04
 origin: memory entry dream_hint_the_coder, exported to docs/reference/ on 2026-10-04 (content older)
-status: unprocessed
+status: processed
 ---
 
 ## What the source says

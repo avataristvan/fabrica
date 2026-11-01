@@ -2,7 +2,7 @@
 type: retired-system
 date: 2026-09-26
 origin: docs/reranking.md (confidence lifecycle; page marked dropped 2026-09-26)
-status: unprocessed
+status: processed
 ---
 
 ## What the source says

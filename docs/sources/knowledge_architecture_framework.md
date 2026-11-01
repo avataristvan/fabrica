@@ -2,7 +2,7 @@
 type: retired-system
 date: 2026-10-10
 origin: fabrica area docs/reference/knowledge_architecture_framework.md (an MCP-era note on what goes into CLAUDE.md, MEMORY.md and ai-mem), moved into ai-mem on 2026-10-14
-status: unprocessed
+status: processed
 ---
 
 ## What the source says

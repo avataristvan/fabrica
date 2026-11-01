@@ -2,7 +2,7 @@
 type: retired-system
 date: 2026-10-04
 origin: memory entry automation_memory_demotion, exported to docs/reference/ on 2026-10-04 (content older)
-status: unprocessed
+status: processed
 ---
 
 ## What the source says
