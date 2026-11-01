@@ -22,4 +22,6 @@ this repo's `.claude/settings.local.json` contained two categories of dead entri
 
 See also: arch_decision_pretool_push_removed_2026_09_12, pattern_generic_core_selective_agent_activation.
 
+Evidence: docs/sources/automation_session_stats.md
+
 pseudonymised for publication, 2026-10-31

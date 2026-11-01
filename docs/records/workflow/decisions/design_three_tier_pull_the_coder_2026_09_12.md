@@ -28,3 +28,5 @@ Both roles run through the same `subagent_type="the-coder"` spawn -- a change to
 pr-review-toolkit:code-reviewer (the code-level review-loop reviewer that every the-coder calls internally against its own diff -- see dev-team.md) is not in INJECT_CONTEXT_AGENTS and still gets no ai-mem context -- it was not part of this question, but was checked as a consistency check and deliberately left unchanged.
 
 See also: arch_decision_pretool_push_removed_2026_09_12, arch_decision_push_vs_pull_2026_07_31, hook_routing_subagent, pattern_injection_caps_not_dumps, dream_hint_the_coder.
+
+Evidence: docs/sources/dream_hint_the_coder.md

@@ -10,3 +10,4 @@ cue: Someone asks how a new project gets its first records now that /mem-init is
 Decision: The setup skill (`ai-mem:setup`, successor of /mem-init) does no seeding and writes no records. The first records of a project come from work via `/ai-mem:reflect` and the archivist, or by hand from the tutorial.
 Why: Only the archivist and the user write records; seeding by exploration would bypass the archivist. The librarian found no earlier record deciding this.
 Scope: skills/setup/SKILL.md.
+Evidence: docs/sources/automation_repo_seeder.md (the retired seeder this replaces)
