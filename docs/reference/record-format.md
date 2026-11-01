@@ -49,7 +49,7 @@ Fields are written in a fixed, literal order (`id, type, area, perspective, crea
 | `id` | yes | Record id, matches the filename stem. |
 | `type` | yes | One of `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` (kinds `decisions`, `learnings`, `todos`, `user`). Any other type is rejected by `mem add`. |
 | `area` | yes | Topic folder, matches `^[a-z0-9][a-z0-9_-]*$`; `general` when the record has none. Written directly after `type`. |
-| `perspective` | no | Whose knowledge or experience it is: `user`, `agent`, or a role such as `the-coder` or `reviewer` (`domain_perspective_is_a_lens_not_a_location_2026_10_10`). Same pattern as `area`; written after it. A lens, not a location: it never changes where the file lives. Records of kind `user` keep their kind and also carry `perspective: user`. |
+| `perspective` | no | Whose knowledge or experience it is: `user`, `agent`, or a role such as `coder` or `reviewer` (`domain_perspective_is_a_lens_not_a_location_2026_10_10`). Same pattern as `area`; written after it. A lens, not a location: it never changes where the file lives. Records of kind `user` keep their kind and also carry `perspective: user`. |
 | `created` | yes | ISO-ish timestamp the record was first created. |
 | `superseded_by` | no | Id of the record that supersedes this one, if any. |
 | `valid_until` | no | Timestamp after which this record is considered stale, if set. |

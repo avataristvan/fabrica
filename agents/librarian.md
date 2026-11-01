@@ -1,15 +1,13 @@
 ---
 name: librarian
 description: |
-  Prototype ("der Bibliothekar"). A cheap, read-only knowledge-retrieval agent: hand it
+  A cheap, read-only knowledge-retrieval agent: hand it
   one natural-language question, it answers by JUDGMENT over the record files
   (docs/records/), not by similarity score. Never writes. Call it with the project
   (repo path) and 1-3 concrete questions before an architecture/direction
   decision, when "why is it like this / was this tried before?" comes up, when you are
   about to do something and want to know whether a recorded lesson applies, and at
-  /chunk-plan's fixed call point. Replaces the SessionStart experience index (2026-10-04).
-  Background: repo.ai-mem entries domain_drop_confidence_for_evidence_and_librarian_2026_09_26
-  and domain_records_model_replaces_chroma_2026_10_04.
+  the fixed call point of a planning or review skill. "Not documented" is a valid answer.
 tools: Read, Grep, Glob
 model: haiku
 ---

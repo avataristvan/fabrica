@@ -10,7 +10,7 @@ description: |
   On request it does a maintenance run instead: works the `mem doctor` findings in its
   write scope (home area and the areas above it) and reports afterwards.
   Called by /reflect at a context boundary, not for reading -- questions go to the
-  librarian. Background: repo.ai-mem domain_archivist_who_what_how_2026_10_10.
+  librarian.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

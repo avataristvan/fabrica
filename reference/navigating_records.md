@@ -58,7 +58,7 @@ Each file starts with `key: value` lines, then `---`, then the text:
 | `id` | the file name without `.md` |
 | `type` | `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` |
 | `area` | the topic folder |
-| `perspective` | optional: whose knowledge or experience it is (`user`, `agent`, or a role such as `the-coder`, `reviewer`). A lens, not a location: it never decides where the file lives. Records of kind `user` also carry `perspective: user`. |
+| `perspective` | optional: whose knowledge or experience it is (`user`, `agent`, or a role such as `coder`, `reviewer`). A lens, not a location: it never decides where the file lives. Records of kind `user` also carry `perspective: user`. |
 | `created` | when the record was first written |
 | `superseded_by` | optional: the id of the record that replaces this one |
 | `edges` | optional: one line of JSON, `[{"target_id": ..., "edge_type": ...}]` |

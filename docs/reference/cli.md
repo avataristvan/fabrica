@@ -13,7 +13,7 @@ Exit codes: 0 ok, 1 conflict or not found (or lint findings remain), 2 usage or 
 ```bash
 mem add --id ID --type learning --topic tools --text "..."   # or --file F, or - for stdin
 mem add --id ID --cue "situation in which this helps"        # existing record: only the given fields change
-mem add --id ID --perspective the-coder                      # whose knowledge it is
+mem add --id ID --perspective coder                          # whose knowledge it is
 mem add --id current_focus --text "..."                      # writes FOCUS.md
 mem link SOURCE TARGET --type related [--to-area PATH]       # TARGET bare, or <rel-area-path>:<id>
 mem unlink SOURCE TARGET [--type T]                          # TARGET as stored; every type unless --type
