@@ -48,7 +48,7 @@ Read more: [Organisational memory](docs/explanation/organisational-memory.md) ·
 
 **Does it work?** Not proven. The central claim — seniority lives in the record, not in the agent — was measured once and not confirmed; other parts held. [What we measured](docs/explanation/what-we-measured.md) states what is on probation, what is a hypothesis and what failed.
 
-**Built with itself.** This repository was built the Fabrica way. Its own record is in [`docs/records/`](docs/records/README.md): more than 250 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded.
+**Built with itself.** This repository was built the Fabrica way. Its own record is in [`docs/records/`](docs/records/README.md): more than 250 decisions and learnings, including the dead ends, the measurements and the decisions that were later superseded. [How Fabrica built itself](docs/explanation/how-fabrica-built-itself.md) follows four chains through it.
 
 ## Install
 
@@ -92,7 +92,7 @@ Organised by [Diátaxis](https://diataxis.fr/).
 | **Tutorial** | [Your first records](docs/tutorial/first-records.md) |
 | **How-to** | [Set up your teams and CLAUDE.md](docs/how-to/set-up.md) · [Manage records](docs/how-to/manage-records.md) · [Wire skills and agents](docs/how-to/wire-skills-and-agents.md) · [Develop the plugin](docs/how-to/develop.md) |
 | **Reference** | [Command-line reference](docs/reference/cli.md) · [Record format](docs/reference/record-format.md) · [Hooks](docs/reference/hooks.md) · [Architecture](docs/reference/architecture.md) · [Glossary](docs/reference/glossary.md) |
-| **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [What we measured](docs/explanation/what-we-measured.md) · [Fabrica: the core](docs/fabrica/core.md) · [Fabrica: patterns](docs/fabrica/patterns/README.md) |
+| **Explanation** | [Organisational memory](docs/explanation/organisational-memory.md) · [Areas and kinds of knowledge](docs/explanation/areas-and-kinds.md) · [What we measured](docs/explanation/what-we-measured.md) · [How Fabrica built itself](docs/explanation/how-fabrica-built-itself.md) · [Fabrica: the core](docs/fabrica/core.md) · [Fabrica: patterns](docs/fabrica/patterns/README.md) |
 | **Evidence and history** | [`docs/sources/`](docs/sources/) (dated, frozen evidence: measurements, past designs, retired systems, past handoffs) · [The removed vector-database stack](docs/reference/chroma_rollback_backend.md) · [CHANGELOG](CHANGELOG.md) |
 | **For agents** | [`CLAUDE.md`](CLAUDE.md) (what is true now) · [`skills/handoff-protocol/SKILL.md`](skills/handoff-protocol/SKILL.md) (the boundary contract) · [`agents/`](agents/) · [`examples/agents/`](examples/agents/README.md) · [`reference/navigating_records.md`](reference/navigating_records.md) |
 
