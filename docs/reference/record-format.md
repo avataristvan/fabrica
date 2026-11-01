@@ -22,7 +22,7 @@ Records are not limited to software architecture: a topic can just as well be `m
 
 - An area is addressed by its folder: the nearest ancestor (inclusive) of a path that has a `docs/records/` directory. A path inside `docs/records/` belongs to the folder that holds it. A CLAUDE.md is not needed, the area need not be a version-controlled repository, and worktree paths count as their main checkout (`domain_area_path_is_the_address_of_knowledge_2026_10_10`). Code: `ai_mem/infrastructure/areas.py`.
 - An edge target inside the same area is a bare id. An edge target in another area is `<rel>:<id>`: `<rel>` is the POSIX path from the source area's folder to the target area's folder, and always starts with `.` or `..`:
-  - `../ai-architecture:learning_x` (sibling area)
+  - `../billing:learning_x` (sibling area)
   - `..:pattern_y` (the enclosing area, e.g. the root area) and `./sub:domain_z` (nested area)
 - Rejected: absolute paths, `~`, empty segments, `..` after a plain segment, `.` or `..` in the middle, backslashes, glob characters, NUL, and an id that is not a valid filename stem. Ids therefore never contain `:` (the split is at the last `:`). A reference that does not lead to a folder with `docs/records/` does not resolve.
 - Cross-area edges are stored only on the source record, in the same `edges` field; nothing is written into the other area. `supersedes` across areas is refused, since it would set `superseded_by` there: use `related` or `derived_from`, and supersede inside the target area itself. Older readers see a qualified target as an id they cannot find, which breaks nothing.

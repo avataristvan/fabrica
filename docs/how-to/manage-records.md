@@ -2,6 +2,8 @@
 
 Everyday tasks with the `mem` CLI. Every command acts on the nearest area of the working directory (`--area PATH` overrides). Flags: [command-line reference](../reference/cli.md).
 
+With the plugin installed, `mem` is on the PATH inside Claude Code: ask the session to run a command, or type it yourself with a leading `!` (`!mem lint`). In a plain terminal, put the plugin's `bin/` on the PATH first ([Try it](../../README.md#try-it)).
+
 ## Supersede an outdated record
 
 Write the new record, then mark the old one as overtaken instead of deleting it:
@@ -37,12 +39,15 @@ Edges are re-qualified and referrers in the source area rewritten; referrers els
 
 ## Rename or move a whole area
 
+Say your projects live in `~/code` and the area `~/code/billing` is to become `~/code/payments`:
+
 ```bash
-mem move-area ai-mem fabrica --root ~/workspace --dry-run   # rewrites, rename, blockers, what is left to you
-mem move-area ai-mem fabrica --root ~/workspace
+cd ~/code
+mem move-area billing payments --root . --dry-run   # rewrites, rename, blockers, what is left to you
+mem move-area billing payments --root .
 ```
 
-Every reference into and out of the area, in edges and in record text, is rewritten across the workspace, then the folder is renamed. Areas that would be written must be under git (or pass `--include-unversioned`) and have a generated INDEX.md (`mem lint --fix` there first). Afterwards, work through the `left to you:` lines (worktrees, editable install, Claude Code project memory, config files), then run `mem doctor --root ~/workspace`.
+`--root` is the folder that holds all your areas: every area below it is searched for references into the moved one. Every reference into and out of the area, in edges and in record text, is rewritten, then the folder is renamed. Areas that would be written must be under git (or pass `--include-unversioned`) and have a generated INDEX.md (`mem lint --fix` there first). Afterwards, work through the `left to you:` lines (linked worktrees, the Claude Code project memory of the old path, config files that name it), then run `mem doctor --root .`.
 
 ## Adopt hand-written records
 

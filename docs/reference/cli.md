@@ -41,7 +41,7 @@ Renames or moves a folder that is an area or holds areas, together with every re
 
 It refuses before writing anything when the target exists, lies inside the folder or on another filesystem, when a record's edges field is malformed, when an area it would write has a hand-kept INDEX.md, or when such an area is not under git (no undo; `--include-unversioned` allows it). With `--dry-run` it prints every rewrite, the rename, what blocks it and what is left to you, and changes nothing. Records are rewritten before the folder is renamed, so an interrupted run can be started again.
 
-What a move also breaks outside the records is reported as `left to you:` and never touched: linked git worktrees (with the `git worktree repair` command), an editable install that still maps to the old path, the Claude Code project memory folder of the old path, and config files (`CLAUDE.md`, `CLAUDE.local.md`, `.mcp.json`, `.claude/settings*.json` in the workspace and its areas, `~/.claude/` files) that name the old path.
+What a move also breaks outside the records is reported as `left to you:` and never touched: linked git worktrees (with the `git worktree repair` command), an editable install that still maps to the old path (only when you develop the plugin itself), the Claude Code project memory folder of the old path, and config files (`CLAUDE.md`, `CLAUDE.local.md`, `.mcp.json`, `.claude/settings*.json` in the workspace and its areas, `~/.claude/` files) that name the old path.
 
 ### `mem move`
 
