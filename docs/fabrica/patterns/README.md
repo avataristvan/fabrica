@@ -1,8 +1,8 @@
 # Fabrica: patterns
 
-> Draft. The how of Fabrica, as a pattern language after Christopher Alexander. The [core](../core.md) says what has to be in place; the patterns say how, and each one is optional.
+> Version 0.1, open to change. The how of Fabrica, as a pattern language after Christopher Alexander. The [core](../core.md) says what has to be in place; the patterns say how, and each one is optional.
 
-Every pattern names a problem, the forces that pull against each other, a solution, its status, the evidence for that status, and a related practice from Lean or from software. The evidence is the record of how ai-mem was built: [`docs/records/`](../../records/INDEX.md).
+Every pattern names a problem, the forces that pull against each other, a solution, its status, the evidence for that status, and a related practice from Lean or from software. The evidence is the record of how this repository was built: [`docs/records/`](../../records/README.md).
 
 ## Status
 

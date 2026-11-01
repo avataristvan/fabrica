@@ -1,6 +1,6 @@
 # Tutorial: your first records
 
-You will create an area, write a decision and the learning it rests on, link them, set a focus, and check the result with `mem lint` and `mem doctor`. It takes about ten minutes and needs only `mem` on your path (see the install section of the [README](../../README.md)). Nothing here touches a project you care about: use a scratch folder.
+You will create an area, write a decision and the learning it rests on, link them, set a focus, and check the result with `mem lint` and `mem doctor`. It takes about ten minutes and needs only `mem` on your path: inside Claude Code it is there once the plugin is installed; in a plain terminal run `export PATH="<your fabrica checkout>/bin:$PATH"` (see [Try it](../../README.md#try-it)). Nothing here touches a project you care about: use a scratch folder.
 
 ## 1. Make an area
 

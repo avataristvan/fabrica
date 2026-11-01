@@ -6,7 +6,8 @@ This page is state, like `FOCUS.md`: a session that coins a term or changes what
 
 | Term | Means | Not to be confused with |
 |---|---|---|
-| **Fabrica** | The method: conventions, roles, rituals and artifacts for working with agents. ai-mem is its memory. | |
+| **Fabrica** | The method: conventions, roles, rituals and artifacts for working with agents. Also the name of the Claude Code plugin that implements it. | |
+| **ai-mem** | The memory part of the plugin: the record files and the `mem` command (Python package `ai_mem`). | the method |
 | **area** | A folder that holds `docs/records/`. It is the address of knowledge; areas can nest. | a git repo; a collection; the frontmatter key `area:` (that one names the topic) |
 | **topic** | The subfolder inside an area's records that a record sits in (`architecture`, `workflow`, ...). | area |
 | **collection** | The old name for a store of records (`repo.<x>`, `global`, `workspace`, `subagent.*`). Nothing uses it any more. | area |
@@ -27,3 +28,9 @@ This page is state, like `FOCUS.md`: a session that coins a term or changes what
 | **archivist** | The default writer: integrates candidates on write (edges, supersede, area). | the only writer |
 | **orchestrator** | The main session. It runs `/reflect` and writes state directly. | |
 | **retro** | The block a subagent ends with: learned, blocked, next, record candidates, records consulted. | `/reflect` |
+| **Taskly** | The short retrospective at the end of a session or chunk: what was learned, what blocked, what comes next. In a subagent it is the `[retro]` block; in the main session, `/fabrica:reflect`. | a status report |
+| **Navigator** | The human who sets direction, states the charter and owns the decisions. The plugin docs call this person the user. | the orchestrator |
+| **chunk** | One independently deliverable, verifiable piece of a larger task, handed to one coding agent. | a commit |
+| **anchor** | A record id a chunk must respect; `fabrica:anchor-lint` checks the diff against each anchor. | an edge |
+| **mem-dream** | An optional pass over an area that proposes maintenance (merges, supersedes, stale records); it never applies them. | the archivist |
+| **seniority** | Knowing what was already tried and why it was rejected, and pushing back with that reason unasked. Fabrica's claim is that it can live in the record. | experience of the model |
