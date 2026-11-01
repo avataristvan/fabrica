@@ -4,6 +4,10 @@
 
 Entries are newest first; a later entry can remove what an earlier one kept.
 
+### Changed: frontmatter key `topic:` replaces `area:`
+
+- The record key that names the topic folder (`docs/records/<topic>/<kind>/<id>.md`) is now `topic:`; `area:` was easily mistaken for an area (a folder holding `docs/records/`). The reader accepts both, the writer writes `topic:` at the old position, and the INDEX.md column is `topic`. `mem lint` reports a legacy `area:` as the fixable finding `legacy-topic-key` and `mem lint --fix` renames it and changes nothing else; both keys present with different values is `topic-conflict` (not fixable).
+
 ### Changed: the plugin is fabrica
 
 - Plugin and marketplace are renamed `fabrica@fabrica` (was `ai-mem@ai-mem`): agents are `fabrica:<agent>`, skills `/fabrica:<skill>`. The Python package `ai_mem` and the `mem` command keep their names. `mem doctor` and the reflect reminder still accept the old names, so an installation that has not reinstalled is not reported as unwired.

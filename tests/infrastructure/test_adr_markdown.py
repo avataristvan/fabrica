@@ -9,14 +9,14 @@ from ai_mem.infrastructure.adr_markdown import ParsedAdr, check_extra_frontmatte
 def test_perspective_is_written_after_area_and_roundtrips():
     md = serialize("user_x", "user", "body", {"area": "workflow", "perspective": "user", "created_at": 1.0})
 
-    assert md.startswith("id: user_x\ntype: user\narea: workflow\nperspective: user\ncreated: 1.0\n")
+    assert md.startswith("id: user_x\ntype: user\ntopic: workflow\nperspective: user\ncreated: 1.0\n")
     assert parse(md).perspective == "user"
     assert parse(serialize("d", "domain", "b", {})).perspective is None
 
 
 def test_unknown_keys_are_preserved_before_cue_in_their_own_order():
     md = (
-        "id: domain_x\ntype: domain\narea: arch\ncreated: 1.0\n"
+        "id: domain_x\ntype: domain\ntopic: arch\ncreated: 1.0\n"
         'edges: [{"target_id": "../other:l", "edge_type": "related"}]\n'
         "status: accepted\nDatum: 2026-10-10\nempty:\ncue: when x\n---\n\nDecision: X"
     )
@@ -159,7 +159,7 @@ def test_serialize_omits_absent_optional_fields():
     md = serialize("domain_foo", "domain", "body", metadata={})
 
     frontmatter = md.split("\n---\n\n", 1)[0]
-    assert frontmatter == "id: domain_foo\ntype: domain\narea: general"
+    assert frontmatter == "id: domain_foo\ntype: domain\ntopic: general"
 
 
 def test_parse_missing_separator_raises():
@@ -213,7 +213,7 @@ def test_frontmatter_order_puts_area_after_type():
         {"area": "hooks", "created_at": 1.0, "superseded_by": "domain_y", "valid_until": 2.0, "edges": [{"target_id": "t", "edge_type": "confirms"}]},
     )
     keys = [line.split(":")[0] for line in md.split("\n---\n")[0].splitlines()]
-    assert keys == ["id", "type", "area", "created", "superseded_by", "valid_until", "edges"]
+    assert keys == ["id", "type", "topic", "created", "superseded_by", "valid_until", "edges"]
     assert parse(md).area == "hooks"
 
 
@@ -224,7 +224,7 @@ def test_legacy_file_without_area_parses_as_general():
 
 def test_roundtrip_default_area_is_byte_identical():
     md = serialize("domain_x", "domain", "body", {"created_at": 1.0})
-    assert "area: general\n" in md
+    assert "topic: general\n" in md
     parsed = parse(md)
     again = serialize(
         parsed.id, parsed.type, parsed.text,
@@ -238,3 +238,12 @@ def test_learning_type_roundtrips_with_area():
     md = serialize("learning_x", "learning", "Observed: a\nCause: unknown\nEvidence: b", {"area": "search"})
     parsed = parse(md)
     assert (parsed.type, parsed.area) == ("learning", "search")
+
+
+def test_parse_reads_new_and_legacy_topic_key_and_serialize_writes_topic():
+    new = parse("id: a\ntype: learning\ntopic: hooks\n---\n\nbody")
+    legacy = parse("id: a\ntype: learning\narea: hooks\n---\n\nbody")
+    assert new.area == legacy.area == "hooks" and not legacy.extra
+    assert parse("id: a\ntype: learning\ntopic: x\narea: y\n---\n\nb").area == "x"
+    md = serialize("a", "learning", "body", {"area": legacy.area})
+    assert md.startswith("id: a\ntype: learning\ntopic: hooks\n---") and "area:" not in md

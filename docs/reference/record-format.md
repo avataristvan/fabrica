@@ -4,14 +4,14 @@ Reference for the on-disk format of records: directory layout, frontmatter schem
 
 Records are not limited to software architecture: a topic can just as well be `marketing`, `pricing` or `ops`. Any knowledge of an area that is worth keeping as a reviewable, versioned record fits.
 
-**Terms.** An **area** is a folder that holds `docs/records/` (see "Areas and cross-area references" below). A **topic** is the subfolder inside `docs/records/` that a record sits in; the frontmatter key for it keeps its old name `area:` for compatibility, so "`area:` field = topic folder". CLI flags call it `--topic`.
+**Terms.** An **area** is a folder that holds `docs/records/` (see "Areas and cross-area references" below). A **topic** is the subfolder inside `docs/records/` that a record sits in; the frontmatter key for it is `topic:`, and so is the CLI flag `--topic`. Old records may still carry the legacy key `area:` (same meaning); it is read, never written, and `mem lint --fix` renames it.
 
 ## Directory convention
 
 - Root: `<area>/docs/records/` by default.
 - Override the root via the `AI_MEM_ADR_DIR` environment variable (a path relative to the area, e.g. `AI_MEM_ADR_DIR=notes/adr`).
 - Layout: `<root>/<topic>/<kind>/<id>.md`, topic first, then kind.
-  - `<topic>` is the record's `area:` field (see "Topic" below).
+  - `<topic>` is the record's `topic:` field (see "Topic" below).
   - `<kind>` is derived from `type` by one fixed map: `learning` -> `learnings/`; `domain`, `pattern`, `anti-pattern` -> `decisions/`; `todo` -> `todos/`; `user` -> `user/`.
 - Learnings (what was observed) and decisions (what was chosen because of it) are separate records in separate folders; a decision links back to the learning it rests on via a `derived_from` edge (`domain_learning_decision_split_subfolders_2026_09_29`). A type or topic change moves the file.
 - Filename: `<id>.md`. Ids are unique per area and semantically named (e.g. `domain_bmad_vs_ai_mem_epistemology_2026_09_25`), so no sequence number is needed.
@@ -33,12 +33,13 @@ Records are not limited to software architecture: a topic can just as well be `m
 - No frontmatter: the file is the plain text plus a trailing newline. It is overwritten in place and version control keeps the history.
 - Not a record: never listed in `INDEX.md`, and `FOCUS` is a reserved id stem like `INDEX`/`README`. Deleting `current_focus` removes the file.
 
-## Topic (`area:` field)
+## Topic (`topic:` field)
 
-- Frontmatter key `area`, set with `mem add --topic`. It names the topic folder, not the area.
+- Frontmatter key `topic`, set with `mem add --topic`. It names the topic folder, not the area.
+- Legacy key `area:` (the old name): read as `topic:`. If both keys are present and differ, `lint` reports `topic-conflict`; the reader then uses `topic:`.
 - Default when missing: `general`. Legacy files without the field parse as `general`.
 - Must match `^[a-z0-9][a-z0-9_-]*$`. An invalid topic makes the write fail (like an unsafe id).
-- `serialize` always writes the `area` line (`general` when there is none), so a parse/serialize round trip is byte-identical.
+- `serialize` always writes the `topic` line (`general` when there is none). A parse/serialize round trip is byte-identical for files that use `topic:`; a file with the legacy `area:` comes back with `topic:` until `mem lint --fix` has renamed it.
 
 ## Frontmatter schema
 
@@ -48,8 +49,8 @@ Fields are written in a fixed, literal order (`id, type, area, perspective, crea
 |---|---|---|
 | `id` | yes | Record id, matches the filename stem. |
 | `type` | yes | One of `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` (kinds `decisions`, `learnings`, `todos`, `user`). Any other type is rejected by `mem add`. |
-| `area` | yes | Topic folder, matches `^[a-z0-9][a-z0-9_-]*$`; `general` when the record has none. Written directly after `type`. |
-| `perspective` | no | Whose knowledge or experience it is: `user`, `agent`, or a role such as `coder` or `reviewer` (`domain_perspective_is_a_lens_not_a_location_2026_10_10`). Same pattern as `area`; written after it. A lens, not a location: it never changes where the file lives. Records of kind `user` keep their kind and also carry `perspective: user`. |
+| `topic` | yes | Topic folder, matches `^[a-z0-9][a-z0-9_-]*$`; `general` when the record has none. Written directly after `type`. |
+| `perspective` | no | Whose knowledge or experience it is: `user`, `agent`, or a role such as `coder` or `reviewer` (`domain_perspective_is_a_lens_not_a_location_2026_10_10`). Same pattern as `topic`; written after it. A lens, not a location: it never changes where the file lives. Records of kind `user` keep their kind and also carry `perspective: user`. |
 | `created` | yes | ISO-ish timestamp the record was first created. |
 | `superseded_by` | no | Id of the record that supersedes this one, if any. |
 | `valid_until` | no | Timestamp after which this record is considered stale, if set. |
@@ -70,7 +71,7 @@ After the frontmatter, the record's raw text body follows unchanged. The body sh
 
 ## INDEX.md
 
-`<root>/INDEX.md` is generated from a recursive scan of all record files by `mem lint --fix` (and kept in step by `mem add`, `mem link`, `mem delete` and `mem move`). Columns: `id | area | type | title | status`. Do not edit it by hand: a hand-kept or stale INDEX.md makes the write commands refuse until `mem lint --fix` has adopted the area.
+`<root>/INDEX.md` is generated from a recursive scan of all record files by `mem lint --fix` (and kept in step by `mem add`, `mem link`, `mem delete` and `mem move`). Columns: `id | topic | type | title | status`. Do not edit it by hand: a hand-kept or stale INDEX.md makes the write commands refuse until `mem lint --fix` has adopted the area.
 
 ## Fields that are not stored
 
@@ -110,14 +111,16 @@ status: <unprocessed | processed>
 | `unparsable` | frontmatter cannot be read: no `---` separator, a line that is not `key: value` (e.g. bold labels), a duplicate key, a symlink or a file resolving outside the records directory | no |
 | `frontmatter-shape` | leading `---` fence, or no blank line after the closing `---` | yes |
 | `frontmatter-format` | field order or spacing differs from the canonical form | yes |
-| `missing-field` | `id`/`type` missing (no), `area:`/`created:` missing (yes) | partly |
+| `missing-field` | `id`/`type` missing (no), `topic:`/`created:` missing (yes) | partly |
+| `legacy-topic-key` | the legacy key `area:` instead of `topic:` (`--fix` renames it in place and changes nothing else; if `topic:` is also present and equal, the `area:` line is dropped) | yes |
+| `topic-conflict` | `topic:` and the legacy `area:` are both present and differ | no |
 | `bad-number` | `created` or `valid_until` is not a number | no |
 | `value-chars` | a frontmatter value contains control or line-break characters | no |
 | `id-stem`, `id-colon`, `id-chars`, `id-unsafe` | id differs from the file name, contains `:`, contains control characters, or is not a safe file stem | no |
-| `type-invalid`, `type-folder`, `topic-folder`, `layout` | type not a record type; file not in the kind folder of its type; `area:` differs from the topic folder; file not at `<topic>/<kind>/<id>.md` | no |
+| `type-invalid`, `type-folder`, `topic-folder`, `layout` | type not a record type; file not in the kind folder of its type; `topic:` differs from the topic folder; file not at `<topic>/<kind>/<id>.md` | no |
 | `perspective-user` | a `user` record without `perspective: user` (a different non-empty value is reported, not overwritten) | yes, when empty |
 | `edges-json`, `edge-type`, `edge-target-invalid` | `edges` is not a JSON list of `{target_id, edge_type}`; unknown edge type; target not a valid id or `<area-path>:<id>` | no |
 | `edge-dangling`, `edge-unresolved`, `edge-dangling-xarea` | bare target absent from the area; qualified target points at no area; qualified target absent from the area it points at | by `--fix` when the id lives in exactly one area (flag stays `false`: lint does not scan other areas) |
 | `index-missing`, `index-stale` | INDEX.md absent, or different from what the generator writes (hand-written tables with links count) | yes |
 
-`--fix` writes only inside the given area and prints one line per change. It rewrites a file's frontmatter into the canonical form (drops a leading `---` fence, inserts the missing blank line, fills `area:` from the topic folder, fills `created:` from the file's first commit time, else its mtime, sets `perspective: user` on user records, orders the known keys canonically, keeps unknown keys in their order before `cue`) and then regenerates INDEX.md. It also repoints a lost edge target (an area moved, so the prefix went stale) when its id exists in exactly one area below the search root (`$AI_MEM_WORKSPACE_ROOT`, else the outermost area above, else the parent folder); an id found in no area or in several stays as it is and is still reported. Only the source record in the given area is rewritten. This is no judgment, unlike repointing an edge to a deleted todo (`domain_mem_delete_names_dangling_edges_2026_10_13`): there is one place the id can mean. The body is never touched. Before writing, a preservation guard re-reads the new text and requires the body to be identical, every original non-empty frontmatter value to be present (the `edges` value may differ only in targets, with the same edge types in the same order), and the result to parse with the normal reader; otherwise the file is reported as not fixable and left as it is. Symlinked records are never read or written.
+`--fix` writes only inside the given area and prints one line per change. It rewrites a file's frontmatter into the canonical form (drops a leading `---` fence, inserts the missing blank line, renames a legacy `area:` to `topic:`, fills `topic:` from the topic folder, fills `created:` from the file's first commit time, else its mtime, sets `perspective: user` on user records, orders the known keys canonically, keeps unknown keys in their order before `cue`) and then regenerates INDEX.md. It also repoints a lost edge target (an area moved, so the prefix went stale) when its id exists in exactly one area below the search root (`$AI_MEM_WORKSPACE_ROOT`, else the outermost area above, else the parent folder); an id found in no area or in several stays as it is and is still reported. Only the source record in the given area is rewritten. This is no judgment, unlike repointing an edge to a deleted todo (`domain_mem_delete_names_dangling_edges_2026_10_13`): there is one place the id can mean. The body is never touched. Before writing, a preservation guard re-reads the new text and requires the body to be identical, every original non-empty frontmatter value to be present (the `edges` value may differ only in targets, with the same edge types in the same order), and the result to parse with the normal reader; otherwise the file is reported as not fixable and left as it is. Symlinked records are never read or written.

@@ -9,7 +9,7 @@ from ai_mem.infrastructure.adr_index import regenerate_index
 
 GOOD = """id: learning_good
 type: learning
-area: general
+topic: general
 created: 1791630404.0
 ---
 
@@ -107,6 +107,6 @@ def test_symlinked_records_directory_is_not_followed(tmp_path: Path) -> None:
 def test_reason_carries_codes_not_record_text(tmp_path: Path) -> None:
     area = _area(tmp_path)
     bad = area / "docs" / "records" / "general" / "learnings" / "learning_bad.md"
-    bad.write_text("id: learning_bad\ntype: learning\narea: general\nedges: [{\"target_id\": \"SECRETTEXT\", \"edge_type\": \"related\"}]\n---\nbody\n")
+    bad.write_text("id: learning_bad\ntype: learning\ntopic: general\nedges: [{\"target_id\": \"SECRETTEXT\", \"edge_type\": \"related\"}]\n---\nbody\n")
     out = lint_after_write.handle(_event(bad))
     assert out and "SECRETTEXT" not in out["reason"]

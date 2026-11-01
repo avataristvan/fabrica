@@ -590,7 +590,7 @@ def _build_parser() -> argparse.ArgumentParser:
     add = sub.add_parser("add", parents=[common], help="create a record, or update fields of an existing one")
     add.add_argument("--id", required=True)
     add.add_argument("--type")
-    add.add_argument("--topic", help="topic folder (the frontmatter `area:` key)")
+    add.add_argument("--topic", help="topic folder (the frontmatter `topic:` key)")
     add.add_argument("--perspective")
     add.add_argument("--cue", help="situation in which the record helps; empty string clears it")
     add.add_argument("--text")

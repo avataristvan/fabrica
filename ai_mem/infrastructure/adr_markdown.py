@@ -11,8 +11,9 @@ from ai_mem.infrastructure.adr_paths import DEFAULT_AREA
 
 _FRONTMATTER_SEPARATOR = "\n---\n\n"
 # Order `serialize` writes the known keys in; unknown keys follow, `cue` is last. Lint's normaliser reuses it.
-KEY_ORDER = ("id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges")
-KNOWN_KEYS =frozenset({"id", "type", "area", "perspective", "created", "superseded_by", "valid_until", "edges", "cue"})
+KEY_ORDER = ("id", "type", "topic", "perspective", "created", "superseded_by", "valid_until", "edges")
+LEGACY_TOPIC_KEY = "area"  # old name of `topic:`; read everywhere, written never
+KNOWN_KEYS = frozenset({"id", "type", "topic", LEGACY_TOPIC_KEY, "perspective", "created", "superseded_by", "valid_until", "edges", "cue"})
 # Telemetry that is never persisted: dropped from a file's frontmatter, never carried as an extra key.
 _VOLATILE_KEYS = frozenset({"confidence", "access_count", "boost_count", "last_accessed_at", "expires_at"})
 EXTRA_FRONTMATTER = "extra_frontmatter"  # metadata slot carrying unknown frontmatter keys through a rewrite
@@ -53,7 +54,7 @@ def _canonical_edges(raw_edges) -> list[dict] | None:
 def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     """Render an ADR-style Markdown document: fixed-order frontmatter + separator + raw text.
 
-    Field order is hard-coded (id, type, area, perspective, created, superseded_by, valid_until, edges,
+    Field order is hard-coded (id, type, topic, perspective, created, superseded_by, valid_until, edges,
     <unknown keys from `metadata["extra_frontmatter"]` in their own order>, cue) and never
     derived from metadata's own key order, so that two logically-identical entries always
     serialize byte-identically regardless of dict insertion order — a downstream diff-before-
@@ -62,9 +63,9 @@ def serialize(entry_id: str, entry_type: str, text: str, metadata: dict) -> str:
     even if present in `metadata`. `cue` is: it carries the experience index, which must survive
     without ChromaDB (domain_records_model_replaces_chroma_2026_10_04).
     """
-    # `area` is always written (default `general`) so serialize(parse(x)) is byte-identical
-    # even for entries whose Chroma metadata has no area.
-    lines = [f"id: {entry_id}", f"type: {entry_type}", f"area: {metadata.get('area') or DEFAULT_AREA}"]
+    # `topic` is always written (default `general`) so serialize(parse(x)) is byte-identical
+    # even for entries whose metadata has no topic. The in-memory metadata key stays `area`.
+    lines = [f"id: {entry_id}", f"type: {entry_type}", f"topic: {metadata.get('area') or DEFAULT_AREA}"]
 
     perspective = metadata.get("perspective")
     if perspective:
@@ -165,7 +166,7 @@ def parse(markdown_text: str) -> ParsedAdr:
         superseded_by=fields.get("superseded_by") or None,
         valid_until=valid_until,
         edges=edges,
-        area=fields.get("area") or DEFAULT_AREA,
+        area=fields.get("topic") or fields.get(LEGACY_TOPIC_KEY) or DEFAULT_AREA,
         cue=fields.get("cue") or None,
         perspective=fields.get("perspective") or None,
         extra={key: value for key, value in fields.items() if key not in KNOWN_KEYS and key not in _VOLATILE_KEYS},

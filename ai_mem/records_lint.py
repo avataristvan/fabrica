@@ -43,7 +43,7 @@ OK, FINDINGS, USAGE = 0, 1, 2
 _EDGE_TYPES = frozenset(get_args(EdgeType))
 _INDEX_FILENAME = "INDEX.md"
 _KEY = re.compile(r"^[A-Za-z0-9_-]+$")
-_FIXABLE_REQUIRED = ("area", "created")
+_FIXABLE_REQUIRED = ("topic", "created")
 _GIT_TIMEOUT = 20
 
 
@@ -62,6 +62,8 @@ class Code:
     TYPE_INVALID = "type-invalid"
     TYPE_FOLDER = "type-folder"
     TOPIC_FOLDER = "topic-folder"
+    LEGACY_TOPIC_KEY = "legacy-topic-key"
+    TOPIC_CONFLICT = "topic-conflict"
     LAYOUT = "layout"
     PERSPECTIVE_USER = "perspective-user"
     EDGES_JSON = "edges-json"
@@ -143,11 +145,29 @@ def _split(text: str) -> tuple[list[tuple[str, str]], str, bool, bool] | str:
     return fields, body, leading, blank_missing
 
 
-def _canonical(fields: list[tuple[str, str]], body: str) -> str:
+def _modernise(fields: list[tuple[str, str]]) -> tuple[list[tuple[str, str]], bool]:
+    """`fields` with the legacy `area:` key renamed to `topic:` in place, and whether the two keys disagree.
+
+    With both keys present and equal the legacy line is dropped; with differing values both stay (a conflict
+    lint reports and `--fix` refuses).
+    """
+    legacy = adr_markdown.LEGACY_TOPIC_KEY
+    values = dict(fields)
+    if legacy not in values:
+        return fields, False
+    if "topic" not in values:
+        return [("topic" if key == legacy else key, value) for key, value in fields], False
+    if values["topic"] == values[legacy]:
+        return [(key, value) for key, value in fields if key != legacy], False
+    return fields, True
+
+
+def _canonical(fields: list[tuple[str, str]], body: str, topic_key: str = "topic") -> str:
     values = dict(fields)
     ordered = [(key, values[key]) for key in adr_markdown.KEY_ORDER if key in values]
     ordered += [(key, value) for key, value in fields if key not in adr_markdown.KNOWN_KEYS]
     ordered += [(key, values[key]) for key in ("cue",) if key in values]
+    ordered = [(topic_key if key == "topic" else key, value) for key, value in ordered]
     lines = [f"{key}: {value}" if value else f"{key}:" for key, value in ordered]
     return "\n".join(lines) + "\n---\n\n" + body
 
@@ -268,13 +288,20 @@ def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]
     if record.fields is None:
         add(Code.UNPARSABLE, f"frontmatter cannot be read: {record.problem}")
         return
-    fields = dict(record.fields)
-    entry_id, entry_type, topic = fields.get("id", ""), fields.get("type", ""), fields.get("area", "")
+    modern, conflict = _modernise(record.fields)
+    fields = dict(modern)
+    entry_id, entry_type, topic = fields.get("id", ""), fields.get("type", ""), fields.get("topic", "")
+    legacy_key = adr_markdown.LEGACY_TOPIC_KEY
+    legacy = legacy_key in dict(record.fields)
+    if conflict:
+        add(Code.TOPIC_CONFLICT, f"topic: {fields['topic']!r} and legacy area: {dict(record.fields)[legacy_key]!r} differ")
+    elif legacy:
+        add(Code.LEGACY_TOPIC_KEY, "legacy key 'area:' (now 'topic:')", True)
     shape = [reason for reason, present in (("leading '---' fence", record.leading_fence),
                                             ("no blank line after the closing '---'", record.blank_missing)) if present]
     if shape:
         add(Code.FRONTMATTER_SHAPE, "; ".join(shape), True)
-    elif record.text != _canonical(record.fields, record.body):
+    elif not conflict and record.text != _canonical(modern, record.body, legacy_key if legacy else "topic"):
         add(Code.FRONTMATTER_FORMAT, "field order or spacing is not canonical", True)
 
     for key in ("id", "type"):
@@ -314,7 +341,7 @@ def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]
         if kind and parts[1] != kind:
             add(Code.TYPE_FOLDER, f"type {entry_type!r} belongs in folder {kind!r}, found {parts[1]!r}")
         if topic and parts[0] != topic:
-            add(Code.TOPIC_FOLDER, f"area: {topic!r} differs from the topic folder {parts[0]!r}")
+            add(Code.TOPIC_FOLDER, f"topic: {topic!r} differs from the topic folder {parts[0]!r}")
 
     if entry_type == "user" and fields.get("perspective") != "user":
         conflict = bool(fields.get("perspective"))
@@ -358,7 +385,9 @@ def _created_from_history(area: Area, path: Path) -> str:
 def _normalise(area: Area, record: RawRecord, edges: str) -> tuple[str, list[str]] | str:
     """`(new_text, changes)` for a readable record with `edges` as its edges value, or the reason it is not fixable."""
     assert record.fields is not None
-    fields = list(record.fields)
+    fields, conflict = _modernise(list(record.fields))
+    if conflict:
+        return "topic: and legacy area: differ; decide by hand"
     values = dict(fields)
     if any(_has_control(value, allow_tab=True) for _, value in fields):
         return "a frontmatter value contains control characters"
@@ -378,11 +407,13 @@ def _normalise(area: Area, record: RawRecord, edges: str) -> tuple[str, list[str
     if record.blank_missing:
         changes.append("added blank line after the separator")
     parts = record.rel.parts
-    if not values.get("area"):
+    if adr_markdown.LEGACY_TOPIC_KEY in dict(record.fields):
+        changes.append("area: renamed to topic:")
+    if not values.get("topic"):
         if len(parts) != 3 or not is_safe_area(parts[0]):
-            return "area: missing and the topic folder is not usable"
-        put("area", parts[0])
-        changes.append(f"area: {parts[0]} (from folder)")
+            return "topic: missing and the topic folder is not usable"
+        put("topic", parts[0])
+        changes.append(f"topic: {parts[0]} (from folder)")
     if not values.get("created"):
         created = _created_from_history(area, record.path)
         put("created", created)
@@ -418,7 +449,8 @@ def _preserved(record: RawRecord, new_text: str, edges: str) -> bool:
     new_values = dict(new_fields)
     if new_body != record.body or (record.body and record.body not in new_text):
         return False
-    if len(new_fields) < len(record.fields):
+    old_fields, _ = _modernise(record.fields)
+    if len(new_fields) < len(old_fields):
         return False
     try:
         adr_markdown.parse(new_text)
@@ -428,7 +460,7 @@ def _preserved(record: RawRecord, new_text: str, edges: str) -> bool:
     if edges != old_edges and not (new_values.get("edges") == edges and _same_edges_but_targets(old_edges, edges)):
         return False
     return all(new_values.get(key) == value and (not value or value in new_text)
-               for key, value in record.fields if value and not (key == "edges" and edges != old_edges))
+               for key, value in old_fields if value and not (key == "edges" and edges != old_edges))
 
 
 def _emit(args: argparse.Namespace, area: Area, **payload) -> None:

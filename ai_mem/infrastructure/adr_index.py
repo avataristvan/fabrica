@@ -38,8 +38,8 @@ def render_index(adr_dir: Path, report_skipped: bool = True) -> str:
 
     rows.sort(key=lambda row: row[0])
 
-    lines = ["# Decision Records Index", "", "| id | area | type | title | status |", "|---|---|---|---|---|"]
-    lines.extend(f"| {row_id} | {area} | {entry_type} | {title} | {status} |" for row_id, area, entry_type, title, status in rows)
+    lines = ["# Decision Records Index", "", "| id | topic | type | title | status |", "|---|---|---|---|---|"]
+    lines.extend(f"| {row_id} | {topic} | {entry_type} | {title} | {status} |" for row_id, topic, entry_type, title, status in rows)
     return "\n".join(lines) + "\n"
 
 
