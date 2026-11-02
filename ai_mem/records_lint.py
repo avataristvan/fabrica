@@ -27,6 +27,7 @@ from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import index_is_current, regenerate_index
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
+    BACKLOG_FILENAME,
     KIND_BY_TYPE,
     RETIRED_TYPES,
     is_contained,
@@ -43,6 +44,7 @@ OK, FINDINGS, USAGE = 0, 1, 2
 
 _EDGE_TYPES = frozenset(get_args(EdgeType))
 _INDEX_FILENAME = "INDEX.md"
+_ITEM_MARKER = re.compile(r"^(?:\d+[.)]|[*+-])\s+")
 _KEY = re.compile(r"^[A-Za-z0-9_-]+$")
 _FIXABLE_REQUIRED = ("topic", "created")
 _GIT_TIMEOUT = 20
@@ -75,6 +77,8 @@ class Code:
     EDGE_DANGLING_XAREA = "edge-dangling-xarea"
     INDEX_MISSING = "index-missing"
     INDEX_STALE = "index-stale"
+    BACKLOG_FORMAT = "backlog-format"
+    BACKLOG_LINE = "backlog-line"
 
 
 @dataclass(frozen=True)
@@ -375,8 +379,57 @@ def lint_records(area: Area, records: list[RawRecord], check_index: bool = True)
     return sorted(findings, key=lambda f: (str(f.file), f.code, f.message))
 
 
+def _split_backlog(text: str) -> tuple[list[str], list[str]]:
+    """(header, rest): the header is the leading paragraph up to the first blank line, unless the file starts with an item."""
+    lines = text.rstrip("\n").split("\n")
+    if not lines or _ITEM_MARKER.match(lines[0]):
+        return [], lines
+    blank = next((i for i, line in enumerate(lines) if not line.strip()), len(lines))
+    return lines[:blank], lines[blank:]
+
+
+def normalise_backlog(text: str) -> str:
+    """BACKLOG.md in its canonical form: header, one blank line, one unnumbered `- ` line per item, no blank lines between
+    items. The order of the lines is the order of work, so it is never changed; a line that is no item is kept as it is."""
+    header, rest = _split_backlog(text)
+    items = [_ITEM_MARKER.sub("- ", line, count=1) for line in rest if line.strip()]
+    return "\n".join(header + ([""] if header and items else []) + items) + "\n"
+
+
+def _read_backlog(area: Area) -> tuple[Path, str | None]:
+    path = area.records_dir / BACKLOG_FILENAME
+    try:
+        return path, path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return path, None
+
+
+def check_backlog(area: Area) -> list[Finding]:
+    path, text = _read_backlog(area)
+    if text is None:
+        return []
+    findings = []
+    if normalise_backlog(text) != text:
+        findings.append(Finding(path, Code.BACKLOG_FORMAT, "items are one unnumbered `- ` line each, no blank lines between them", True))
+    header, rest = _split_backlog(text)
+    for number, line in enumerate(rest, start=len(header) + 1):
+        if line.strip() and not _ITEM_MARKER.match(line):
+            findings.append(Finding(path, Code.BACKLOG_LINE, f"line {number} is no item (no headings, sections or continuation lines)", False))
+    return findings
+
+
+def _fix_backlog(area: Area, args: argparse.Namespace) -> None:
+    path, text = _read_backlog(area)
+    if text is None:
+        return
+    new_text = normalise_backlog(text)
+    if new_text != text:
+        write_atomic(path, new_text)
+        _emit(args, area, action="fixed", file=str(path), message="backlog items as unnumbered `- ` lines")
+
+
 def lint(area: Area) -> list[Finding]:
-    return lint_records(area, read_area(area))
+    return sorted(lint_records(area, read_area(area)) + check_backlog(area), key=lambda f: (str(f.file), f.code, f.message))
 
 
 def _created_from_history(area: Area, path: Path) -> str:
@@ -511,12 +564,13 @@ def _fix(area: Area, args: argparse.Namespace) -> list[RawRecord]:
     if _check_index(area, records):
         regenerate_index(area.records_dir)
         _emit(args, area, action="fixed", file=str(area.records_dir / _INDEX_FILENAME), message="regenerated")
+    _fix_backlog(area, args)
     return records
 
 
 def configure(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--area", metavar="PATH", help="area folder (default: nearest ancestor of cwd with docs/records/)")
-    parser.add_argument("--fix", action="store_true", help="normalise frontmatter shape, repoint edges whose id lives in exactly one area, regenerate INDEX.md (writes inside the area only)")
+    parser.add_argument("--fix", action="store_true", help="normalise frontmatter shape, repoint edges whose id lives in exactly one area, regenerate INDEX.md, write BACKLOG.md items as unnumbered `- ` lines (writes inside the area only)")
     parser.add_argument("--json", action="store_true", help="one JSON object per finding / change")
 
 
@@ -527,7 +581,7 @@ def run(args: argparse.Namespace) -> int:
         return USAGE
     if args.fix:
         # INDEX.md is fresh after _fix by construction, so it is not rendered a second time.
-        findings = lint_records(area, _fix(area, args), check_index=False)
+        findings = lint_records(area, _fix(area, args), check_index=False) + check_backlog(area)
     else:
         findings = lint(area)
     for finding in findings:

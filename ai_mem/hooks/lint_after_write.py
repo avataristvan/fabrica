@@ -1,7 +1,7 @@
 """PostToolUse hook (Write|Edit|MultiEdit): lint the record file that was just written.
 
 Only a file under some area's `docs/records/` is checked, with `records_lint` over that one record plus
-INDEX.md. Findings come back as a PostToolUse `block` reason (the tool already ran; the reason is shown
+INDEX.md, or over the format of BACKLOG.md when that is the file. Findings come back as a PostToolUse `block` reason (the tool already ran; the reason is shown
 next to its result); a clean file produces no output. Never `--fix`: the hook reports, the author repairs.
 """
 from __future__ import annotations
@@ -17,7 +17,7 @@ _REASON_LIMIT = 800
 
 def _record_area(path: Path):
     """The area whose records directory holds `path`, from the lexical path (no symlink is followed here)."""
-    from ai_mem.infrastructure.adr_paths import NON_ADR_FILENAMES, is_contained, records_dir_for_root
+    from ai_mem.infrastructure.adr_paths import BACKLOG_FILENAME, NON_ADR_FILENAMES, is_contained, records_dir_for_root
     from ai_mem.infrastructure.areas import Area
 
     for directory in path.parents:
@@ -26,7 +26,8 @@ def _record_area(path: Path):
             continue
         if not is_contained(records_dir, directory, allow_symlink=False):
             return None
-        if path.is_relative_to(records_dir) and not (path.parent == records_dir and path.name in NON_ADR_FILENAMES):
+        top_level_state = path.parent == records_dir and path.name in NON_ADR_FILENAMES and path.name != BACKLOG_FILENAME
+        if path.is_relative_to(records_dir) and not top_level_state:
             return Area(directory, records_dir)
         return None
     return None
@@ -43,8 +44,12 @@ def handle(event: dict) -> dict | None:
     area = _record_area(path)
     if area is None or not (path.is_file() or path.is_symlink()):
         return None
-    from ai_mem.records_lint import _read, lint_records  # lazy: an import failure must stay inside run()'s guard
-    findings = lint_records(area, [_read(area.records_dir, path)])
+    from ai_mem.infrastructure.adr_paths import BACKLOG_FILENAME
+    from ai_mem.records_lint import _read, check_backlog, lint_records  # lazy: an import failure must stay inside run()'s guard
+    if path.parent == area.records_dir and path.name == BACKLOG_FILENAME:
+        findings = check_backlog(area)
+    else:
+        findings = lint_records(area, [_read(area.records_dir, path)])
     if not findings:
         return None
     lines = [f"{Path(f.file).name}: {f.code}" for f in findings[:_MAX_FINDINGS]]  # codes only: no record text is echoed

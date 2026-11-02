@@ -322,3 +322,28 @@ def test_conflicting_topic_and_area_is_a_finding_that_fix_refuses(tmp_path):
     assert "topic-conflict" in {f.code for f in records_lint.lint(area) if f.file == path}
     main(["lint", "--fix", "--area", str(area.root)])
     assert path.read_text() == text
+
+
+def test_backlog_numbering_and_blank_lines_are_fixed_in_order(tmp_path):
+    area = _clean_area(tmp_path)
+    backlog = _write(area, "BACKLOG.md", "Ordered.\nSecond header line.\n\n1. first (todo_a)\n\n2) second\n* third\n-   fourth\n")
+    assert _codes(area) == ["backlog-format"]
+    main(["lint", "--fix", "--area", str(area.root)])
+    assert backlog.read_text() == "Ordered.\nSecond header line.\n\n- first (todo_a)\n- second\n- third\n- fourth\n"
+    assert records_lint.lint(area) == []
+
+
+def test_backlog_without_header_and_canonical_backlog_are_clean(tmp_path):
+    area = _clean_area(tmp_path)
+    _write(area, "BACKLOG.md", "- first\n- second\n")
+    assert records_lint.lint(area) == []
+
+
+def test_backlog_section_heading_is_reported_not_fixed(tmp_path):
+    area = _clean_area(tmp_path)
+    backlog = _write(area, "BACKLOG.md", "Header.\n\n- first\n## Out of scope\n- second\n")
+    findings = records_lint.lint(area)
+    assert [(f.code, f.fixable) for f in findings] == [("backlog-line", False)]
+    assert "line 4" in findings[0].message
+    main(["lint", "--fix", "--area", str(area.root)])
+    assert backlog.read_text() == "Header.\n\n- first\n## Out of scope\n- second\n"

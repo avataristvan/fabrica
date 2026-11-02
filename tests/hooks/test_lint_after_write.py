@@ -110,3 +110,13 @@ def test_reason_carries_codes_not_record_text(tmp_path: Path) -> None:
     bad.write_text("id: learning_bad\ntype: learning\ntopic: general\nedges: [{\"target_id\": \"SECRETTEXT\", \"edge_type\": \"related\"}]\n---\nbody\n")
     out = lint_after_write.handle(_event(bad))
     assert out and "SECRETTEXT" not in out["reason"]
+
+
+def test_backlog_write_checks_its_format(tmp_path: Path) -> None:
+    area = _area(tmp_path)
+    backlog = area / "docs" / "records" / "BACKLOG.md"
+    backlog.write_text("Header.\n\n1. first\n")
+    out = lint_after_write.handle(_event(backlog))
+    assert out["decision"] == "block" and "backlog-format" in out["reason"]
+    backlog.write_text("Header.\n\n- first\n")
+    assert lint_after_write.handle(_event(backlog)) is None

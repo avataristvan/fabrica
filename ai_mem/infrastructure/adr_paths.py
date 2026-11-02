@@ -69,6 +69,7 @@ NON_ADR_FILENAMES = frozenset(f"{stem}.md" for stem in _RESERVED_STEMS)
 
 FOCUS_ID = "current_focus"
 FOCUS_FILENAME = "FOCUS.md"
+BACKLOG_FILENAME = "BACKLOG.md"
 
 
 def focus_path(records_dir: Path) -> Path:

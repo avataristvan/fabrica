@@ -25,7 +25,7 @@ mem context --map [--root DIR] [--json]                      # areas below DIR a
 mem move ID... --to-area PATH [--dry-run] [--scan-root DIR]  # move records into another area
 mem move --batch FILE [--dry-run] [--scan-root DIR]          # move many records between many areas in one plan
 mem move-area OLD NEW --root DIR [--dry-run] [--include-unversioned]  # rename or move an area folder, references included
-mem lint [--fix] [--json]                                    # check (and normalise) the area's record files
+mem lint [--fix] [--json]                                    # check (and normalise) the area's record files and BACKLOG.md
 mem doctor [--root DIR] [--days N] [--json]                  # diagnosis of the whole practice, changes nothing
 ```
 
