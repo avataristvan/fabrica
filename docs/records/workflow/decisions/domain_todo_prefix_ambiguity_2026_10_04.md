@@ -2,6 +2,8 @@ id: domain_todo_prefix_ambiguity_2026_10_04
 type: domain
 topic: workflow
 created: 1791140688.298982
+superseded_by: domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02
+valid_until: 1793657729.310377
 edges: [{"target_id": "domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02", "edge_type": "related"}]
 ---
 

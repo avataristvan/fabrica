@@ -12,3 +12,4 @@ Scope: all collections (repo.*, global, workspace, subagent.*). global/workspace
 
 Addendum 2026-10-04: The removal step is implemented (domain_file_backend_replaces_chroma_2026_10_04). Narrowed: preferences that must act in every session go to CLAUDE.md, a role's yardstick stays a user record (domain_user_records_as_role_perspective_2026_10_04).
 Addendum 2026-10-13: 'git keeps the history' did not hold while ai-mem's own records were gitignored; going public changed that, see domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13.
+Addendum 2026-11-02 (OUTDATED PART): the todos/ kind (open = file exists) is retired. Open work lives in FOCUS.md and BACKLOG.md; see domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02. The rest of this decision (files instead of ChromaDB) still holds.

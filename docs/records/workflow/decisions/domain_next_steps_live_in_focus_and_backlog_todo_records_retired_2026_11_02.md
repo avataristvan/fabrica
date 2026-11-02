@@ -3,7 +3,7 @@ type: domain
 topic: workflow
 perspective: user
 created: 1793656212.46451
-edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_todo_prefix_ambiguity_2026_10_04", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}, {"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "related"}]
+edges: [{"target_id": "domain_records_model_replaces_chroma_2026_10_04", "edge_type": "related"}, {"target_id": "domain_todo_prefix_ambiguity_2026_10_04", "edge_type": "related"}, {"target_id": "domain_three_kinds_of_knowledge_age_differently_2026_10_10", "edge_type": "related"}, {"target_id": "domain_reflect_yields_handoff_and_record_candidates_2026_10_10", "edge_type": "related"}, {"target_id": "domain_todo_prefix_ambiguity_2026_10_04", "edge_type": "supersedes"}, {"target_id": "learning_retire_a_type_by_migrating_data_first_2026_11_02", "edge_type": "related"}]
 cue: I want to note a next step, a todo or a "won't do", or wonder where open work is listed.
 ---
 

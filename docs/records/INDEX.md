@@ -114,7 +114,7 @@
 | domain_stop_hook_replaced_by_reflect_2026_10_04 | general | domain | Decision: stop_hook.py (Stop hook reminding Claude to update current_focus when  | active |
 | domain_superseded_flag_not_hide_2026_09_20 | architecture | domain | Decision: An entry that has been superseded via 'supersedes' is marked on retrie | active |
 | domain_three_kinds_of_knowledge_age_differently_2026_10_10 | architecture | domain | Decision: Records distinguish three kinds of knowledge that age differently. Sta | active |
-| domain_todo_prefix_ambiguity_2026_10_04 | workflow | domain | Decision: The id prefix todo_ is ambiguous in repo.ai-mem and stays so. Older to | active |
+| domain_todo_prefix_ambiguity_2026_10_04 | workflow | domain | Decision: The id prefix todo_ is ambiguous in repo.ai-mem and stays so. Older to | superseded_by: domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02 |
 | domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31 | architecture | domain | Decision: The step-by-step upgrade instructions live in the tag that the README  | active |
 | domain_user_records_as_role_perspective_2026_10_04 | architecture | domain | Decision: 'user' stays a record type (docs/records/<area>/user/). Two kinds of u | active |
 | domain_why_travels_with_chunk_spec_2026_10_10 | architecture | domain | Decision: The why of a task reaches the coder through the handoff. /chunk-plan a | active |
@@ -142,6 +142,7 @@
 | learning_banner_label_and_paraphrase_pass_retired_check_2026_10_12 | architecture | learning | Observed: (1) The README label "retired, kept until removal" for the rollback do | active |
 | learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12 | plugin | learning | Observed: Claude Code's Bash sandbox masks protected paths in its cwd (.bashrc,  | active |
 | learning_bm25_minmax_floors_irrelevant_top_hit_2026_07_31 | architecture | learning | Observed: Empirically against the live DB (the production ai-mem store, global + | active |
+| learning_bulk_change_bypassing_mem_needs_backup_first_2026_11_02 | workflow | learning | Observed: Git is no safety net everywhere: 5 repos do not version docs/records ( | active |
 | learning_call_prompt_does_not_beat_agent_template_2026_10_24 | architecture | learning | Observed: A request in the call prompt ("keep the report short") did not beat th | active |
 | learning_chunk0_upgrade_acceptance_passed_2026_10_15 | plugin | learning | Observed: The chunk 0 upgrade acceptance ran on 2026-10-15 against code d5b73b1  | active |
 | learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12 | plugin | learning | Observed: `claude -p --output-format json` `result` holds only the last assistan | active |
@@ -168,6 +169,7 @@
 | learning_hooks_do_not_inherit_mcp_env_2026_07_03 | architecture | learning | Observed: Hook subprocesses (hook.py / userprompt_hook.py / posttool_hook.py) do | active |
 | learning_incoming_edge_list_held_in_5b2_2026_10_12 | records | learning | Observed: In the docs-move chunk the coder followed the rule to list referrers b | active |
 | learning_index_status_stale_after_supersede_2026_09_27 | architecture | learning | Observed: A parallel session in another project (migrating its collections to AD | active |
+| learning_installed_plugin_lags_repo_until_pull_and_reload_2026_11_02 | plugin | learning | Observed: The installed plugin lags the repo. The PostToolUse lint hook falsely  | active |
 | learning_knowledge_loses_against_the_order_2026_10_18 | evaluation | learning | Observed: Where the record was read, the agent often built the rejected thing an | active |
 | learning_librarian_answer_must_be_in_before_first_edit_at_chunk_start_2026_10_31 | workflow | learning | Observed: At a chunk start the coder's first librarian call failed (a missing pa | active |
 | learning_librarian_files_only_eval_chunk3_2026_10_11 | evaluation | learning | Observed: Chunk 3 (librarian without mem_* tools, Read/Grep/Glob only): the libr | active |
@@ -177,6 +179,7 @@
 | learning_librarian_reads_nav_reference_in_installed_plugin_2026_10_12 | plugin | learning | Observed: In a normal interactive session with the installed plugin, the librari | active |
 | learning_librarian_scope_was_the_game_changer_2026_10_11 | architecture | learning | Observed: The user names the librarian itself as the game changer: judgment over | active |
 | learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31 | records | learning | Observed: After the ai-mem folder was renamed, the body of todo_build_dev_team_p | active |
+| learning_lint_fix_in_foreign_area_normalises_everything_2026_11_02 | records | learning | Observed: mem lint --fix run in 13 foreign areas to regenerate INDEX.md also ren | active |
 | learning_mcp_servers_keep_old_code_and_cached_schema_2026_09_29 | workflow | learning | Observed: After a change to the persistence layer (record layout docs/records, c | active |
 | learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31 | workflow | learning | Observed: In a worktree, `bin/mem doctor` reports on the main checkout's records | active |
 | learning_migrate_apply_exit1_has_two_meanings_2026_10_11 | workflow | learning | Observed: migrate --apply exits 1 in two different cases: files were written but | active |
@@ -193,6 +196,7 @@
 | learning_recall_at_boundaries_stopped_a_destructive_change_across_sessions_2026_10_31 | architecture | learning | Observed: A briefing written in another session carried a wrong premise ("exactl | active |
 | learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23 | evaluation | learning | Observed: In an audio-driver session the librarian was asked only at session sta | active |
 | learning_rerun_upgrade_acceptance_after_every_upgrading_md_edit_2026_10_12 | plugin | learning | Observed: Rerun the UPGRADING.md acceptance run after every edit to UPGRADING.md | active |
+| learning_retire_a_type_by_migrating_data_first_2026_11_02 | workflow | learning | Observed: After the 98 todo records in 14 areas were migrated into BACKLOG.md fi | active |
 | learning_safe_entry_id_misses_control_chars_2026_10_10 | workflow | learning | Observed: `is_safe_entry_id` only rejects path and glob metacharacters. Ids with | active |
 | learning_setting_sources_drops_user_claude_md_for_claude_p_2026_10_12 | plugin | learning | Observed: `claude -p --setting-sources project,local` also drops the user's `~/. | active |
 | learning_skill_model_frontmatter_honored_eval_under_real_model_2026_10_12 | plugin | learning | Observed: A plugin skill's `model:` frontmatter is honored (Claude Code 2.1.x).  | active |
