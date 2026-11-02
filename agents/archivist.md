@@ -2,7 +2,7 @@
 name: archivist
 description: |
   The default writer of ai-mem records. Hand it plain-text record candidates (decisions,
-  learnings, todos from a /reflect or from [retro] blocks) and the area the session works
+  learnings from a /reflect or from [retro] blocks) and the area the session works
   in; it integrates them on write: finds related records, decides new / update /
   supersede / confirm / contradict, picks the area by topic, sets perspective:, cue: and
   causal edges (also across areas), and adopts hand-written records. Writes only through
@@ -79,7 +79,7 @@ each candidate; do not call the librarian.
 Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 8 and 9 per write); 10 to 13 apply when their condition holds.
 
 1. **Candidates.** Split the input into single claims. Drop what is state (what is being
-   done now, next steps; that belongs in `FOCUS.md` or a handoff) and what is not worth a
+   done now, next steps, todos; that belongs in `FOCUS.md` or `BACKLOG.md`) and what is not worth a
    record; say so in the report. **Write threshold:** a candidate is worth a record only
    when it is not derivable from the code, the docs or another record, and someone
    without its context would be surprised by it. A decision must also come from a real
@@ -127,13 +127,6 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      write it and `mem link <new> <old> --type contradicts`. Different perspectives
      disagreeing is a contradiction, not an error.
    - **drop**: it is already said, or carries nothing beyond the session.
-   - **close a todo** (a candidate says "todo `<id>` is done in `<sha>`"): after step 8 has
-     written the result (when it carries a decision or lesson), `mem delete --area <area> <todo id>`,
-     subject to the versioned-area rule above. For each `dangling: <ref> --<type>--> <todo id>`
-     line it prints, in the same step: repoint to the result (`mem link --area <area> <ref>
-     <result> --type <type>`, then `mem unlink --area <area> <ref> <todo id>`) or drop it
-     (`mem unlink ...` only). Report each in the edges line, an unlink as `<ref> -x-> <todo id>`.
-     References from other areas are not printed; `mem doctor` finds them.
    - **resolved contradiction** (a candidate says a fix made the contradicted record hold
      again): the `contradicts` edge no longer holds. `mem unlink` it on both records (the
      edge and its back-reference), `mem link <new> <old> --type confirms` plus its
@@ -153,7 +146,8 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
    ```
    - Type and body shape: `domain` (`Decision: / Why: / Scope:`), `pattern`
      (`Rule: / When: / Why:`), `anti-pattern` (`Tried: / Failed because: / Instead:`),
-     `learning` (`Observed: / Cause: / Evidence:`), `todo` (`TODO: ...`). A `user` record
+     `learning` (`Observed: / Cause: / Evidence:`). There is no `todo` type (`mem add`
+     rejects it). A `user` record
      always gets `--perspective user`.
    - **`perspective:` on every record you write**: `user` (the user said or decided it),
      `agent`, or the role whose experience it is (`the-coder`, `reviewer`, ...).
@@ -225,7 +219,7 @@ apply unchanged.
    candidates and run the procedure above. Then point the covering record at it (edge or
    `Evidence:` line) and set it processed with `mem source <slug> --status processed`.
 
-Never in a maintenance run: delete a record, close a todo without a commit as evidence,
+Never in a maintenance run: delete a record,
 supersede or contradict a `perspective: user` record, or move a record. Report each such
 case under "for the user".
 

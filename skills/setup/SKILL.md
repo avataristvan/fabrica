@@ -63,7 +63,7 @@ Give a verdict for every flagged file: path, real or spurious, the evidence (the
 
 **Wiring, hooks.** "plugin enabled" is the target. Hooks still registered in `settings.json` next to the plugin fire twice: tell the user to remove the old hook entries from `settings.json` by hand, or to check out the tag `v1-last-upgrade-path` and run its `install.py --plugin-switch`.
 
-**Records, Sources, State, Effect.** Lint findings, dangling edges, dead-weight candidates, unadopted hand-written records, unprocessed sources, current docs naming a retired system, a stale `FOCUS.md`: none of these is yours to fix. Turn each into a plain-text record candidate (what the doctor reported, where, and why it matters) for the archivist via `/fabrica:reflect`, or point the user to `/fabrica:reflect` when the fix is a handoff. Effect rates near zero for a role are a question for the user (has the step become ritual?), not a finding against the team.
+**Records, Sources, State, Effect.** Lint findings, dangling edges, dead-weight candidates, unadopted hand-written records, unprocessed sources, a stale `FOCUS.md`: none of these is yours to fix. Turn each into a plain-text record candidate (what the doctor reported, where, and why it matters) for the archivist via `/fabrica:reflect`, or point the user to `/fabrica:reflect` when the fix is a handoff. Effect rates near zero for a role are a question for the user (has the step become ritual?), not a finding against the team.
 
 ## Close
 
@@ -73,7 +73,7 @@ End with a short list: per team the boundaries found and what was applied or lef
 [retro]
 learned: <what surprised you, or "nothing">
 blocked: <what got in the way, or "nothing">
-next: <suggested todo, or "nothing">
+next: <suggested next step, or "nothing">
 records_consulted: <ids the librarian named that carried a decision, or "none">
 record_candidates: <plain text: the doctor's record findings, boundaries that were judged and why, or "none">
 ```

@@ -40,7 +40,7 @@ The name is the *fabrica ecclesiae*, the workshop that built and kept a cathedra
 
 The plugin remembers the way an organisation does: through rituals at boundaries, not through a smarter index.
 
-- **Records are files.** Decisions, learnings and todos are Markdown files in the `docs/records/` of each *area* (a project or a topic). They are reviewable, greppable and versioned with the work, and you can write them by hand.
+- **Records are files.** Decisions and learnings are Markdown files in the `docs/records/` of each *area* (a project or a topic). They are reviewable, greppable and versioned with the work, and you can write them by hand.
 - **Two agents, one ritual.** The **librarian** is read-only and answers by judgment over the files, not by a similarity score. `/fabrica:reflect` writes the handoff and hands record candidates to the **archivist**, which integrates them: new, update, supersede, with the edges between records. Nothing is pushed into a prompt.
 - **Hooks enforce that, roles decide how.** A few hooks check that the ritual happened. `mem doctor` tells you whether the practice is still alive.
 

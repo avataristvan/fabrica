@@ -15,7 +15,7 @@ Nothing from the records is pushed, and the hook never opens a database. The age
 ```
 [ai-mem]
 Area: <area folder>
-Records: <area>/docs/records (FOCUS.md = current focus, INDEX.md = catalogue of decisions, learnings, todos). Read them on demand; for "why is it like this / was this tried before?" ask the librarian agent.
+Records: <area>/docs/records (FOCUS.md = current focus, BACKLOG.md = what is not in focus, INDEX.md = catalogue of decisions and learnings). Read them on demand; for "why is it like this / was this tried before?" ask the librarian agent.
 ```
 
 If no part is generated, the hook exits silently.

@@ -28,6 +28,7 @@ from ai_mem.infrastructure.adr_index import index_is_current, regenerate_index
 from ai_mem.infrastructure.adr_paths import (
     ADR_TYPES,
     KIND_BY_TYPE,
+    RETIRED_TYPES,
     is_contained,
     is_safe_area,
     is_safe_entry_id,
@@ -333,7 +334,9 @@ def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]
 
     parts = record.rel.parts
     kind = KIND_BY_TYPE.get(entry_type)
-    if entry_type and entry_type not in ADR_TYPES:
+    if entry_type in RETIRED_TYPES:
+        add(Code.TYPE_INVALID, f"type {entry_type!r}: {RETIRED_TYPES[entry_type]}")
+    elif entry_type and entry_type not in ADR_TYPES:
         add(Code.TYPE_INVALID, f"type {entry_type!r} is not a record type {sorted(ADR_TYPES)}")
     if len(parts) != 3:
         add(Code.LAYOUT, f"record is not at <topic>/<kind>/<id>.md (found {record.rel.as_posix()})")

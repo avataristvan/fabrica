@@ -99,7 +99,7 @@ def test_unchanged_upsert_does_not_touch_files(repo, root):
 
 
 def test_get_all_and_list_collections(repo, root):
-    repo.upsert(COLLECTION, [_entry("a", "A", type="todo"), _entry("current_focus", "F", type="project"),
+    repo.upsert(COLLECTION, [_entry("a", "A", type="learning"), _entry("current_focus", "F", type="project"),
                              _entry("r", "R", type="reference")])
 
     assert sorted(entry.id for entry in repo.get_all(COLLECTION)) == ["a", "current_focus", "r"]
@@ -137,7 +137,7 @@ def test_edges_supersede_and_cue_through_the_use_cases(repo, root):
 
 
 def test_delete_removes_files_and_refuses_whole_collection(repo, root):
-    repo.upsert(COLLECTION, [_entry("a", "A", type="todo"), _entry("current_focus", "F", type="project"),
+    repo.upsert(COLLECTION, [_entry("a", "A", type="learning"), _entry("current_focus", "F", type="project"),
                              _entry("r", "R", type="reference")])
 
     assert repo.delete(COLLECTION, ["a", "current_focus", "r", "missing"]) == 3
@@ -148,7 +148,7 @@ def test_delete_removes_files_and_refuses_whole_collection(repo, root):
 
 
 def test_database_only_operations_are_noops(repo):
-    repo.upsert(COLLECTION, [_entry("a", "A", type="todo")])
+    repo.upsert(COLLECTION, [_entry("a", "A", type="learning")])
     repo.record_access(COLLECTION, ["a"])
     assert repo.delete_expired(COLLECTION) == 0 and repo.delete_stale(COLLECTION, 0) == 0
     assert [e.id for e in repo.get_all(COLLECTION)] == ["a"]

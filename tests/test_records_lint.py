@@ -84,11 +84,17 @@ def test_value_with_control_character_is_flagged_and_never_fixed(tmp_path):
 
 def test_type_and_folder_mismatches(tmp_path):
     area = _clean_area(tmp_path)
-    _write(area, "general/learnings/learning_b.md", _record("learning_b", "todo"))
+    _write(area, "general/learnings/learning_b.md", _record("learning_b", "domain"))
     _write(area, "general/learnings/learning_c.md", _record("learning_c", topic="other"))
     _write(area, "general/learnings/learning_d.md", _record("learning_d", "bogus"))
     _write(area, "learning_e.md", _record("learning_e"))
     assert {"type-folder", "topic-folder", "type-invalid", "layout"} <= set(_codes(area))
+
+
+def test_retired_todo_type_points_to_focus_and_backlog(tmp_path):
+    area = _clean_area(tmp_path)
+    _write(area, "general/todos/todo_x.md", _record("todo_x", "todo"))
+    assert "type-invalid" in _codes(area)
 
 
 def test_bad_number(tmp_path):

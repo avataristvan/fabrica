@@ -15,7 +15,7 @@ from ai_mem.infrastructure.adr_paths import (
 
 
 def test_adr_types_contains_expected_types():
-    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern", "learning", "todo", "user"})
+    assert ADR_TYPES == frozenset({"domain", "pattern", "anti-pattern", "learning", "user"})
 
 
 def test_record_file_path_shape_per_type_and_area(tmp_path):

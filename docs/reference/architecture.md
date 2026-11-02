@@ -12,7 +12,7 @@ ai_mem/
   mem_cli.py         `mem` CLI: add, link, delete, move, find, context, lint, doctor
   records_lint.py    `mem lint`: checks and normalises one area's record files
   doctor.py          `mem doctor`: deterministic, read-only diagnosis of the practice
-  doctor_sources.py  doctor's Sources section (sources nothing points to, docs describing retired systems)
+  doctor_sources.py  doctor's Sources section (sources nothing points to)
   hook.py            SessionStart hook: Area: line, Records: pointer, doctor pointer
   hooks/             enforcing hooks: retro_check, lint_after_write, reflect_reminder
   dream_cli.py       `mem-dream`: consolidates an area's records with the claude CLI
@@ -60,7 +60,7 @@ There are no runtime dependencies (`dependencies = []`): everything uses the sta
 `mem doctor [--root DIR] [--home DIR] [--days N] [--json]` is a deterministic, read-only, stdlib-only diagnosis of whether the records practice is still alive; the only file it writes is `$AI_MEM_PATH/doctor_last_run` (`ai_mem.hooks.DOCTOR_STAMP`, read by the SessionStart pointer). Sections:
 
 - **Records**: the lint checks over every area below `--root`.
-- **Sources**: sources nothing points to, sources with a missing field, and current docs that still describe a retired system as current.
+- **Sources**: sources nothing points to and sources with a missing field.
 - **State**: handoff or `FOCUS.md` behind the newest change.
 - **Wiring**: commands, agents and skills under `<home>/.claude` that spawn agents or name memory but lack `handoff-protocol` (skills installed by a tool, i.e. a folder with `.git`, `VERSION` or a `.*_version` marker, are listed apart as external: they are never edited); whether the four ai-mem hooks are registered in `settings.json` or the plugin is enabled.
 - **Effect**: per agent type over the last N days of `retro_log.jsonl` (deduplicated by `agent_id`, last entry wins), the share with `records_consulted` / `record_candidates` given and with missing retro fields; records with at least three incoming `confirms` edges as cue-sharpening candidates.

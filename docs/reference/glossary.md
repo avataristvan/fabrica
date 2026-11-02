@@ -16,7 +16,8 @@ This page is state, like `FOCUS.md`: a session that coins a term or changes what
 | **learning** | What was observed, and its cause. Decisions rest on learnings. | a decision |
 | **state / decision / evidence** | The three kinds of knowledge. State (focus, handoffs, this glossary) is overwritten, records are added to, evidence never changes. | |
 | **source** | Frozen, dated evidence: a talk, a paper, a measurement, a retired design. Learnings point to it. | documentation |
-| **focus** | A few lines on what is being worked on now and what comes next. | a todo |
+| **focus** | The work in progress: a few lines on the goal, what is being worked on now and what comes next, pointing to the backlog. Not a diary. | a todo; a handoff |
+| **backlog** | `BACKLOG.md` next to `FOCUS.md`: what is not in focus, ordered, the next candidate on top, one line each. Items move between focus and backlog by cut, never copy; a dropped item leaves, and a "no" worth keeping becomes a decision record. | a roadmap; todo records |
 | **handoff** | Conclusions carried across a boundary: charter, conclusions, open points, where to start. No history. | a record |
 | **charter** | Scope, terminology and mode at the start of a conversation. It is the question to the librarian. | |
 | **context boundary** | A session start, chunk handoff, review or change of mode. Knowledge is read there and written there. | |

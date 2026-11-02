@@ -1,9 +1,9 @@
 ---
 name: reflect
-description: "Lightweight end-of-session standup at a context boundary. Run after completing a task or todo. Writes the handoff (state) and hands record candidates to the archivist. Closes the Plan → Code → Reflect loop. Subagents: always append a [retro] block at the end of your response (learned: / blocked: / next:)."
+description: "Lightweight end-of-session standup at a context boundary. Run after completing a task. Writes the handoff (state) and hands record candidates to the archivist. Closes the Plan → Code → Reflect loop. Subagents: always append a [retro] block at the end of your response (learned: / blocked: / next:)."
 ---
 
-Lightweight end-of-session standup. Run after completing a task or todo, or at any other context boundary (chunk handoff, change of mode). Closes the Plan → Code → Reflect loop.
+Lightweight end-of-session standup. Run after completing a task, or at any other context boundary (chunk handoff, change of mode). Closes the Plan → Code → Reflect loop.
 
 The subagent summary is already the "done" — this adds only what matters beyond the code. `/reflect` produces two things, and keeps them apart:
 
@@ -28,7 +28,7 @@ Before asking the user, contribute your own observations:
 
 - **Learned:** what was surprising, what assumption was wrong, what tool failed silently
 - **Blocked:** what got in the way — missing tool, unclear requirement, wrong mental model
-- **Next:** one or two todo suggestions based on what you saw
+- **Next:** one or two next-step suggestions based on what you saw
 
 Flag each as **"My observation:"** so the user knows it's from the agent side.
 
@@ -45,29 +45,31 @@ Wait for the user's answer. Skip if the user has nothing to add.
 
 ---
 
-## Step 4 — Next todos
+## Step 4 — Next steps
 
-Aggregate next-todo suggestions:
+Aggregate next-step suggestions:
 - Your own (from Step 2)
 - Any `next:` lines from `[retro]` blocks
 - The user's ideas (if any from Step 3)
+- What still stands in `FOCUS.md` and `BACKLOG.md`
 
-Present them as a short list and ask which ones to keep:
+This is backlog refinement. Present them as a short list and ask where each one goes:
 
-> **"Which of these are relevant?"**
+> **"Which of these are next, where do the others go in the backlog, and which are dropped?"**
 
-Confirmed todos become record candidates (Step 6). A todo finished in this session becomes a candidate too: "todo `<id>` is done in `<sha>`" — the archivist closes it.
+Every item lives in exactly one place: `FOCUS.md` (now and next) or `BACKLOG.md` (ordered, the next candidate on top), written in Step 5. Moving an item between the two is a cut, never a copy. A finished item is deleted (the commit is the increment). A dropped item is deleted; when the "no" is worth knowing later — the idea could come back — its reason becomes a record candidate (Step 6). Next steps are never record candidates, and there are no todo records.
 
 ---
 
 ## Step 5 — Handoff (state)
 
-Ask: **"What is your next focus?"** (or derive it from the confirmed todos if obvious).
+Ask: **"What is your next focus?"** (or derive it from Step 4 if obvious).
 
 Write the handoff yourself, as plain files in the area — this is state, overwritten each time; git keeps the history, so no dates or status words that will rot inside the text:
 
-- `docs/records/FOCUS.md` — what is being worked on now and what comes next (a few lines, plain text, no frontmatter). Always update it.
-- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points**, **Start with** (the skill or command the next session loads first, with the file it takes, e.g. your planning or coding skill on a plan path). No history of how you got there — the reasons go into record candidates, not into the handoff.
+- `docs/records/FOCUS.md` — the work in progress: the goal, what is being worked on now and what comes next (a few lines, plain text, no frontmatter), ending with a pointer to `BACKLOG.md`. Always update it. It is a focus, not a diary: no list of what was done, no reasons.
+- `docs/records/BACKLOG.md` — what is not in focus: an ordered list, one line per item, the next candidate on top, plain text, no frontmatter. No sections and no "won't do" list: a dropped item leaves the backlog, and its reason, if worth keeping, is a decision record.
+- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points** (what is unresolved; the next steps stand in `FOCUS.md`, the handoff points there), **Start with** (the skill or command the next session loads first, with the file it takes, e.g. your planning or coding skill on a plan path). No history of how you got there — the reasons go into record candidates, not into the handoff.
 - Point, don't copy: what already stands in a spec, plan, record, commit or source is named by its path or id, not restated in the focus or the handoff.
 - The glossary (`docs/reference/glossary.md` in the area, when it has one): when this session coined a term or changed what one means, edit its line now. It is state like the focus; the reason for the change is a record candidate.
 
@@ -78,7 +80,7 @@ Write the handoff yourself, as plain files in the area — this is state, overwr
 Collect the candidates as plain text, one per item. Sources:
 - `learned:` and `record_candidates:` lines from `[retro]` blocks (Step 1)
 - your observations (Step 2) and the user's answers (Step 3)
-- confirmed and finished todos (Step 4)
+- a dropped item whose "no" is worth knowing later (Step 4): what is not done, and why
 - records that made a difference this session: which ones (FOCUS.md, a record file, a librarian answer) changed a decision, prevented a mistake, or turned out wrong or outdated — say which id, and whether it held again or misled
 
 Each candidate is a short paragraph:
@@ -91,7 +93,7 @@ Each candidate is a short paragraph:
   touches: <record ids it confirms, contradicts or replaces>   (if known)
 ```
 
-Do not decide the record type, id, area, edges or supersede yourself — that is the archivist's judgment. Leave out what is state (it is in the handoff) and what carries nothing beyond this session.
+Do not decide the record type, id, area, edges or supersede yourself — that is the archivist's judgment. Leave out what is state (it is in the handoff, `FOCUS.md` or `BACKLOG.md`; next steps included) and what carries nothing beyond this session.
 
 Show the list to the user once:
 
@@ -115,7 +117,7 @@ Show the user the archivist's **integration report** as it comes back: what went
 
 ## Close
 
-One sentence: handoff written + what the archivist integrated or left open. Example: "FOCUS.md updated, handoff written; archivist: 2 learnings, 1 todo, 1 supersede." Nothing else.
+One sentence: handoff written + what the archivist integrated or left open. Example: "FOCUS.md and BACKLOG.md updated, handoff written; archivist: 2 learnings, 1 supersede." Nothing else.
 
 ---
 
@@ -128,8 +130,8 @@ When spawning subagents for non-trivial tasks, add this to the end of their prom
 > [retro]
 > learned: <what was surprising or did not work — or "nothing">
 > blocked: <what got in your way — or "nothing">
-> next: <a suggestion for a next todo — or "nothing">
+> next: <a suggestion for a next step — or "nothing">
 > record_candidates: <decisions or learnings that should stay as a record, in plain text — or "none">
 > ```
 
-The main agent reads this block in Step 1; `learned:` and `record_candidates:` lines become record candidates in Step 6 and `next:` lines todo suggestions in Step 4. Subagents never write records themselves — they deliver candidates. This makes subagent observations (silent fallbacks, tool failures, dead ends) visible without requiring transcript review.
+The main agent reads this block in Step 1; `learned:` and `record_candidates:` lines become record candidates in Step 6 and `next:` lines next-step suggestions in Step 4. Subagents never write records themselves — they deliver candidates. This makes subagent observations (silent fallbacks, tool failures, dead ends) visible without requiring transcript review.

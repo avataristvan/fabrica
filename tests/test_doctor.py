@@ -343,30 +343,6 @@ def test_sources_malformed_frontmatter_and_unknown_status(tmp_path, capsys):
     assert problems["docs/sources/partial.md"] == "missing date, origin"
 
 
-def test_retired_system_in_current_doc_unless_marked_historical(tmp_path, capsys):
-    area = _area(tmp_path / "a")
-    docs = area.root / "docs"
-    (docs / "current.md").write_text("# Arch\n\nThe MCP server stores entries in ChromaDB.\n")
-    (docs / "banner.md").write_text("> **Superseded.** old text\n\nThe MCP server.\n")
-    (docs / "fm.md").write_text("---\nstatus: historical\n---\nBM25 and the daemon.\n")
-    (docs / "handoff-2026-01-01.md").write_text("ChromaDB daemon\n")
-    (docs / "clean.md").write_text("# Records\n")
-    found = _report(tmp_path, capsys)["areas"][0]["sources"]["retired_in_current"]
-    assert found == [{"file": "docs/current.md", "keywords": ["ChromaDB", "MCP server"]}]
-    assert "docs/current.md: ChromaDB, MCP server" in _doctor(tmp_path, capsys)
-
-
-def test_retired_system_found_in_diataxis_folders(tmp_path, capsys):
-    area = _area(tmp_path / "a")
-    for folder in ("tutorial", "how-to", "reference", "explanation"):
-        (area.root / "docs" / folder).mkdir()
-        (area.root / "docs" / folder / "page.md").write_text("The daemon answers queries.\n")
-    (area.root / "docs" / "sources").mkdir(exist_ok=True)
-    (area.root / "docs" / "sources" / "old.md").write_text("The daemon.\n")
-    found = _report(tmp_path, capsys)["areas"][0]["sources"]["retired_in_current"]
-    assert sorted(f["file"] for f in found) == [f"docs/{d}/page.md" for d in ("explanation", "how-to", "reference", "tutorial")]
-
-
-def test_sources_section_renders_without_docs(tmp_path, capsys):
+def test_sources_section_renders_without_sources(tmp_path, capsys):
     _area(tmp_path / "a")
-    assert "no sources and no docs to check" in _doctor(tmp_path, capsys)
+    assert "no sources" in _doctor(tmp_path, capsys)

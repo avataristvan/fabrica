@@ -1,4 +1,4 @@
-"""The Sources section of `mem doctor`: are the area's sources pointed to, and do current docs still describe retired systems?
+"""The Sources section of `mem doctor`: are the area's sources pointed to?
 
 A source is `docs/sources/<slug>.md` (format: docs/reference/record-format.md, "Sources"). It is *pointed to* when a record of the same
 area names its path (`docs/sources/<slug>.md`) in the text or has an edge to `<slug>`, from any area. A source nothing points to
@@ -6,7 +6,6 @@ must say `status: unprocessed`; that is the archivist's queue, not a finding. St
 """
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from ai_mem.infrastructure.adr_paths import sources_dir
@@ -14,11 +13,6 @@ from ai_mem.infrastructure.areas import Area
 from ai_mem.infrastructure.source_files import SOURCE_STATUSES
 
 SOURCE_FIELDS = ("type", "date", "origin", "status")
-RETIRED_KEYWORDS = ("ChromaDB", "MCP server", "BM25", "daemon", "experience index")
-_HISTORICAL_STATUSES = ("historical", "plan")
-_DOC_FOLDERS = ("tutorial", "how-to", "reference", "explanation")
-_BANNER_LINES = 5  # a historical marker must sit at the top of the doc
-_BANNER = re.compile(r"^>.*\b(superseded|dropped|historical|retired)\b", re.IGNORECASE)
 _READ_LIMIT = 1_000_000
 
 
@@ -46,30 +40,12 @@ def _frontmatter(text: str) -> dict[str, str] | None:
     return None
 
 
-def _marked_historical(text: str) -> bool:
-    fields = _frontmatter(text)
-    if fields is not None:
-        return fields.get("status") in _HISTORICAL_STATUSES
-    return any(_BANNER.match(line) for line in text.split("\n")[:_BANNER_LINES])
-
-
 def _source_files(area: Area) -> list[Path]:
     directory = sources_dir(area.records_dir)
     try:
         return sorted(p for p in directory.glob("*.md") if p.is_file() and not p.is_symlink())
     except OSError:
         return []
-
-
-def _current_docs(area: Area) -> list[Path]:
-    docs = area.root / "docs"
-    found = [area.root / "README.md"]
-    for folder in (docs, *(docs / name for name in _DOC_FOLDERS)):
-        try:
-            found += sorted(folder.glob("*.md"))
-        except OSError:
-            continue
-    return [p for p in found if not p.name.startswith("handoff-")]
 
 
 def collect_sources(area: Area, record_texts: list[str], pointed_slugs: set[str]) -> dict:
@@ -94,13 +70,4 @@ def collect_sources(area: Area, record_texts: list[str], pointed_slugs: set[str]
             unprocessed.append(name)
         elif not pointed:
             unpointed.append(name)
-    retired = []
-    for path in _current_docs(area):
-        text = _text(path)
-        if text is None or _marked_historical(text):
-            continue
-        hits = [word for word in RETIRED_KEYWORDS if re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE)]
-        if hits:
-            retired.append({"file": path.relative_to(area.root).as_posix(), "keywords": hits})
-    return {"total": len(_source_files(area)), "unprocessed": unprocessed, "unpointed": unpointed, "malformed": malformed,
-            "retired_in_current": retired}
+    return {"total": len(_source_files(area)), "unprocessed": unprocessed, "unpointed": unpointed, "malformed": malformed}

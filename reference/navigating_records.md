@@ -47,8 +47,8 @@ They age differently and are never mixed:
 ## A record file
 
 Layout: `docs/records/<topic>/<kind>/<id>.md`. `<kind>` follows from the type:
-`decisions/` (`domain`, `pattern`, `anti-pattern`), `learnings/` (`learning`), `todos/`
-(`todo`), `user/` (`user`). The topic is a plain subfolder such as `architecture`; its
+`decisions/` (`domain`, `pattern`, `anti-pattern`), `learnings/` (`learning`), `user/`
+(`user`). The topic is a plain subfolder such as `architecture`; its
 frontmatter key is `topic:` (old records may still say `area:`, the same thing).
 
 Each file starts with `key: value` lines, then `---`, then the text:
@@ -56,7 +56,7 @@ Each file starts with `key: value` lines, then `---`, then the text:
 | Key | Meaning |
 |---|---|
 | `id` | the file name without `.md` |
-| `type` | `domain`, `pattern`, `anti-pattern`, `learning`, `todo`, `user` |
+| `type` | `domain`, `pattern`, `anti-pattern`, `learning`, `user` |
 | `topic` | the topic folder (old records may still say `area:`) |
 | `perspective` | optional: whose knowledge or experience it is (`user`, `agent`, or a role such as `coder`, `reviewer`). A lens, not a location: it never decides where the file lives. Records of kind `user` also carry `perspective: user`. |
 | `created` | when the record was first written |
@@ -100,8 +100,8 @@ choose candidates because their *meaning* plausibly bears on the question, not b
 string matched.
 
 1. **Catalogue.** Read the area's `INDEX.md`. If the question is about the current state
-   or what comes next, read `FOCUS.md` (and the newest `docs/handoff-*.md` if there is one)
-   and look at the `todo` rows too.
+   or what comes next, read `FOCUS.md` and `BACKLOG.md` (and the newest `docs/handoff-*.md`
+   if there is one).
 2. **Situation cues.** `Grep` for `^cue:` under the area's `docs/records/` (and `global`
    when relevant). If the situation at hand matches a cue, it points straight at the
    record to read.

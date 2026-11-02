@@ -3,7 +3,7 @@ type: learning
 topic: evaluation
 perspective: agent
 created: 1792868079.086224
-edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "confirms"}, {"target_id": "todo_librarian_cannot_read_handoffs_2026_10_20", "edge_type": "related"}, {"target_id": "pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24", "edge_type": "related"}, {"target_id": "todo_decide_librarian_core_or_optional_2026_10_24", "edge_type": "related"}]
+edges: [{"target_id": "eval_librarian_2026_09_26", "edge_type": "confirms"}, {"target_id": "pattern_observed_holds_only_what_was_seen_cause_carries_origin_2026_10_24", "edge_type": "related"}]
 cue: I am judging how much the librarian helps compared with FOCUS.md and handoff files, or whether a failed attempt deserves its own record.
 ---
 

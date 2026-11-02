@@ -14,10 +14,11 @@ KIND_BY_TYPE = {
     "domain": "decisions",
     "pattern": "decisions",
     "anti-pattern": "decisions",
-    "todo": "todos",
     "user": "user",
 }
 ADR_TYPES = frozenset(KIND_BY_TYPE)
+# Types that were record types once; the hint says where their content lives now.
+RETIRED_TYPES = {"todo": "todo records are retired: next steps go into FOCUS.md, the rest into BACKLOG.md"}
 REFERENCE_TYPE = "reference"  # stored as plain docs/reference/<id>.md, not as a record
 FOCUS_TYPE = "project"  # type given to current_focus when it is read back from FOCUS.md
 
@@ -61,9 +62,9 @@ def sources_dir(records_dir: Path) -> Path:
     return records_dir.parent / "sources"
 
 
-_RESERVED_STEMS = frozenset({"INDEX", "README", "FOCUS"})
+_RESERVED_STEMS = frozenset({"INDEX", "README", "FOCUS", "BACKLOG"})
 # Files that live in the ADR directory but aren't decision records (INDEX.md generated, README.md handwritten,
-# FOCUS.md the overwritten projection of the `current_focus` entry).
+# FOCUS.md the overwritten projection of the `current_focus` entry, BACKLOG.md handwritten state like FOCUS.md).
 NON_ADR_FILENAMES = frozenset(f"{stem}.md" for stem in _RESERVED_STEMS)
 
 FOCUS_ID = "current_focus"

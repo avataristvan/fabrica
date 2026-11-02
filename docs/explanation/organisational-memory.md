@@ -15,7 +15,7 @@ What worked is **pull at fixed points by a role with judgment**: a moment where 
 
 ai-mem remembers like an organisation does: through rituals at boundaries (decision reviews, handoffs, retrospectives), as domain-driven design's context maps and Team Topologies describe. The value lies in the practice, not the tool:
 
-- **Record files in each area.** Decisions, learnings, todos and user-held yardsticks are Markdown files, reviewable and greppable without any tooling and versioned with the work.
+- **Record files in each area.** Decisions, learnings and user-held yardsticks are Markdown files, reviewable and greppable without any tooling and versioned with the work.
 - **Fixed call points at context boundaries.** A session start, a chunk handoff and a review are where knowledge is read in and written out.
 - **Judgment instead of scores.** A librarian agent reads the catalogue and the `cue:` of each record and decides what applies. Nothing is ranked by a number.
 

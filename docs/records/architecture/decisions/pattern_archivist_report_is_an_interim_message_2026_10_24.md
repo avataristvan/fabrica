@@ -3,7 +3,7 @@ type: pattern
 topic: architecture
 perspective: user
 created: 1792868078.758435
-edges: [{"target_id": "domain_archivist_integration_visible_to_navigator_2026_10_15", "edge_type": "related"}, {"target_id": "todo_archivist_report_names_searched_areas_2026_10_11", "edge_type": "related"}, {"target_id": "learning_call_prompt_does_not_beat_agent_template_2026_10_24", "edge_type": "related"}]
+edges: [{"target_id": "domain_archivist_integration_visible_to_navigator_2026_10_15", "edge_type": "related"}, {"target_id": "learning_call_prompt_does_not_beat_agent_template_2026_10_24", "edge_type": "related"}]
 cue: I am changing agents/archivist.md or the format of the integration report the archivist hands back.
 ---
 

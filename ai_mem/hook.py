@@ -20,8 +20,9 @@ except ImportError:
 
 def _pointer_to(records: Path) -> str:
     focus = "FOCUS.md = current focus, " if (records / "FOCUS.md").is_file() else ""
+    backlog = "BACKLOG.md = what is not in focus, " if (records / "BACKLOG.md").is_file() else ""
     return (
-        f"Records: {records} ({focus}INDEX.md = catalogue of decisions, learnings, todos). "
+        f"Records: {records} ({focus}{backlog}INDEX.md = catalogue of decisions and learnings). "
         "Read them on demand; for \"why is it like this / was this tried before?\" ask the librarian agent."
     )
 

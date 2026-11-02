@@ -21,10 +21,10 @@ They age differently and are never mixed:
 | **Evidence** | `docs/sources/<slug>.md`, raw material in `docs/sources/<slug>/` | never changed |
 
 - **State** says where the work stands. It is rewritten at each boundary and git keeps the history.
-- **Records** are the reasons: a decision (`domain`, `pattern`, `anti-pattern`), a learning (what was observed), a todo, or a `user` record (a role's yardstick). A decision links back to the learning it rests on. A record that is outdated is superseded, and the old one keeps its reasoning and is flagged, because the reason it was wrong is itself knowledge.
+- **Records** are the reasons: a decision (`domain`, `pattern`, `anti-pattern`), a learning (what was observed), or a `user` record (a role's yardstick). A decision links back to the learning it rests on. A record that is outdated is superseded, and the old one keeps its reasoning and is flagged, because the reason it was wrong is itself knowledge.
 - **Evidence** is a talk, a paper, a measurement, a past design document or the documentation of a retired system. Its claims are frozen; a learning that rests on it names it. Internal sources count as much as external ones.
 
-`docs/reference/` and the rest of `docs/` are documentation of the current system, rewritten when the system changes. Anything that only describes a system that is gone belongs in `docs/sources/` instead: it is neither deleted nor left misleading as current documentation (`domain_docs_split_into_documentation_and_sources_2026_10_10`). `mem doctor` checks this split.
+`docs/reference/` and the rest of `docs/` are documentation of the current system, rewritten when the system changes. Anything that only describes a system that is gone belongs in `docs/sources/` instead: it is neither deleted nor left misleading as current documentation (`domain_docs_split_into_documentation_and_sources_2026_10_10`). `mem doctor` checked this split during the migration away from the database (tags `v0-last-mcp`, `v1-last-upgrade-path`); the check is retired since.
 
 ## Record types
 
@@ -34,7 +34,6 @@ They age differently and are never mixed:
 | `anti-pattern` | `Tried: / Failed because: / Instead:` | a documented failure mode |
 | `domain` | `Decision: / Why: / Scope:` | business or domain knowledge: why a rule exists, a constraint, as opposed to a coding technique |
 | `learning` | `Observed: / Cause: / Evidence:` | what was seen, with its proof |
-| `todo` | free-form | open work; a closed todo becomes a result record |
 | `user` | free-form | what the user values, pulled at review as the yardstick |
 
 Write a `domain` record the moment the knowledge surfaces, not at the end of a session. No hook forces this, because recognising a domain decision takes judgment a deterministic check cannot make.

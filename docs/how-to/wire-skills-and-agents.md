@@ -8,7 +8,7 @@ How to wire Claude Code skills and agents into the records, so they use what ear
 
 ### Areas and kinds
 
-Knowledge lives in record files under the nearest `docs/records/` of the work (an "area"; `mem context` prints it). Kinds: decisions (`domain`, `pattern`, `anti-pattern`), learnings, todos, `user`. State is `FOCUS.md` and `docs/handoff-*.md`, written by the orchestrator through `/reflect`. Format: [record format](../reference/record-format.md). Reading procedure: `reference/navigating_records.md`. The reasoning behind the roles: [Organisational memory](../explanation/organisational-memory.md).
+Knowledge lives in record files under the nearest `docs/records/` of the work (an "area"; `mem context` prints it). Kinds: decisions (`domain`, `pattern`, `anti-pattern`), learnings, `user`. State is `FOCUS.md`, `BACKLOG.md` and `docs/handoff-*.md`, written by the orchestrator through `/reflect`. Format: [record format](../reference/record-format.md). Reading procedure: `reference/navigating_records.md`. The reasoning behind the roles: [Organisational memory](../explanation/organisational-memory.md).
 
 ### Who reads, who writes
 
@@ -70,7 +70,7 @@ Agents start cold: no conversation history and no memory content pushed at sessi
 [retro]
 learned: <what surprised you or did not work, or "nothing">
 blocked: <what got in the way, or "nothing">
-next: <suggested todo, or "nothing">
+next: <suggested next step, or "nothing">
 records_consulted: <ids that carried a decision or a finding, or "none">
 record_candidates: <plain text: what should become a record, or which record is touched or refuted, or "none">
 ```

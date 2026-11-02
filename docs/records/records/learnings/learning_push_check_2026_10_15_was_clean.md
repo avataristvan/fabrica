@@ -3,7 +3,7 @@ type: learning
 topic: records
 perspective: agent
 created: 1792061047.051278
-edges: [{"target_id": "todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]
+edges: [{"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]
 cue: You are about to push to the public repo, or wonder whether other project names in public records were judged.
 ---
 

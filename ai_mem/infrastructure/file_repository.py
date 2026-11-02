@@ -1,6 +1,6 @@
 """MemoryRepository over the git-native record files -- no database.
 
-- record types (domain/pattern/anti-pattern/learning/todo/user) -> docs/records/<area>/<kind>/<id>.md
+- record types (domain/pattern/anti-pattern/learning/user) -> docs/records/<area>/<kind>/<id>.md
 - the `current_focus` entry, whatever its type -> docs/records/FOCUS.md
 - `reference` entries -> docs/reference/<id>.md (plain text)
 Any other type is rejected at write time: the type taxonomy is the quality gate
@@ -27,6 +27,7 @@ from ai_mem.infrastructure.adr_paths import (
     FOCUS_ID,
     FOCUS_TYPE,
     REFERENCE_TYPE,
+    RETIRED_TYPES,
     find_adr_files,
     focus_path,
     is_safe_area,
@@ -197,6 +198,8 @@ class FileMemoryRepository:
             if entry.id == FOCUS_ID:
                 continue
             entry_type = entry.metadata.get("type")
+            if entry_type in RETIRED_TYPES:
+                raise ValueError(f"type {entry_type!r} of {entry.id!r}: {RETIRED_TYPES[entry_type]}")
             if entry_type not in STORED_TYPES:
                 raise ValueError(
                     f"type {entry_type!r} of {entry.id!r} is not stored; use one of "

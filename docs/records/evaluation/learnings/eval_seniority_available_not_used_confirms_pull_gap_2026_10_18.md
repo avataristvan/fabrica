@@ -3,7 +3,7 @@ type: learning
 topic: evaluation
 perspective: agent
 created: 1792360316.043297
-edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "confirms"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}, {"target_id": "todo_decide_librarian_core_or_optional_2026_10_24", "edge_type": "related"}]
+edges: [{"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "derived_from"}, {"target_id": "eval_pull_gap_test_2026_09_20", "edge_type": "confirms"}, {"target_id": "learning_whole_record_not_better_than_decisions_alone_2026_10_24", "edge_type": "related"}]
 cue: I assume that having all records in the repo means the agent will read them.
 ---
 

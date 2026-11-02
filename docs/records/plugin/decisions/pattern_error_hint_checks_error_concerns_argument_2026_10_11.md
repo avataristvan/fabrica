@@ -3,7 +3,6 @@ type: pattern
 topic: plugin
 perspective: reviewer
 created: 1791745726.944636
-edges: [{"target_id": "todo_mem_cli_simplify_deferred_from_1b4_2026_10_11", "edge_type": "related"}]
 cue: I am adding a user-facing hint to an error that a use case raised
 ---
 

@@ -3,7 +3,7 @@ type: domain
 topic: records
 perspective: agent
 created: 1793524156.530212
-edges: [{"target_id": "domain_source_status_unprocessed_or_processed_2026_10_12", "edge_type": "related"}, {"target_id": "todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "domain_source_status_unprocessed_or_processed_2026_10_12", "edge_type": "related"}]
 cue: You are processing a source and need to flip its status, or want a record to point at a docs/sources slug.
 ---
 

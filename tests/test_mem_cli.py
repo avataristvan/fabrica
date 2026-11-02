@@ -94,6 +94,11 @@ def test_add_rejects_an_untyped_taxonomy_violation(env):
     assert _add("--id", "x", "--type", "fact", "--text", "x") == 2
 
 
+def test_add_rejects_the_retired_todo_type_with_a_hint(env, capsys):
+    assert _add("--id", "todo_x", "--type", "todo", "--text", "x") == 2
+    assert "BACKLOG.md" in capsys.readouterr().err
+
+
 def test_cue_only_update_changes_only_the_cue_line(env):
     _, _, proj, _ = env
     _add("--id", "learning_a", "--type", "learning", "--topic", "tools", "--perspective", "dev", "--text", "Body.")
@@ -207,11 +212,11 @@ def test_unlink_supersedes_clears_both_flags_on_the_target(env):
 def test_unlink_removes_an_edge_to_a_deleted_record(env):
     _, _, proj, _ = env
     _add("--id", "learning_a", "--type", "learning", "--text", "A.")
-    _add("--id", "todo_gone", "--type", "todo", "--text", "T.")
-    main(["link", "learning_a", "todo_gone", "--type", "related"])
-    main(["delete", "todo_gone"])
+    _add("--id", "domain_gone", "--type", "domain", "--text", "T.")
+    main(["link", "learning_a", "domain_gone", "--type", "related"])
+    main(["delete", "domain_gone"])
 
-    assert main(["unlink", "learning_a", "todo_gone"]) == 0
+    assert main(["unlink", "learning_a", "domain_gone"]) == 0
     assert _edges_of(proj, "learning_a") == []
 
 
@@ -240,41 +245,41 @@ def test_delete_removes_and_reports_missing(env, capsys):
 
 def test_delete_names_the_edges_it_leaves_dangling_and_unlink_clears_them(env, capsys):
     _, _, proj, _ = env
-    for entry_id, entry_type in (("todo_x", "todo"), ("learning_a", "learning"), ("learning_b", "learning")):
+    for entry_id, entry_type in (("domain_x", "domain"), ("learning_a", "learning"), ("learning_b", "learning")):
         _add("--id", entry_id, "--type", entry_type, "--text", entry_id)
-    main(["link", "learning_a", "todo_x", "--type", "related"])
+    main(["link", "learning_a", "domain_x", "--type", "related"])
     main(["link", "learning_b", "learning_a", "--type", "related"])
     capsys.readouterr()
 
-    assert main(["delete", "todo_x"]) == 0
+    assert main(["delete", "domain_x"]) == 0
 
-    assert capsys.readouterr().out.splitlines() == ["deleted todo_x", "dangling: learning_a --related--> todo_x"]
-    assert "todo_x" in _record(proj, "learning_a").read_text()  # reported, never removed by the delete
-    assert main(["unlink", "learning_a", "todo_x"]) == 0
+    assert capsys.readouterr().out.splitlines() == ["deleted domain_x", "dangling: learning_a --related--> domain_x"]
+    assert "domain_x" in _record(proj, "learning_a").read_text()  # reported, never removed by the delete
+    assert main(["unlink", "learning_a", "domain_x"]) == 0
     assert main(["lint"]) == 0
 
 
 def test_delete_dangling_edges_in_json(env, capsys):
-    _add("--id", "todo_x", "--type", "todo", "--text", "x")
+    _add("--id", "domain_x", "--type", "domain", "--text", "x")
     _add("--id", "learning_a", "--type", "learning", "--text", "a")
-    main(["link", "learning_a", "todo_x", "--type", "fixes"])
+    main(["link", "learning_a", "domain_x", "--type", "fixes"])
     capsys.readouterr()
 
-    main(["delete", "--json", "todo_x"])
+    main(["delete", "--json", "domain_x"])
 
     dangling = [json.loads(line) for line in capsys.readouterr().out.splitlines()][1]
-    assert (dangling["action"], dangling["source"], dangling["target"], dangling["type"]) == ("dangling", "learning_a", "todo_x", "fixes")
+    assert (dangling["action"], dangling["source"], dangling["target"], dangling["type"]) == ("dangling", "learning_a", "domain_x", "fixes")
 
 
 def test_delete_of_records_pointing_at_each_other_leaves_nothing_dangling(env, capsys):
-    _add("--id", "todo_x", "--type", "todo", "--text", "x")
-    _add("--id", "todo_y", "--type", "todo", "--text", "y")
-    main(["link", "todo_x", "todo_y", "--type", "related"])
-    main(["link", "todo_y", "todo_x", "--type", "related"])
+    _add("--id", "domain_x", "--type", "domain", "--text", "x")
+    _add("--id", "domain_y", "--type", "domain", "--text", "y")
+    main(["link", "domain_x", "domain_y", "--type", "related"])
+    main(["link", "domain_y", "domain_x", "--type", "related"])
     capsys.readouterr()
 
-    assert main(["delete", "todo_x", "todo_y"]) == 0
-    assert capsys.readouterr().out.splitlines() == ["deleted todo_x", "deleted todo_y"]
+    assert main(["delete", "domain_x", "domain_y"]) == 0
+    assert capsys.readouterr().out.splitlines() == ["deleted domain_x", "deleted domain_y"]
 
 
 def test_delete_requires_ids(env):

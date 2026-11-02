@@ -54,7 +54,8 @@
 | domain_doctor_and_reflect_reminder_accept_old_ai_mem_names_2026_10_31 | plugin | domain | Decision: After the rename to fabrica, mem doctor (plugin enabled check) and the | active |
 | domain_doctor_diagnoses_ritual_erosion_2026_10_10 | architecture | domain | Decision: ai-mem gets a doctor, similar to Claude Code's /doctor. It diagnoses w | active |
 | domain_doctor_lists_external_skills_apart_2026_10_23 | architecture | domain | Decision: mem doctor lists skills installed by a tool (folder with .git, VERSION | active |
-| domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12 | architecture | domain | Decision: The doctor's "retired system in current doc" check is a keyword heuris | active |
+| domain_doctor_retired_system_check_is_keyword_heuristic_2026_10_12 | architecture | domain | Decision: The doctor's "retired system in current doc" check is a keyword heuris | superseded_by: domain_doctor_retired_system_check_is_retired_migration_is_tagged_2026_11_02 |
+| domain_doctor_retired_system_check_is_retired_migration_is_tagged_2026_11_02 | architecture | domain | Decision: The doctor's retired-system check (RETIRED_KEYWORDS in ai_mem/doctor_s | active |
 | domain_domain_decisions_immediate_capture_2026_10_04 | general | domain | Decision: Domain/business decisions should be captured immediately when they sur | active |
 | domain_dream_after_every_reflect_2026_09_26 | workflow | domain | Decision: mem_dream runs after every /reflect (step 6), limited to the active ar | active |
 | domain_dream_proposes_never_applies_2026_10_13 | workflow | domain | Decision: mem-dream proposes, it never applies. The auto-apply path of DreamMemo | active |
@@ -85,7 +86,9 @@
 | domain_mem_move_area_renames_with_references_rename_first_2026_11_01 | records | domain | Decision: `mem move-area OLD NEW --root DIR` renames or moves an area folder det | active |
 | domain_mem_source_sets_status_and_link_find_reach_sources_2026_11_01 | records | domain | Decision: `mem link` accepts a source slug (docs/sources/<slug>.md) as target (n | active |
 | domain_mem_unlink_removes_edges_2026_10_13 | records | domain | Decision: `mem unlink SOURCE TARGET [--type T]` (RemoveEdgeUseCase, ai_mem/appli | active |
+| domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02 | workflow | domain | Decision: Next steps have a single place: FOCUS.md (the work in progress: goal,  | active |
 | domain_no_hardcoded_keyword_pretool_hook_recall_moment_open_2026_10_23 | architecture | domain | Decision: Rejected (user, 2026-10-23): a PreToolUse hook on Bash that greps reco | active |
+| domain_out_of_scope_is_not_a_backlog_section_2026_11_02 | workflow | domain | Decision: "Out of scope" is not a backlog section. A dropped item leaves the bac | active |
 | domain_perspective_is_a_lens_not_a_location_2026_10_10 | architecture | domain | Decision: Every record can carry a `perspective:` field naming whose knowledge o | active |
 | domain_plan_seniority_measurement_stays_loose_in_docs_2026_11_01 | evaluation | domain | Decision: docs/plan_seniority_measurement.md stays loose in docs/ although it lo | active |
 | domain_plugin_hook_events_fixed_list_not_derived_from_hooks_json_2026_10_13 | plugin | domain | Decision: `PLUGIN_HOOK_EVENTS` (install.py / uninstall.py) deliberately stays a  | active |
@@ -270,34 +273,10 @@
 | the-coder_stop_list_complete_both_directions | general | pattern | Rule: Instructions for an unattended agent (UPGRADING.md, runbooks) name every S | active |
 | todo_adr_migration_2026_09_25 | general | learning | RESULT (completed 2026-09-25): Switch to ADRs -- domain/pattern/anti-pattern ent | active |
 | todo_after_confidence_drop_cleanup_2026_09_26 | general | learning | Cleanup after the confidence removal (b5e5d38), completed 2026-09-26 after the f | active |
-| todo_ai_mem_violates_link_type | architecture | todo | TODO: In an ai-mem session, propose a new link type 'violates' (anti-pattern → p | active |
-| todo_archivist_flag_cross_area_duplicates_2026_10_13 | architecture | todo | TODO: The archivist does not look for duplicates of a candidate in other areas.  | active |
-| todo_archivist_report_names_searched_areas_2026_10_11 | architecture | todo | TODO: Make the archivist's search of the records home (ai-mem-records/global, wo | active |
 | todo_bibliothekar_haiku_retrieval_agent_2026_09_25 | general | learning | RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09- | active |
 | todo_confidence_decay_adsr_design | general | learning | Design and implement a confidence-decay mechanism modeled on an ADSR envelope (A | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
-| todo_decide_librarian_core_or_optional_2026_10_24 | evaluation | todo | TODO: Settle whether the librarian is the core of Fabrica or too much, since an  | active |
-| todo_detect_skipped_reflect_gate_2026_10_11 | architecture | todo | TODO: Make `mem doctor` detect a skipped reflect gate, e.g. commits on main sinc | active |
-| todo_doctor_reads_environment_records_2026_10_11 | architecture | todo | TODO: make `mem doctor` (Wiring) read environment records (e.g. "external team,  | active |
-| todo_doctor_retired_system_check_sidestepped_by_softer_wording_2026_10_12 | architecture | todo | TODO (user confirmed): The doctor's retired-system check can be sidestepped by s | active |
-| todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13 | records | todo | TODO: A `mem doctor` (or `mem lint`) check that lists hits in docs/records and d | active |
-| todo_doctor_wiring_deferred_from_4c_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the doctor): hooks registered only in  | active |
-| todo_dream_area_refs_refactor | workflow | todo | TODO (from the mem-dream area-mode review): replace AreaRefResolver.resolve(..., | active |
 | todo_dream_maintenance_batch_2026_09_25 | general | learning | RESULT (worked off 2026-09-26): mem_dream maintenance batch of 2026-09-25 on rep | active |
 | todo_dream_trigger_candidates_not_count_2026_09_25 | general | learning | RESULT (implemented): Idea of 2026-09-25 -- the mem_dream trigger in /reflect co | superseded_by: domain_dream_after_every_reflect_2026_09_26 |
 | todo_holistic_opus_review_adr_migration_2026_09_25 | workflow | learning | Observed: The holistic Opus review of the ADR migration (b7548a1, carried out 20 | active |
-| todo_librarian_cannot_read_handoffs_2026_10_20 | general | todo | TODO (Hinweis aus ai-architecture, dort nicht zu entscheiden): Der Bibliothekar  | active |
-| todo_librarian_hostile_input_test_2026_10_11 | evaluation | todo | TODO: Write a hostile-input test for the librarian, and decide whether to harden | active |
-| todo_librarian_scope_and_relied_on_parser_2026_10_11 | evaluation | todo | TODO: Add a committed `Relied on` parser to scripts/eval_librarian/score.py, plu | active |
-| todo_mem_cli_simplify_deferred_from_1b4_2026_10_11 | plugin | todo | TODO (deferred from a /simplify review of the mem CLI): (1) a TargetNotFound exc | active |
-| todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12 | architecture | todo | TODO: Test three still-open ideas from the 2026-05-12 friction collection, one a | active |
-| todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12 | records | todo | TODO: Decide a policy for edges and Evidence paths that point at reference docs  | active |
-| todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24 | architecture | todo | TODO: Settle the rule. docs/reference/record-format.md "Sources" allows pseudony | active |
-| todo_pull_trigger_points_per_situation | architecture | todo | TODO: Define fixed pull trigger points per situation, one at a time, each tested | active |
-| todo_readme_first_impression_problem_first_2026_10_31 | architecture | todo | TODO (user confirmed): Write the README for the first impression: the problem fi | active |
-| todo_reflect_reminder_rescans_transcript_2026_10_11 | plugin | todo | TODO: reflect_reminder rescans the whole transcript on every Stop in sessions wi | active |
-| todo_resolve_public_lodge_book_vs_handoffs_local_2026_10_31 | records | todo | TODO (user confirmed): Resolve the tension between domain_fabrica_records_public | active |
 | todo_retrieval_confidence_gradient | architecture | learning | Observed: Entries with a low access_count were not found despite targeted querie | superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26 |
-| todo_show_second_environment_beyond_claude_code_2026_10_24 | architecture | todo | TODO: Show a second environment, for example an AGENTS.md pointing to docs/recor | active |
-| todo_state_dir_single_stdlib_definition_2026_10_11 | architecture | todo | TODO: Make ai_mem.hooks.state_dir the single stdlib-only definition of the $AI_M | active |
-| todo_verify_retro_log_measurement_against_real_report_2026_10_12 | architecture | todo | TODO: Verify the retro-log measurement (retro_check and the doctor Effect sectio | active |
 | userprompt_hook_threshold_recalibration_2026_07_31 | architecture | learning | Observed: Off-topic prompts reached 0.45-0.60 as top hits against global/repo.ai | active |

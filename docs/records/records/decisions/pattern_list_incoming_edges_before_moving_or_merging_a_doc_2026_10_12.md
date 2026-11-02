@@ -3,7 +3,7 @@ type: pattern
 topic: records
 perspective: the-coder
 created: 1791758108.060381
-edges: [{"target_id": "pattern_check_secondary_edges_before_public_move_2026_10_12", "edge_type": "related"}, {"target_id": "todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12", "edge_type": "related"}, {"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "related"}, {"target_id": "learning_incoming_edge_list_held_in_5b2_2026_10_12", "edge_type": "related"}]
+edges: [{"target_id": "pattern_check_secondary_edges_before_public_move_2026_10_12", "edge_type": "related"}, {"target_id": "domain_docs_split_into_documentation_and_sources_2026_10_10", "edge_type": "related"}, {"target_id": "learning_incoming_edge_list_held_in_5b2_2026_10_12", "edge_type": "related"}]
 cue: About to move, rename or merge a file under docs/ or docs/reference/
 ---
 

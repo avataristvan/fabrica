@@ -2,7 +2,7 @@ id: domain_records_model_replaces_chroma_2026_10_04
 type: domain
 topic: records
 created: 1791065383.941984
-edges: [{"target_id": "domain_learning_decision_split_subfolders_2026_09_29", "edge_type": "related"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}, {"target_id": "domain_records_home_stays_for_migration_2026_10_13", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "confirms"}, {"target_id": "domain_record_edges_single_line_json_with_ids_2026_10_23", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "derived_from"}, {"target_id": "domain_record_key_topic_replaces_area_2026_11_01", "edge_type": "related"}]
+edges: [{"target_id": "domain_learning_decision_split_subfolders_2026_09_29", "edge_type": "related"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}, {"target_id": "domain_records_home_stays_for_migration_2026_10_13", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "confirms"}, {"target_id": "domain_record_edges_single_line_json_with_ids_2026_10_23", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "derived_from"}, {"target_id": "domain_record_key_topic_replaces_area_2026_11_01", "edge_type": "related"}, {"target_id": "domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02", "edge_type": "related"}]
 cue: I am about to change ai-mem storage, retrieval or hooks, or introduce a new record type.
 ---
 

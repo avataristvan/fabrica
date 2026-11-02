@@ -337,7 +337,7 @@ def _render_sources(areas: list[dict], base: Path) -> list[str]:
     out = []
     for a in areas:
         s = a["sources"]
-        if not (s["total"] or s["retired_in_current"]):
+        if not s["total"]:
             continue
         label = _label(a["root"], base)
         out.append(f"  {label}: {s['total']} sources, {len(s['unprocessed'])} unprocessed (awaiting the archivist)")
@@ -345,10 +345,7 @@ def _render_sources(areas: list[dict], base: Path) -> list[str]:
                            ("processed sources that no record points to", "unpointed")):
             lines = [f"{item['file']}: {item['problem']}" if key == "malformed" else item for item in s[key]]
             out += [f"    {title}:", *(f"      {line}" for line in lines)] if lines else []
-        if s["retired_in_current"]:
-            out.append("    docs naming a retired system without a historical marker (move to docs/sources/ or mark):")
-            out += [f"      {d['file']}: {', '.join(d['keywords'])}" for d in s["retired_in_current"]]
-    return out or ["  no sources and no docs to check"]
+    return out or ["  no sources"]
 
 
 def render(report: dict, base: Path) -> str:
