@@ -41,9 +41,9 @@ def handle(event: dict) -> dict | None:
     file_path = tool_input.get("file_path") if isinstance(tool_input, dict) else None
     if not isinstance(file_path, str) or not os.path.isabs(file_path) or not file_path.endswith(".md"):
         return None
-    if "/docs/records/" not in file_path.replace(os.sep, "/"):  # cheap exit before any import or stat
-        return None
     path = Path(os.path.normpath(file_path))
+    if "/docs/records/" not in file_path.replace(os.sep, "/"):  # cheap exit before any import or stat
+        return _docs_findings(path)
     area = _record_area(path)
     if area is None or not (path.is_file() or path.is_symlink()):
         return None
@@ -65,6 +65,29 @@ def handle(event: dict) -> dict | None:
         return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": hint[:_REASON_LIMIT]}}
     reason = "ai-mem lint (run `mem lint` for details): " + "; ".join(lines)
     return {"decision": "block", "reason": reason[:_REASON_LIMIT]}
+
+
+def _docs_findings(path: Path) -> dict | None:
+    """An experiment or handoff of an area, checked by the documentation map; None for any other file."""
+    if path.name != "README.md" and not path.name.startswith("handoff-"):
+        return None
+    from ai_mem import docs_lint
+    from ai_mem.infrastructure.adr_paths import records_dir_for_root
+
+    for root, check in ((path.parent.parent.parent.parent, docs_lint.check_experiment),
+                        (path.parent.parent, docs_lint.check_handoff)):
+        records_dir = records_dir_for_root(root)
+        is_kind = docs_lint.is_experiment_file if check is docs_lint.check_experiment else docs_lint.is_handoff_file
+        if records_dir.is_dir() and is_kind(path, records_dir) and path.is_file() and not path.is_symlink():
+            findings = check(path)
+            if not findings:
+                return None
+            lines = [code + ": " + message for code, message in findings[:_MAX_FINDINGS]]
+            plugin_root = os.environ.get("CLAUDE_PLUGIN_ROOT")
+            where = f"{plugin_root}/reference/documentation_map.md" if plugin_root else "the documentation map"
+            reason = f"ai-mem lint ({path.name}, see {where}): " + "; ".join(lines)
+            return {"decision": "block", "reason": reason[:_REASON_LIMIT]}
+    return None
 
 
 def main() -> None:

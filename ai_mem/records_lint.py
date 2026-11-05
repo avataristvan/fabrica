@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, get_args
 
+from ai_mem import docs_lint
 from ai_mem.domain.memory import EdgeType, parse_edges
 from ai_mem.infrastructure import adr_markdown
 from ai_mem.infrastructure.adr_index import index_is_current, regenerate_index
@@ -501,6 +502,8 @@ def lint_records(area: Area, records: list[RawRecord], check_index: bool = True)
         def add(code: str, message: str, fixable: bool = False, _path: Path = record.path) -> None:
             findings.append(Finding(_path, code, message, fixable))
         _check_record(area, record, add, cache)
+        for name in docs_lint.handoff_citations(record.body):
+            add(docs_lint.HANDOFF_CITED, f"cites {name}: cite the experiment or source it moved to, or the commit `<sha>:docs/{name}`")
     if check_index:
         findings += _check_index(area, records)
     return sorted(findings, key=lambda f: (str(f.file), f.code, f.message))
@@ -555,8 +558,18 @@ def _fix_backlog(area: Area, args: argparse.Namespace) -> None:
         _emit(args, area, action="fixed", file=str(path), message="backlog items as unnumbered `- ` lines")
 
 
+def check_docs(area: Area) -> list[Finding]:
+    """Experiments and handoffs of the area, by the documentation map."""
+    findings = [Finding(path, code, message, False)
+                for path in docs_lint.experiment_files(area.records_dir) for code, message in docs_lint.check_experiment(path)]
+    findings += [Finding(path, code, message, False)
+                 for path in docs_lint.handoff_files(area.records_dir) for code, message in docs_lint.check_handoff(path)]
+    return findings
+
+
 def lint(area: Area) -> list[Finding]:
-    return sorted(lint_records(area, read_area(area)) + check_backlog(area), key=lambda f: (str(f.file), f.code, f.message))
+    findings = lint_records(area, read_area(area)) + check_backlog(area) + check_docs(area)
+    return sorted(findings, key=lambda f: (str(f.file), f.code, f.message))
 
 
 def _created_from_history(area: Area, path: Path) -> str:
@@ -775,7 +788,7 @@ def run(args: argparse.Namespace) -> int:
         return USAGE
     if args.fix:
         # INDEX.md is fresh after _fix by construction, so it is not rendered a second time.
-        findings = lint_records(area, _fix(area, args), check_index=False) + check_backlog(area)
+        findings = lint_records(area, _fix(area, args), check_index=False) + check_backlog(area) + check_docs(area)
     else:
         findings = lint(area)
     for finding in findings:

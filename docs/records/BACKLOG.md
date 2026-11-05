@@ -1,7 +1,6 @@
 Ordered, the next candidate on top; reorder by moving lines. One line per item; a line's history is `git log -S '<words of the line>'`.
 
 - After galaxy-tab-a-2016, the same rollout for the other areas (ai-architecture, briefing-interviewer, …), the generic way it produced.
-- `mem lint` flags a record whose evidence or link points at docs/handoff-*.md.
 - Link record names in docs/ prose (outside docs/records/) the way `mem lint --fix` does in records.
 - dev-team plugin: `anchors:` name records by path instead of id.
 - Settle whether the librarian is the core of Fabrica or optional; include that it cannot read docs/handoff-*.md.
