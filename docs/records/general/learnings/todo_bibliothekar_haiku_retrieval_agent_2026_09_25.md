@@ -3,7 +3,7 @@ topic: general
 created: 1790369035.889465
 ---
 
-RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09-25 for a lightweight, spawnable subagent (Haiku model) that independently 'rummages in memory' in the ADR file corpus (docs/decisions/, since 093dc1b docs/records/) and/or ai-mem — is implemented.
+RESULT (closed 2026-09-26): 'The librarian' — originally a TODO/idea of 2026-09-25 for a lightweight, spawnable subagent (Haiku model) that independently 'rummages in memory' in the ADR file corpus (docs/decisions/, since f4e5122 docs/records/) and/or ai-mem — is implemented.
 
 Why (original motivation, still valid): Directly addresses the actual open problem from [eval_pull_gap_test_2026_09_20](../../evaluation/learnings/eval_pull_gap_test_2026_09_20.md): the bottleneck is the retrieval trigger, not the storage format (agents almost never call mem_query proactively). A cheap, always-available librarian shifts the burden: instead of the orchestrator agent having to remember to call mem_query, asking becomes so cheap (Haiku) that it can happen much more generously. Precedent in our own code: mem_dream already uses a Haiku first pass → Sonnet synthesis (mode=hier) — the librarian is the same cost/quality pattern on the retrieval side instead of the consolidation side.
 
