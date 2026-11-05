@@ -13,3 +13,4 @@ Evidence: ~/.local/share/fabrica-plugin (git clone of this checkout); ai_mem/hoo
 
 - related: [domain_records_have_no_id_links_by_file_name_2026_11_05](../../records/decisions/domain_records_have_no_id_links_by_file_name_2026_11_05.md)
 - confirms: [learning_installed_plugin_lags_repo_until_pull_and_reload_2026_11_02](learning_installed_plugin_lags_repo_until_pull_and_reload_2026_11_02.md)
+- related: [domain_plugin_loads_from_a_clone_pull_is_the_release_step_2026_11_05](../decisions/domain_plugin_loads_from_a_clone_pull_is_the_release_step_2026_11_05.md)

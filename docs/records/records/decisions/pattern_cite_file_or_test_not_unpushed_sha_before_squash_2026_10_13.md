@@ -13,3 +13,4 @@ Why: A squash makes every unpushed SHA cited as evidence unreachable. The bluepr
 
 - related: [pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13](pattern_every_pushed_ref_must_be_clean_before_public_push_2026_10_13.md)
 - related: [domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13](domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13.md)
+- related: [learning_history_rewrite_orphans_commit_hashes_cited_in_records_2026_11_05](../learnings/learning_history_rewrite_orphans_commit_hashes_cited_in_records_2026_11_05.md)

@@ -12,3 +12,7 @@ Why: Three entries written 2026-07-31 (chunk1_daemon_shipped, chunk3_access_coun
 Caveat: A commit SHA is only stable after the last amend/rebase. Therefore cite SHAs only after the final amend, or check them when writing with `git cat-file -e <sha>`. Case 2026-09-29: entries cited a commit's hash from before an amend, and that hash then pointed nowhere (the commit is f4e5122 on main today) -- the cited hash pointed to a discarded state.
 
 Case 2026-10-04: The full history rewrite of ai-mem (records removed, force push) invalidates every SHA cited in the records -- the second SHA invalidation after the amend of 2026-09-29; see todo_remap_commit_shas_in_records.
+
+## Edges
+
+- related: [learning_history_rewrite_orphans_commit_hashes_cited_in_records_2026_11_05](../../records/learnings/learning_history_rewrite_orphans_commit_hashes_cited_in_records_2026_11_05.md)

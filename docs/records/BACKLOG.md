@@ -1,6 +1,5 @@
 Ordered, the next candidate on top; reorder by moving lines. One line per item; a line's history is `git log -S '<words of the line>'`.
 
-- `mem` command for "which records cite path X" (link or plain path), and a repoint after a doc moves: the core of a tidy; the archivist fell back to grep|sed in the galaxy pilot.
 - mem lint --help (or the lint table) states exactly what the experiment and handoff checks accept, so "lint clean" is not over-read.
 - mem doctor mid-tidy: "no record links to it" / "processed source no record points to" fire for just-placed docs until the archivist repoints; mark them as pending instead of findings.
 - mem doctor checks code paths named in experiments too (today only backticked paths in records), so the doc → code direction stays checked.

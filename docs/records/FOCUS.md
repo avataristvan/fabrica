@@ -1,6 +1,6 @@
 Fabrica 0.1.0: the method (docs/fabrica/) and the plugin fabrica@fabrica that implements it (memory part ai-mem: package ai_mem, command mem). The repository is in a presentable state: README with a runnable quick start, glossary, English-only agent texts, past handoffs published as sources.
 
-Now: the documentation map and how a project gets there (plan: [docs/plans/documentation-map/](../plans/documentation-map/chunks.md)): every kind of content gets one place and lifecycle (experiments in docs/experiments/, raw data in a git-ignored data/), `mem doctor` and `/fabrica:setup` bring a project there, a triage skill dissolves handoffs. Pilot: galaxy-tab-a-2016, which then also gets the record format migration.
+Now: the tool gaps the galaxy pilot showed, first a `mem` command that lists the records citing a path (link or plain path) and repoints them after a doc moves, so tidy and the archivist need no grep. Then the same rollout (plugin pull, /fabrica:setup update, /fabrica:tidy) for the remaining areas. The documentation map and its plan are done: [docs/plans/documentation-map/](../plans/documentation-map/chunks.md).
 
 Next:
 - README for the first impression: the problem first, then the practice, the plugin and the honest measurement report ([domain_public_face_experience_report_not_launch_2026_10_24](architecture/decisions/domain_public_face_experience_report_not_launch_2026_10_24.md)).

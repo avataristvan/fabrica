@@ -13,3 +13,4 @@ Evidence: tests/test_stdlib_only.py (imports every ai_mem module this way; forme
 
 - related: [anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12](../../plugin/decisions/anti_pattern_python_m_in_shim_puts_cwd_on_syspath_2026_10_12.md)
 - related: [learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31](learning_mem_in_a_worktree_reports_on_the_main_checkouts_records_2026_10_31.md)
+- related: [learning_agent_worktree_isolation_branches_from_remote_default_not_head_2026_11_05](learning_agent_worktree_isolation_branches_from_remote_default_not_head_2026_11_05.md)

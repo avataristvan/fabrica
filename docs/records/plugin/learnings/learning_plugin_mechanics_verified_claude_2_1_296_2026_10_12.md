@@ -17,3 +17,4 @@ Evidence: hooks/hooks.json, agents/ and skills/ of the plugin; user check 2026-1
 - related: [learning_plugin_from_local_marketplace_loads_in_place_2026_10_12](learning_plugin_from_local_marketplace_loads_in_place_2026_10_12.md)
 - related: [learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12](learning_bash_sandbox_masks_protected_paths_in_cwd_2026_10_12.md)
 - related: [domain_mem_delete_names_dangling_edges_2026_10_13](../../records/decisions/domain_mem_delete_names_dangling_edges_2026_10_13.md)
+- related: [learning_undocumented_hook_payloads_verified_with_throwaway_plugin_2026_11_05](learning_undocumented_hook_payloads_verified_with_throwaway_plugin_2026_11_05.md)
