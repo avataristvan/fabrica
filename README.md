@@ -52,7 +52,7 @@ Read more: [Organisational memory](docs/explanation/organisational-memory.md) ·
 
 ## Install
 
-The plugin ships two agents you talk to (`fabrica:librarian`, `fabrica:archivist`), a reviewer helper (`fabrica:anchor-lint`, checks a diff against the records it must respect), the skills (`fabrica:reflect`, `fabrica:handoff-protocol`, `fabrica:setup`), the `mem` command, `mem-dream` (an optional pass that proposes record maintenance) and four hooks. It needs Python 3.10+ as `python3` on the PATH and nothing else: no `pip install`, only the standard library.
+The plugin ships two agents you talk to (`fabrica:librarian`, `fabrica:archivist`), a reviewer helper (`fabrica:anchor-lint`, checks a diff against the records it must respect), the skills (`fabrica:reflect`, `fabrica:handoff-protocol`, `fabrica:setup`, `fabrica:tidy` (brings an area's documents into the [documentation map](reference/documentation_map.md) and closes handoffs)), the `mem` command, `mem-dream` (an optional pass that proposes record maintenance) and four hooks. It needs Python 3.10+ as `python3` on the PATH and nothing else: no `pip install`, only the standard library.
 
 ```bash
 git clone https://github.com/avataristvan/fabrica.git
