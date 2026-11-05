@@ -1,20 +1,20 @@
 ---
 name: setup
-description: "Wire the user's teams and CLAUDE.md to ai-mem: team by team, find each team's real boundaries and propose the one-line handoff-protocol hook-in; propose CLAUDE.md additions (routing line, session-start librarian rule) as a diff; judge a `mem doctor` report (which flagged teams have a real boundary, which hits are spurious). Proposes, never overwrites, applies only on approval, writes no records. Run it after installing the plugin, after adding a team, or when `mem doctor` (Wiring) lists teams."
+description: "Wire the user's teams and CLAUDE.md to ai-mem: team by team, find each team's real boundaries and propose the one-line handoff-protocol hook-in; propose CLAUDE.md additions (routing line, session-start librarian rule) as a diff; judge a `mem doctor` report (which flagged teams have a real boundary, which hits are spurious); propose the docs layout of the documentation map; update a project set up earlier (format migration on approval, texts that name records by bare name). Proposes, never overwrites, applies only on approval, writes no records. Run it after installing the plugin, after a plugin update, after adding a team, or when `mem doctor` (Wiring, Docs) lists something."
 ---
 
 # Setup
 
-You set up the user's own configuration so that it uses ai-mem at the right moments. You propose; the user decides. Arguments (`$ARGUMENTS`) may name files, a directory, a `mem doctor` report, or one of the three parts below; then work only on what they name.
+You set up the user's own configuration so that it uses ai-mem at the right moments. You propose; the user decides. Arguments (`$ARGUMENTS`) may name files, a directory, a `mem doctor` report, or one of the five parts below; then work only on what they name.
 
 At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-protocol`). Ask the librarian once, before the first proposal, with the area path and the teams you are about to examine: which records concern these teams' boundaries, and was a hook-in here tried or rejected before?
 
 ## Rules
 
 - **Propose, never overwrite.** Every change is shown first as a diff of the exact lines. Apply it only after the user approves it in this session, or when a standing instruction the user gave (in a CLAUDE.md or a message) says proposed changes of this kind are applied without asking; then quote that instruction when you apply. Silence, a question back, or approval of a different change is not approval. Without approval the file stays byte-identical.
-- **Additions only.** Add lines; never reword, reorder or delete the user's existing text. Where a line already says the same thing in other words, propose nothing for it.
+- **Additions only.** Add lines; never reword, reorder or delete the user's existing text. Where a line already says the same thing in other words, propose nothing for it. One exception, in part 5 only: a record named by its bare name becomes its path or link, word for word otherwise.
 - **Only files the user owns.** A file is the user's when it is a regular file in their `~/.claude/` or in a project's `.claude/` or CLAUDE.md, written by them. Never edit what ships with a plugin or a marketplace (anything under `~/.claude/plugins/`, a symlink into another checkout, a file whose frontmatter or header names another author or package), ai-mem's own agents and skills included. For such a file, report the boundary you found and leave it; there is no exclusion list, the judgment is made per file.
-- **No records.** You do not run `mem add`, `mem link` or `mem lint --fix` and do not edit `docs/records/`. What should become a record goes into `record_candidates` for `/fabrica:reflect`, which hands it to the archivist.
+- **No records.** You do not run `mem add` or `mem link` and do not edit `docs/records/`. The one command that writes there is the format migration `mem lint --fix` in part 5, run only on approval. What should become a record goes into `record_candidates` for `/fabrica:reflect`, which hands it to the archivist.
 - **No settings, no installer.** You do not edit `settings.json`; when one of them is the fix, name the command for the user to run.
 
 ## 1. Teams: one hook-in per real boundary
@@ -65,6 +65,20 @@ Give a verdict for every flagged file: path, real or spurious, the evidence (the
 
 **Records, Sources, State, Effect.** Lint findings, dangling edges, dead-weight candidates, unadopted hand-written records, unprocessed sources, a stale `FOCUS.md`: none of these is yours to fix. Turn each into a plain-text record candidate (what the doctor reported, where, and why it matters) for the archivist via `/fabrica:reflect`, or point the user to `/fabrica:reflect` when the fix is a handoff. Effect rates near zero for a role are a question for the user (has the step become ritual?), not a finding against the team.
 
+## 4. Docs layout (after installing into a project)
+
+The documentation map, `${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`, says where each kind of content goes. Read it. Propose its folders only as they are needed, never as empty scaffolding: when the project already has experiments, plans or research lying loose in `docs/`, name the folders they would go to and hand the placing to `/fabrica:tidy`. When the project keeps raw data (logs, dumps, captures) or a `data/` folder exists and is not git-ignored, propose the `.gitignore` addition (`/data/`) as a diff; the folder layout inside it is the project's convention.
+
+## 5. Update (after a Fabrica update, or for a project set up earlier)
+
+What a project lacks is read from its files every time, not from a version stamp: run `mem doctor` from the area and use its Records, Docs and Not-concluded sections.
+
+- **Mechanical** (a tool does it exactly): findings of the older record format (`legacy-refs`, `bare-id`, `link-stale`). Propose `mem lint --fix --area <area>`, say how many files it changes, run it on approval, then `mem lint` again. Nothing else in the area is touched.
+- **Texts** (the project's own CLAUDE.md, `.claude/agents/`, `.claude/skills/`, listed under "names records by bare name"): propose per file a diff that replaces each bare record name with its path relative to the area (`docs/records/<topic>/<kind>/<name>.md`), and wording that the map has replaced (a todo record, a handoff as evidence, measurements in a handoff) with the map's term. Apply on approval. Files the user does not own are reported, not edited.
+- **Content** (handoffs, loose docs, experiments without a conclusion): not yours; name `/fabrica:tidy` and, for a running experiment or an open conclusion, `/fabrica:reflect`.
+
+Run it again after applying: an update is done when the Docs section lists nothing mechanical and nothing under texts.
+
 ## Close
 
 End with a short list: per team the boundaries found and what was applied or left open; per CLAUDE.md the additions applied or left unapplied; per doctor finding the verdict. Then:
@@ -74,6 +88,6 @@ End with a short list: per team the boundaries found and what was applied or lef
 learned: <what surprised you, or "nothing">
 blocked: <what got in the way, or "nothing">
 next: <suggested next step, or "nothing">
-records_consulted: <ids the librarian named that carried a decision, or "none">
+records_consulted: <paths of the records the librarian named that carried a decision, or "none">
 record_candidates: <plain text: the doctor's record findings, boundaries that were judged and why, or "none">
 ```
