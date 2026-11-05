@@ -6,11 +6,19 @@
     "SubagentStop": [
       {"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.retro_check", "timeout": 10}]}
     ],
+    "UserPromptExpansion": [
+      {"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.focus_gate", "timeout": 10}]}
+    ],
+    "PreToolUse": [
+      {"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.focus_gate", "timeout": 10}]}
+    ],
     "PostToolUse": [
-      {"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.lint_after_write", "timeout": 10}]}
+      {"matcher": "Write|Edit", "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.lint_after_write", "timeout": 10}]},
+      {"matcher": "Skill", "hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.focus_gate", "timeout": 10}]}
     ],
     "Stop": [
-      {"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.reflect_reminder", "timeout": 10}]}
+      {"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.reflect_reminder", "timeout": 10}]},
+      {"hooks": [{"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/run.py\" ai_mem.hooks.focus_gate", "timeout": 10}]}
     ]
   }
 }

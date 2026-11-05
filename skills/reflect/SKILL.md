@@ -63,7 +63,7 @@ Every item lives in exactly one place: `FOCUS.md` (now and next) or `BACKLOG.md`
 
 ## Step 5 — Handoff (state)
 
-Ask: **"What is your next focus?"** (or derive it from Step 4 if obvious).
+Ask: **"What is your next focus?"** (or derive it from Step 4 if obvious). A focus changes only here: before a new focus, `/reflect` runs, and a hook denies writing `FOCUS.md` in a session where no reflect has started (the focus gate).
 
 Write the handoff yourself, as plain files in the area — this is state, overwritten each time; git keeps the history, so no dates or status words that will rot inside the text:
 

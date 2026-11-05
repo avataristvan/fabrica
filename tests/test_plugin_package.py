@@ -40,10 +40,14 @@ def test_no_mcp_json_in_the_plugin() -> None:
 def test_hooks_json_runs_every_enforcing_module_through_the_runner() -> None:
     hooks = json.loads((ROOT / "hooks" / "hooks.json").read_text())["hooks"]
     commands = {event: groups[0]["hooks"][0]["command"] for event, groups in hooks.items()}
-    assert set(commands) == {"SessionStart", "SubagentStop", "PostToolUse", "Stop"}
-    assert all(c.startswith('python3 "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" ai_mem.') for c in commands.values())
+    assert set(commands) == {"SessionStart", "SubagentStop", "UserPromptExpansion", "PreToolUse", "PostToolUse", "Stop"}
+    every = [group["hooks"][0]["command"] for groups in hooks.values() for group in groups]
+    assert all(c.startswith('python3 "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" ai_mem.') for c in every)
     assert commands["SubagentStop"].endswith("ai_mem.hooks.retro_check")
     assert hooks["PostToolUse"][0]["matcher"] == "Write|Edit"
+    gate = [(event, group.get("matcher")) for event, groups in hooks.items() for group in groups
+            if group["hooks"][0]["command"].endswith("ai_mem.hooks.focus_gate")]
+    assert gate == [("UserPromptExpansion", None), ("PreToolUse", "Write|Edit"), ("PostToolUse", "Skill"), ("Stop", None)]
 
 
 def test_agents_and_skills_name_plugin_paths_and_namespaced_agents() -> None:
