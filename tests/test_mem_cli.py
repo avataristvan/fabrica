@@ -1153,3 +1153,15 @@ def test_move_area_refuses_a_symlinked_folder(env):
     (tmp_path / "ws" / "alias").symlink_to(tmp_path / "ws" / "proj")
     assert _move_area(tmp_path, "alias", "renamed", "--include-unversioned") == 2
     assert (tmp_path / "ws" / "proj").is_dir()
+
+
+def test_link_to_area_with_an_unsafe_folder_name_is_a_conflict_nothing_written(env, capsys):
+    tmp, _, proj, _ = env
+    _write_record(proj, "x_src")
+    odd = _make_area(tmp / "ws" / "o[x]")
+    _write_record(odd, "x_t")
+    before = _tree(tmp)
+
+    assert main(["link", "x_src", "x_t", "--type", "related", "--to-area", str(odd.root)]) == 1
+    assert "o[x]" in capsys.readouterr().err
+    assert _tree(tmp) == before

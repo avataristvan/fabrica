@@ -176,8 +176,9 @@ def parse_ref(target_id: str) -> tuple[str | None, str]:
     return rel, entry_id
 
 
-def qualify(from_area: Area, to_area: Area, entry_id: str) -> str:
-    """The reference to `entry_id` in `to_area` as written in `from_area`: bare id for the same area."""
+def qualify_unchecked(from_area: Area, to_area: Area, entry_id: str) -> str:
+    """`qualify` without validating the area path: for references read off a link path, which must
+    survive as written (even through a folder name `parse_ref` refuses) so lint can report them."""
     if not is_safe_entry_id(entry_id):
         raise ValueError(f"id {entry_id!r} is not a valid record id")
     if from_area.root == to_area.root:
@@ -188,6 +189,28 @@ def qualify(from_area: Area, to_area: Area, entry_id: str) -> str:
     return f"{rel}{REF_SEPARATOR}{entry_id}"
 
 
+def qualify(from_area: Area, to_area: Area, entry_id: str) -> str:
+    """The reference to `entry_id` in `to_area` as written in `from_area`: bare id for the same area.
+
+    The result always passes `parse_ref`; ValueError when it would not (an invalid id, or a folder
+    on the way whose name is not a safe path segment).
+    """
+    ref = qualify_unchecked(from_area, to_area, entry_id)
+    parse_ref(ref)
+    return ref
+
+
+def resolve_area_path(from_area: Area, rel: str) -> Area | None:
+    """The area at the area path `rel` (`.`, `..`, `../x`, ...) seen from `from_area`, or None when the
+    path is invalid or no area is there."""
+    try:
+        _validate_rel(rel)
+    except ValueError:
+        return None
+    # Lexical normalisation is enough: `_validate_rel` allows `..` only as the leading part.
+    return _area_at(Path(os.path.normpath(from_area.root / rel)))
+
+
 def resolve_ref(from_area: Area, target_id: str) -> tuple[Area, str] | None:
     """`(area, id)` a reference points at, or None when it is invalid or no area is there."""
     try:
@@ -196,8 +219,7 @@ def resolve_ref(from_area: Area, target_id: str) -> tuple[Area, str] | None:
         return None
     if rel is None:
         return from_area, entry_id
-    # Lexical normalisation is enough: `_validate_rel` allows `..` only as the leading part.
-    target = _area_at(Path(os.path.normpath(from_area.root / rel)))
+    target = resolve_area_path(from_area, rel)
     return (target, entry_id) if target is not None else None
 
 
@@ -226,3 +248,8 @@ class AreaRefResolver:
             return None
         resolved = resolve_ref(from_area, target_id)
         return (str(resolved[0].root), resolved[1]) if resolved is not None else None
+
+    def resolve_area(self, source: str, rel: str) -> str | None:
+        from_area = area_for_key(source)
+        target = resolve_area_path(from_area, rel) if from_area is not None else None
+        return str(target.root) if target is not None else None

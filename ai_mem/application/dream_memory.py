@@ -313,10 +313,6 @@ def _edge_targets(entry: MemoryEntry) -> list[str]:
         return []
 
 
-# Any valid id works: only the area part of an ADD target is looked at.
-_PROBE_ID = "probe"
-
-
 def _area_add_targets(
     synthesis: str, area_key: str, area_refs: AreaRefs,
 ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str]]]:
@@ -326,11 +322,11 @@ def _area_add_targets(
     rejected: list[tuple[str, str]] = []
     for match in _ADD_TARGET_RE.finditer(synthesis):
         entry_id, target = match.group(1), match.group(2).strip()
-        resolved = area_refs.resolve(area_key, f"{target}:{_PROBE_ID}")
+        resolved = area_refs.resolve_area(area_key, target)
         if resolved is None:
             rejected.append((entry_id, target))
-        elif resolved[0] != area_key:
-            accepted.append((entry_id, target, resolved[0]))
+        elif resolved != area_key:
+            accepted.append((entry_id, target, resolved))
     return accepted, rejected
 
 

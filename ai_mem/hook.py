@@ -7,9 +7,9 @@ import os
 import time
 from pathlib import Path
 
-from ai_mem.hooks import DOCTOR_STAMP  # stdlib-only, so it stays outside the guarded imports below
+from ai_mem.hooks import DOCTOR_STAMP, state_dir  # stdlib-only, so it stays outside the guarded imports below
 
-DB_PATH = Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
+DB_PATH = state_dir()
 
 # Module-level imports for patchability in tests.
 try:

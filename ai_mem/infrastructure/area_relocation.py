@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ai_mem.infrastructure.adr_paths import entry_files
-from ai_mem.infrastructure.areas import Area, area_for_key, git, qualify, resolve_ref
+from ai_mem.infrastructure.areas import Area, area_for_key, git, qualify_unchecked, resolve_ref
 
 # `./x:id`, `../x/y:id`, `..:id` -- a relative area path then an id; never preceded by a path or word character.
 _TEXT_REF = re.compile(r"(?<![\w./-])(\.\.?(?:/[\w.-]+)*:[A-Za-z0-9][\w-]*)")
@@ -48,7 +48,8 @@ class AreaRelocation:
         from_area, to_area, entry_id = resolved
         if not (self.moves(from_area.root) or self.moves(to_area.root)):
             return None
-        new = qualify(self._moved_area(from_area), self._moved_area(to_area), entry_id)
+        # The rewrite follows whatever folder name the rename gives, so the reference is not validated.
+        new = qualify_unchecked(self._moved_area(from_area), self._moved_area(to_area), entry_id)
         return new if new != ref else None
 
     def relocated_ref(self, from_key: str, ref: str) -> str | None:

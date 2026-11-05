@@ -57,6 +57,17 @@ def reference_dir(records_dir: Path) -> Path:
     return records_dir.parent / "reference"
 
 
+def reference_file(records_dir: Path, entry_id: str) -> Path | None:
+    """`docs/reference/<entry_id>.md` of the area (whether it exists or not), or None for an unsafe id."""
+    return reference_dir(records_dir) / f"{entry_id}.md" if is_safe_entry_id(entry_id) else None
+
+
+def reference_files(records_dir: Path) -> list[Path]:
+    """Every top-level `docs/reference/*.md` of the area, sorted."""
+    directory = reference_dir(records_dir)
+    return sorted(directory.glob("*.md")) if directory.is_dir() else []
+
+
 def sources_dir(records_dir: Path) -> Path:
     """Sources (dated evidence, claims frozen) live next to the records directory: `docs/sources/` by default."""
     return records_dir.parent / "sources"
@@ -175,8 +186,8 @@ def entry_files(records_dir: Path, entry_id: str) -> list[Path]:
     if not is_safe_entry_id(entry_id):
         return []
     found = [path for path in find_adr_files(records_dir, entry_id) if is_contained(path, records_dir, allow_symlink=False)]
-    for directory in (reference_dir(records_dir), sources_dir(records_dir)):
-        path = directory / f"{entry_id}.md"
-        if path.is_file() and is_contained(path, directory, allow_symlink=False):
+    for directory, path in ((reference_dir(records_dir), reference_file(records_dir, entry_id)),
+                            (sources_dir(records_dir), sources_dir(records_dir) / f"{entry_id}.md")):
+        if path is not None and path.is_file() and is_contained(path, directory, allow_symlink=False):
             found.append(path)
     return found

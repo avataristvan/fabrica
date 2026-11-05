@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 
 from ai_mem.infrastructure.adr_paths import entry_files, records_dir_for_root, reference_dir, sources_dir
-from ai_mem.infrastructure.areas import Area, parse_ref, qualify
+from ai_mem.infrastructure.areas import Area, parse_ref, qualify_unchecked
 
 
 def _area_of(target: Path) -> Area | None:
@@ -40,7 +40,7 @@ def ref_for_href(source_file: Path, source_area: Area, href: str) -> str:
     area = source_area if _in_area(target, source_area) else _area_of(target)
     if area is None or target.suffix != ".md":
         raise ValueError(f"link {href!r} does not point at a record, reference doc or source")
-    return qualify(source_area, area, target.stem)
+    return qualify_unchecked(source_area, area, target.stem)
 
 
 def locate(records_dir: Path, entry_id: str) -> Path | None:

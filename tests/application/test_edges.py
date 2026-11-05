@@ -7,7 +7,7 @@ import pytest
 
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
-from ai_mem.domain.memory import MemoryEntry
+from ai_mem.domain.memory import MemoryEntry, TargetNotFound
 from ai_mem.infrastructure.areas import AreaRefResolver, area_records_dir
 from ai_mem.infrastructure.file_repository import FileMemoryRepository
 
@@ -174,3 +174,21 @@ def test_cross_area_edge_needs_an_area_resolver_and_an_existing_source(two_areas
         _uc(repo).execute(keys["proj"], "missing", "../records/workspace:pattern_tgt", "related")
     with pytest.raises(ValueError, match="itself"):
         _uc(repo).execute(keys["proj"], "learning_src", ".:learning_src", "derived_from")
+
+
+def test_missing_target_raises_target_not_found_missing_source_does_not(tmp_repo):
+    _seed(tmp_repo, "col", {"a": "entry"})
+
+    with pytest.raises(TargetNotFound, match="not found") as caught:
+        AddEdgeUseCase(tmp_repo).execute("col", "a", "ghost", "related")
+    assert caught.value.target == "ghost"
+    with pytest.raises(ValueError, match="not found") as caught:
+        AddEdgeUseCase(tmp_repo).execute("col", "ghost_src", "a", "related")
+    assert not isinstance(caught.value, TargetNotFound)
+
+
+def test_missing_cross_area_target_raises_target_not_found(two_areas):
+    repo, keys, _ = two_areas
+    with pytest.raises(TargetNotFound) as caught:
+        _uc(repo).execute(keys["proj"], "learning_src", "../records/workspace:ghost", "related")
+    assert caught.value.target == "../records/workspace:ghost"

@@ -10,6 +10,9 @@ from ai_mem.infrastructure.adr_paths import (
     is_safe_area,
     is_safe_entry_id,
     record_file_path,
+    entry_files,
+    reference_file,
+    reference_files,
     remove_files,
 )
 
@@ -109,3 +112,21 @@ def test_remove_files_unlinks_a_symlinked_record_not_its_target(tmp_path):
 
     assert not (records / "general/decisions/b.md").is_symlink()
     assert (outside / "a.md").read_text() == "victim"
+
+
+def test_reference_file_and_files_are_the_one_reference_doc_lookup(tmp_path):
+    records = tmp_path / "docs" / "records"
+    records.mkdir(parents=True)
+    assert reference_files(records) == []
+    reference = tmp_path / "docs" / "reference"
+    (reference / "nested").mkdir(parents=True)
+    (reference / "b_doc.md").write_text("b\n")
+    (reference / "a_doc.md").write_text("a\n")
+    (reference / "nested" / "deep.md").write_text("d\n")
+
+    assert reference_file(records, "a_doc") == reference / "a_doc.md"
+    assert reference_file(records, "missing") == reference / "missing.md"
+    assert reference_file(records, "../x") is None
+    assert reference_files(records) == [reference / "a_doc.md", reference / "b_doc.md"]
+    assert entry_files(records, "a_doc") == [reference / "a_doc.md"]
+    assert entry_files(records, "missing") == []

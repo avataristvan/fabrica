@@ -12,6 +12,8 @@ from ai_mem.infrastructure.areas import (
     find_area,
     parse_ref,
     qualify,
+    qualify_unchecked,
+    resolve_area_path,
     resolve_ref,
 )
 
@@ -176,3 +178,30 @@ def test_area_ref_resolver_works_on_area_keys(workspace):
     assert resolver.resolve(str(areas["proj"].root), "../other:x") == (str(areas["other"].root), "x")
     assert resolver.resolve(str(areas["proj"].root), "/etc:x") is None
     assert resolver.resolve("repo.example", "../other:x") is None
+
+
+def test_qualify_validates_its_output_unchecked_keeps_the_path(tmp_path):
+    home = _make_area(tmp_path / "ws" / "home")
+    odd = _make_area(tmp_path / "ws" / "o[x]")
+
+    with pytest.raises(ValueError):
+        qualify(home, odd, "x")
+    assert qualify_unchecked(home, odd, "x") == "../o[x]:x"
+    with pytest.raises(ValueError):
+        qualify_unchecked(home, odd, "a/b")
+    assert parse_ref(qualify(home, _make_area(tmp_path / "ws" / "fine"), "x")) == ("../fine", "x")
+
+
+def test_resolve_area_path_and_resolver_resolve_area(workspace):
+    _, areas = workspace
+    proj, resolver = areas["proj"], AreaRefResolver()
+
+    assert resolve_area_path(proj, ".") == proj
+    assert resolve_area_path(proj, "./sub") == areas["sub"]
+    assert resolve_area_path(proj, "../other") == areas["other"]
+    for rel in ("", "other", "/etc", "~", "../nope", "../other/..", "../o*"):
+        assert resolve_area_path(proj, rel) is None
+        assert resolver.resolve_area(str(proj.root), rel) is None
+    assert resolver.resolve_area(str(proj.root), "../other") == str(areas["other"].root)
+    assert resolver.resolve_area(str(proj.root), ".") == str(proj.root)
+    assert resolver.resolve_area("repo.example", "../other") is None

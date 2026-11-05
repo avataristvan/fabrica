@@ -34,7 +34,7 @@ from ai_mem.infrastructure.adr_paths import (
     is_safe_area,
     is_safe_entry_id,
     iter_record_files,
-    reference_dir,
+    reference_files,
     sources_dir,
     write_atomic,
 )
@@ -236,9 +236,10 @@ def _stems(area: Area, cache: dict[Path, set[str]]) -> set[str]:
     """Ids an edge may target: the records, plus the plain reference docs (`mem link` resolves those too) and the sources."""
     if area.root not in cache:
         cache[area.root] = {path.stem for path in iter_record_files(area.records_dir)}
-        for directory in (reference_dir(area.records_dir), sources_dir(area.records_dir)):
-            if directory.is_dir():
-                cache[area.root] |= {path.stem for path in directory.glob("*.md")}
+        cache[area.root] |= {path.stem for path in reference_files(area.records_dir)}
+        directory = sources_dir(area.records_dir)
+        if directory.is_dir():
+            cache[area.root] |= {path.stem for path in directory.glob("*.md")}
     return cache[area.root]
 
 
@@ -318,10 +319,6 @@ def _repoint_edges(area: Area, record: RawRecord, cache: dict[Path, set[str]], a
         target = _unique_holder_ref(area, entry_id, cache, areas)
         if target is None:
             continue
-        try:
-            parse_ref(target)
-        except ValueError:
-            continue
         changes.append(f"edge {edge['target_id']} -> {target}")
         edge["target_id"] = target
     if not changes:
@@ -331,9 +328,14 @@ def _repoint_edges(area: Area, record: RawRecord, cache: dict[Path, set[str]], a
 
 def _unique_holder_ref(area: Area, entry_id: str, cache: dict[Path, set[str]],
                        areas: Callable[[], list[Area]]) -> str | None:
-    """`entry_id` qualified from `area` when exactly one area holds it, else None."""
+    """`entry_id` qualified from `area` when exactly one area holds it and the reference is valid, else None."""
     holders = [candidate for candidate in areas() if entry_id in _stems(candidate, cache)]
-    return qualify(area, holders[0], entry_id) if len(holders) == 1 else None
+    if len(holders) != 1:
+        return None
+    try:
+        return qualify(area, holders[0], entry_id)
+    except ValueError:
+        return None
 
 
 def _relink_section(area: Area, record: RawRecord, cache: dict[Path, set[str]], areas: Callable[[], list[Area]]) -> tuple[str, list[str]]:

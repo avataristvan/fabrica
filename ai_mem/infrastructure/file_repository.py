@@ -35,7 +35,8 @@ from ai_mem.infrastructure.adr_paths import (
     iter_record_files,
     plain_file_content,
     record_file_path,
-    reference_dir,
+    reference_file,
+    reference_files,
     remove_files,
     write_atomic,
 )
@@ -71,10 +72,6 @@ class FileMemoryRepository:
         if records_dir is None:
             raise ValueError(f"no records directory for area {collection!r}")
         return records_dir
-
-    @staticmethod
-    def _reference_file(records_dir: Path, entry_id: str) -> Path | None:
-        return reference_dir(records_dir) / f"{entry_id}.md" if is_safe_entry_id(entry_id) else None
 
     @staticmethod
     def _record_entry(path: Path, records_dir: Path, text: str | None = None) -> MemoryEntry | None:
@@ -113,7 +110,7 @@ class FileMemoryRepository:
             entry = self._record_entry(path, records_dir)
             if entry is not None:
                 return entry
-        reference = self._reference_file(records_dir, entry_id)
+        reference = reference_file(records_dir, entry_id)
         return self._plain_entry(entry_id, reference, REFERENCE_TYPE) if reference is not None else None
 
     def get_by_ids(self, collection: str, ids: list[str]) -> list[MemoryEntry]:
@@ -123,18 +120,13 @@ class FileMemoryRepository:
         found = (self._get_one(records_dir, entry_id) for entry_id in dict.fromkeys(ids))
         return [entry for entry in found if entry is not None]
 
-    @staticmethod
-    def _reference_files(records_dir: Path) -> list[Path]:
-        directory = reference_dir(records_dir)
-        return sorted(directory.glob("*.md")) if directory.is_dir() else []
-
     def get_all(self, collection: str) -> list[MemoryEntry]:
         records_dir = self._records_dir(collection)
         if records_dir is None:
             return []
         entries = [self._record_entry(path, records_dir) for path in iter_record_files(records_dir)]
         entries.append(self._plain_entry(FOCUS_ID, focus_path(records_dir), FOCUS_TYPE))
-        entries += [self._plain_entry(path.stem, path, REFERENCE_TYPE) for path in self._reference_files(records_dir)]
+        entries += [self._plain_entry(path.stem, path, REFERENCE_TYPE) for path in reference_files(records_dir)]
         return [entry for entry in entries if entry is not None]
 
     def _collection_names(self) -> set[str]:
@@ -151,7 +143,7 @@ class FileMemoryRepository:
                 continue
             # Counted from the file listing, not by parsing every file: callers only need names and sizes.
             count = (len(iter_record_files(records_dir)) + focus_path(records_dir).is_file()
-                     + len(self._reference_files(records_dir)))
+                     + len(reference_files(records_dir)))
             if count:
                 infos.append(CollectionInfo(name=name, count=count))
         return infos
@@ -228,7 +220,7 @@ class FileMemoryRepository:
                 self._write_if_changed(focus_path(records_dir), plain_file_content(entry.text))
             elif entry.metadata["type"] == REFERENCE_TYPE:
                 index_stale |= self._remove_records(records_dir, entry.id)
-                self._write_if_changed(self._reference_file(records_dir, entry.id), plain_file_content(entry.text))
+                self._write_if_changed(reference_file(records_dir, entry.id), plain_file_content(entry.text))
             else:
                 index_stale |= self._write_record(records_dir, entry)
         if index_stale:
@@ -248,7 +240,7 @@ class FileMemoryRepository:
         return bool(stale)
 
     def _drop_reference(self, records_dir: Path, entry_id: str) -> bool:
-        reference = self._reference_file(records_dir, entry_id)
+        reference = reference_file(records_dir, entry_id)
         if reference is None:
             return False
         try:

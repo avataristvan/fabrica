@@ -12,6 +12,7 @@ import re
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from typing import TypeGuard
 
 DOCTOR_STAMP = "doctor_last_run"  # epoch seconds, written by `mem doctor`, read by the SessionStart pointer
 RETRO_LOG = "retro_log.jsonl"  # written by retro_check, read by `mem doctor`
@@ -22,7 +23,7 @@ def state_dir() -> Path:
     return Path(os.environ.get("AI_MEM_PATH", Path.home() / ".local" / "share" / "ai-mem"))
 
 
-def is_safe_token(value: object) -> bool:
+def is_safe_token(value: object) -> TypeGuard[str]:
     """Whether `value` may become a file name: hook stdin is not trusted (session ids, agent ids)."""
     return isinstance(value, str) and _SAFE_TOKEN.fullmatch(value) is not None
 

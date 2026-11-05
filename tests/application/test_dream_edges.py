@@ -203,6 +203,23 @@ class TestAreaAddTargets:
         assert accepted == [("new_one", "../other", other)]
         assert rejected == []
 
+    def test_targets_go_through_resolve_area_not_a_probe_ref(self, two_areas):
+        _, here, other, _ = two_areas
+        seen = []
+
+        class OnlyAreas:
+            def resolve(self, source, target_id):
+                raise AssertionError("resolve() must not be used for ADD targets")
+
+            def resolve_area(self, source, rel):
+                seen.append((source, rel))
+                return other if rel == "../other" else None
+
+        accepted, rejected = _area_add_targets("- ADD a [target=../other]: s\n- ADD b [target=../x]: s", here, OnlyAreas())
+        assert accepted == [("a", "../other", other)]
+        assert rejected == [("b", "../x")]
+        assert seen == [(here, "../other"), (here, "../x")]
+
     @pytest.mark.parametrize("target", ["/tmp", "~", "~/x", "../..", "../nope", "other", "../other/..", "../o*", "../other/../../etc"])
     def test_hostile_targets_are_rejected(self, two_areas, target):
         _, here, _, _ = two_areas

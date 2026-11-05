@@ -4,7 +4,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import datetime, timezone
 
-from ai_mem.domain.memory import AreaRefs, EdgeType, MemoryEdge, MemoryRepository, is_area_qualified
+from ai_mem.domain.memory import AreaRefs, EdgeType, MemoryEdge, MemoryRepository, TargetNotFound, is_area_qualified
 
 
 class AddEdgeUseCase:
@@ -35,7 +35,8 @@ class AddEdgeUseCase:
     ) -> None:
         """Link source_id → target_id with the given edge_type.
 
-        Raises ValueError if either entry does not exist in the collection.
+        Raises ValueError if either entry does not exist in the collection; TargetNotFound (a ValueError)
+        when the target is among the missing.
         Silently deduplicates if the same (target_id, edge_type) already exists.
 
         A 'supersedes' edge (source is the newer entry replacing target) additionally flags the
@@ -75,7 +76,8 @@ class AddEdgeUseCase:
             self._repo.add_edge(collection, source_id, MemoryEdge(target_id=target_id, edge_type=edge_type))
             return
         if missing:
-            raise ValueError(f"Entry ID(s) not found in '{collection}': {missing}")
+            message = f"Entry ID(s) not found in '{collection}': {missing}"
+            raise TargetNotFound(message, target_id) if target_id in missing else ValueError(message)
 
         if edge_type == "supersedes" and (successor := entries[source_id].metadata.get("superseded_by")):
             raise ValueError(f"'{source_id}' is itself superseded by '{successor}'; link '{successor}' instead")
@@ -107,5 +109,5 @@ class AddEdgeUseCase:
         if not self._repo.get_by_ids(target_collection, [bare_target]) and not self._source_target(
             target_collection, bare_target, edge_type
         ):
-            raise ValueError(f"Entry ID {bare_target!r} not found in area '{target_collection}'")
+            raise TargetNotFound(f"Entry ID {bare_target!r} not found in area '{target_collection}'", target_id)
         self._repo.add_edge(collection, source_id, MemoryEdge(target_id=target_id, edge_type=edge_type))

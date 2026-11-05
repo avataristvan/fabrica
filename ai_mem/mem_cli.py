@@ -24,7 +24,7 @@ from ai_mem.application.delete_memory import DeleteMemoryUseCase
 from ai_mem.application.move_memory import AreaMovePlan, MoveRow, MoveToAreaUseCase, OpKind
 from ai_mem.application.relocate_area import RelocateAreaUseCase
 from ai_mem.application.remove_edge import RemoveEdgeUseCase
-from ai_mem.domain.memory import EdgeType, MemoryRepository, is_area_qualified, normalize_cue, parse_edges
+from ai_mem.domain.memory import EdgeType, MemoryRepository, TargetNotFound, is_area_qualified, normalize_cue, parse_edges
 from ai_mem.infrastructure.adr_index import index_is_current
 from ai_mem.infrastructure.adr_paths import (
     FOCUS_ID,
@@ -36,7 +36,6 @@ from ai_mem.infrastructure.adr_paths import (
     is_safe_entry_id,
     iter_record_files,
     record_file_path,
-    reference_dir,
 )
 from ai_mem.infrastructure.areas import (
     Area,
@@ -164,7 +163,7 @@ def _search_root(home: Area, root: str | None) -> Path:
 def _usable_ref(home: Area, area: Area, entry_id: str) -> bool:
     """False when the area path holds characters `mem link` refuses in a reference."""
     try:
-        parse_ref(qualify(home, area, entry_id))
+        qualify(home, area, entry_id)
     except ValueError:
         return False
     return True
@@ -207,7 +206,10 @@ def _link(args: argparse.Namespace) -> int:
     area = _area(args.area)
     if args.to_area:
         to_area = _area(args.to_area)
-        target = qualify(area, to_area, _bare_id(args.target))
+        try:
+            target = qualify(area, to_area, _bare_id(args.target))
+        except ValueError as exc:
+            raise CliError(str(exc), CONFLICT) from exc
     else:
         try:
             parse_ref(args.target)
@@ -220,7 +222,7 @@ def _link(args: argparse.Namespace) -> int:
     try:
         AddEdgeUseCase(repo, area_refs=AreaRefResolver(), source_exists=_source_exists).execute(key, source, target, args.type)
     except ValueError as exc:
-        about_target = not args.to_area and "not found" in str(exc) and repr(args.target) in str(exc)
+        about_target = not args.to_area and isinstance(exc, TargetNotFound)
         raise CliError(f"{exc}{_found_at_hint(area, args.target) if about_target else ''}", CONFLICT) from exc
     _emit(args, {"action": "linked", "source": source, "target": target, "type": args.type, "area": key},
           f"linked {source} --{args.type}--> {target}")
@@ -370,9 +372,7 @@ class _AreaAddressing(AreaRefResolver):
             if hit is None:
                 raise ValueError(f"reference {ref!r} points at no area")
             origin = hit[0]
-        new = qualify(to_area, origin, entry_id)
-        parse_ref(new)  # qualify() does not check the path segments; raises ValueError for an unsafe one
-        return new
+        return qualify(to_area, origin, entry_id)
 
 
 def _escaping_files(area: Area, files: list[Path]) -> list[Path]:

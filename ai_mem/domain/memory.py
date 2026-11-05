@@ -116,6 +116,18 @@ class AreaRefs(Protocol):
         """`(collection, id)` an area-qualified target points at, seen from collection `source`; None if it does not resolve."""
         ...
 
+    def resolve_area(self, source: str, rel: str) -> str | None:
+        """The collection at the area path `rel` (`.`, `../x`, ...) seen from collection `source`; None if it does not resolve."""
+        ...
+
+
+class TargetNotFound(ValueError):
+    """An edge's target names nothing that exists (no record, reference doc or source); `target` is the id looked for."""
+
+    def __init__(self, message: str, target: str) -> None:
+        super().__init__(message)
+        self.target = target
+
 
 MAX_CUE_CHARS = 140
 _MAX_TITLE_LEN = 80
