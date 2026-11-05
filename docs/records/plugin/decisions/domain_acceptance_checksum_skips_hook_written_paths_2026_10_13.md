@@ -1,9 +1,7 @@
-id: domain_acceptance_checksum_skips_hook_written_paths_2026_10_13
 type: domain
 topic: plugin
 perspective: agent
 created: 1791869829.001687
-edges: [{"target_id": "domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31", "edge_type": "related"}]
 cue: The upgrade acceptance run reports a real-data checksum mismatch and I must tell a leak from hook noise
 ---
 
@@ -13,3 +11,7 @@ Scope: the acceptance run's real-data checksum. Closes todo_acceptance_checksum_
 Evidence: scripts/upgrade_acceptance/run.sh.
 
 Historical since 3c64e27 (2026-10-31): the acceptance run is removed from main; it lives at tag v1-last-upgrade-path.
+
+## Edges
+
+- related: [domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31](../../architecture/decisions/domain_upgrade_steps_live_in_the_named_tag_not_upgrading_md_2026_10_31.md)

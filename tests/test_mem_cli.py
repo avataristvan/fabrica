@@ -22,6 +22,9 @@ import shutil
 import pytest
 
 from ai_mem.infrastructure.areas import Area, find_area, resolve_ref
+from ai_mem import records_lint
+from ai_mem.infrastructure import adr_markdown
+from ai_mem.infrastructure.record_links import ref_for_href
 from ai_mem.mem_cli import main
 
 
@@ -147,8 +150,9 @@ def test_link_same_area_and_cross_area(env, capsys):
     assert main(["link", "learning_a", "learning_b", "--type", "related"]) == 0
     assert main(["link", "learning_a", "pattern_t", "--type", "related", "--to-area", str(other.root)]) == 0
 
-    edges = _record(proj, "learning_a").read_text()
-    assert "learning_b" in edges and "../other:pattern_t" in edges
+    edges = {e["target_id"] for e in _edges_of(proj, "learning_a")}
+    assert edges == {"learning_b", "../other:pattern_t"}
+    assert "](../../../../../other/docs/records/general/decisions/pattern_t.md)" in _record(proj, "learning_a").read_text()
     assert resolve_ref(proj, "../other:pattern_t") == (other, "pattern_t")
     assert not list(other.records_dir.rglob("learning_a.md"))
 
@@ -171,8 +175,13 @@ def test_link_conflicts_exit_1(env):
 
 
 def _edges_of(area, entry_id):
-    line = next((l for l in _record(area, entry_id).read_text().splitlines() if l.startswith("edges: ")), None)
-    return json.loads(line[len("edges: "):]) if line else []
+    return records_lint._read(area.records_dir, _record(area, entry_id)).all_edges()
+
+
+def _superseded_by(area, entry_id):
+    path = _record(area, entry_id)
+    return adr_markdown.parse(path.read_text(), entry_id=path.stem,
+                              ref_for_href=lambda href: ref_for_href(path, area, href)).superseded_by
 
 
 def test_unlink_removes_only_the_named_edge(env, capsys):
@@ -192,7 +201,7 @@ def test_unlink_removes_only_the_named_edge(env, capsys):
     ]
     assert main(["unlink", "learning_a", "learning_c"]) == 0
     assert main(["unlink", "learning_a", "learning_b"]) == 0
-    assert "edges:" not in _record(proj, "learning_a").read_text()
+    assert "## Edges" not in _record(proj, "learning_a").read_text()
 
 
 def test_unlink_supersedes_clears_both_flags_on_the_target(env):
@@ -201,7 +210,7 @@ def test_unlink_supersedes_clears_both_flags_on_the_target(env):
     _add("--id", "learning_new", "--type", "learning", "--text", "new")
     before = _record(proj, "learning_old").read_text()
     main(["link", "learning_new", "learning_old", "--type", "supersedes"])
-    assert "superseded_by: learning_new" in _record(proj, "learning_old").read_text()
+    assert _superseded_by(proj, "learning_old") == "learning_new"
 
     assert main(["unlink", "learning_new", "learning_old"]) == 0
 
@@ -404,10 +413,10 @@ def test_move_round_trip_requalifies_and_rewrites_source_referrers(env, tmp_path
     out = capsys.readouterr().out
 
     assert not list(proj.records_dir.rglob("learning_m.md"))
-    text = _record(other, "learning_m").read_text()
-    assert "../proj:learning_local" in text and "pattern_t" in text and "../other:pattern_t" not in text
+    targets = {e["target_id"] for e in _edges_of(other, "learning_m")}
+    assert "../proj:learning_local" in targets and "pattern_t" in targets and "../other:pattern_t" not in targets
     assert resolve_ref(other, "../proj:learning_local") == (proj, "learning_local")
-    assert "../other:learning_m" in _record(proj, "learning_ref").read_text()
+    assert "../other:learning_m" in {e["target_id"] for e in _edges_of(proj, "learning_ref")}
     assert "learning_m" not in (proj.records_dir / "INDEX.md").read_text()
     assert "learning_m" in (other.records_dir / "INDEX.md").read_text()
     assert _tree(third.root) == far_before
@@ -784,8 +793,7 @@ def _row(source, entry_id, target, perspective=""):
 
 def _stored_edges(area, entry_id):
     text = _record(area, entry_id).read_text()
-    (line,) = [l for l in text.splitlines() if l.startswith("edges:")]
-    return {(e["target_id"], e["edge_type"]) for e in json.loads(line.removeprefix("edges:").strip())}
+    return {(e["target_id"], e["edge_type"]) for e in _edges_of(area, entry_id)}
 
 
 def _seed_batch(env, tmp_path):
@@ -1071,7 +1079,10 @@ def test_move_area_rewrites_edges_and_text_both_ways(env, capsys):
     assert "`./nothing:here`" in _record(moved, "learning_a").read_text()
     assert "see ../sub/proj:learning_a." in _record(other, "pattern_t").read_text()
     assert resolve_ref(other, "../sub/proj:learning_a")[1] == "learning_a"
-    assert main(["lint", "--area", str(moved.root)]) == 0
+    assert {f.code for f in records_lint.lint(moved)} == {"bare-id"}  # the text names a record: fix links it
+    assert main(["lint", "--fix", "--area", str(moved.root)]) == 0
+    assert "[pattern_t](../../../../../../other/docs/records/general/decisions/pattern_t.md)" in _record(moved, "learning_a").read_text()
+    assert "`./nothing:here`" in _record(moved, "learning_a").read_text()
 
 
 def test_move_area_rename_in_place_keeps_outgoing_edges(env):

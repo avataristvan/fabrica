@@ -1,4 +1,3 @@
-id: pattern_english_output_strings
 type: pattern
 topic: workflow
 created: 1779055358.898205

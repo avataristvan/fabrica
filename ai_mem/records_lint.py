@@ -39,6 +39,7 @@ from ai_mem.infrastructure.adr_paths import (
     write_atomic,
 )
 from ai_mem.infrastructure.areas import Area, ancestor_areas, discover_areas, find_area, parse_ref, qualify, resolve_ref
+from ai_mem.infrastructure.record_links import area_of_records_dir, href_for_ref, ref_for_href
 
 OK, FINDINGS, USAGE = 0, 1, 2
 
@@ -70,6 +71,10 @@ class Code:
     LAYOUT = "layout"
     PERSPECTIVE_USER = "perspective-user"
     EDGES_JSON = "edges-json"
+    EDGES_SECTION = "edges-section"
+    LEGACY_REFS = "legacy-refs"
+    LINK_STALE = "link-stale"
+    BARE_ID = "bare-id"
     EDGE_TYPE = "edge-type"
     EDGE_TARGET_INVALID = "edge-target-invalid"
     EDGE_DANGLING = "edge-dangling"
@@ -100,9 +105,20 @@ class RawRecord:
     problem: str | None = None
     leading_fence: bool = False
     blank_missing: bool = False
+    # Edges from the closing `## Edges` section (relative links), as {target_id, edge_type}; superseded_by is not one.
+    section_edges: list[dict] | None = None
+    section_links: list[adr_markdown.EdgeLink] | None = None  # every link of the section, superseded_by included
+    section_problem: str | None = None
 
     def value(self, key: str) -> str:
         return dict(self.fields or []).get(key, "")
+
+    def all_edges(self) -> list[dict]:
+        """Frontmatter `edges` (older format) followed by the `## Edges` links; ValueError when either is malformed."""
+        if self.section_problem:
+            raise ValueError(self.section_problem)
+        raw = self.value("edges")
+        return (parse_edges(raw) if raw else []) + list(self.section_edges or [])
 
 
 def git_output(cwd: Path, *args: str) -> str | None:
@@ -169,7 +185,7 @@ def _modernise(fields: list[tuple[str, str]]) -> tuple[list[tuple[str, str]], bo
 
 def _canonical(fields: list[tuple[str, str]], body: str, topic_key: str = "topic") -> str:
     values = dict(fields)
-    ordered = [(key, values[key]) for key in adr_markdown.KEY_ORDER if key in values]
+    ordered = [(key, values[key]) for key in adr_markdown.LEGACY_KEY_ORDER if key in values]
     ordered += [(key, value) for key, value in fields if key not in adr_markdown.KNOWN_KEYS]
     ordered += [(key, values[key]) for key in ("cue",) if key in values]
     ordered = [(topic_key if key == "topic" else key, value) for key, value in ordered]
@@ -189,7 +205,16 @@ def _read(records_dir: Path, path: Path) -> RawRecord:
     if isinstance(parsed, str):
         return RawRecord(path, rel, text, None, "", problem=parsed)
     fields, body, leading, blank_missing = parsed
-    return RawRecord(path, rel, text, fields, body, leading_fence=leading, blank_missing=blank_missing)
+    record = RawRecord(path, rel, text, fields, body, leading_fence=leading, blank_missing=blank_missing)
+    area = area_of_records_dir(records_dir)
+    try:
+        _, links = adr_markdown.split_edges_section(body)
+        record.section_links = links
+        record.section_edges = [{"target_id": ref_for_href(path, area, link.href), "edge_type": link.edge_type}
+                                for link in links if link.edge_type != adr_markdown.SUPERSEDED_BY]
+    except ValueError as exc:
+        record.section_problem = str(exc)
+    return record
 
 
 def read_area(area: Area) -> list[RawRecord]:
@@ -201,9 +226,10 @@ def edge_targets(record: RawRecord) -> list[str]:
     raw = record.value("edges")
     try:
         edges = json.loads(raw) if raw else []
-        return [edge["target_id"] for edge in edges if isinstance(edge["target_id"], str)]
+        targets = [edge["target_id"] for edge in edges if isinstance(edge["target_id"], str)]
     except (ValueError, TypeError, KeyError, RecursionError):
-        return []
+        targets = []
+    return targets + [edge["target_id"] for edge in record.section_edges or []]
 
 
 def _stems(area: Area, cache: dict[Path, set[str]]) -> set[str]:
@@ -234,14 +260,29 @@ def _edge_problem(area: Area, target: str, cache: dict[Path, set[str]]) -> tuple
 
 def _check_edges(area: Area, record: RawRecord, add, cache: dict[Path, set[str]]) -> None:
     raw = record.value("edges")
-    if not raw:
-        return
-    try:
-        edges = parse_edges(raw)
-    except ValueError as exc:
-        add(Code.EDGES_JSON, f"{exc} ({exc.__class__.__name__})")
-        return
-    for edge in edges:
+    edges: list[dict] = []
+    if raw:
+        try:
+            edges = parse_edges(raw)
+        except ValueError as exc:
+            add(Code.EDGES_JSON, f"{exc} ({exc.__class__.__name__})")
+            return
+    if record.section_problem:
+        add(Code.EDGES_SECTION, record.section_problem)
+    for link in record.section_links or []:
+        if (record.path.parent / link.href).is_file():
+            continue
+        try:
+            ref = ref_for_href(record.path, area, link.href)
+        except ValueError as exc:
+            add(Code.EDGE_TARGET_INVALID, str(exc))
+            continue
+        problem = _edge_problem(area, ref, cache)
+        if problem is None:
+            add(Code.LINK_STALE, f"link {link.href!r} leads nowhere, but {ref!r} exists at another path", True)
+        elif link.edge_type == adr_markdown.SUPERSEDED_BY:
+            add(*problem)
+    for edge in edges + list(record.section_edges or []):
         if edge["edge_type"] not in _EDGE_TYPES:
             add(Code.EDGE_TYPE, f"edge type {edge['edge_type']!r} is not one of {sorted(_EDGE_TYPES)}")
         problem = _edge_problem(area, edge["target_id"], cache)
@@ -274,10 +315,9 @@ def _repoint_edges(area: Area, record: RawRecord, cache: dict[Path, set[str]], a
         if problem is None or problem[0] == Code.EDGE_TARGET_INVALID:
             continue
         entry_id = parse_ref(edge["target_id"])[1]
-        holders = [candidate for candidate in areas() if entry_id in _stems(candidate, cache)]
-        if len(holders) != 1:
+        target = _unique_holder_ref(area, entry_id, cache, areas)
+        if target is None:
             continue
-        target = qualify(area, holders[0], entry_id)
         try:
             parse_ref(target)
         except ValueError:
@@ -287,6 +327,84 @@ def _repoint_edges(area: Area, record: RawRecord, cache: dict[Path, set[str]], a
     if not changes:
         return raw, []
     return json.dumps([{"target_id": e["target_id"], "edge_type": e["edge_type"]} for e in edges]), changes
+
+
+def _unique_holder_ref(area: Area, entry_id: str, cache: dict[Path, set[str]],
+                       areas: Callable[[], list[Area]]) -> str | None:
+    """`entry_id` qualified from `area` when exactly one area holds it, else None."""
+    holders = [candidate for candidate in areas() if entry_id in _stems(candidate, cache)]
+    return qualify(area, holders[0], entry_id) if len(holders) == 1 else None
+
+
+def _relink_section(area: Area, record: RawRecord, cache: dict[Path, set[str]], areas: Callable[[], list[Area]]) -> tuple[str, list[str]]:
+    """The body with every `## Edges` link pointing at where its target lies now: a link whose target moved
+    inside its area gets the new path, a target that left its area is repointed when exactly one area holds it.
+    A link that leads nowhere and cannot be repointed stays as it is (lint keeps reporting it)."""
+    if not record.section_links or record.section_problem:
+        return record.body, []
+    text, _ = adr_markdown.split_edges_section(record.body)
+    links, changes = [], []
+    for link in record.section_links:
+        try:
+            ref = ref_for_href(record.path, area, link.href)
+        except ValueError:
+            links.append(link)
+            continue
+        problem = _edge_problem(area, ref, cache)
+        if problem is not None and problem[0] != Code.EDGE_TARGET_INVALID:
+            target = _unique_holder_ref(area, parse_ref(ref)[1], cache, areas)
+            if target is not None:
+                ref, problem = target, None
+        href = href_for_ref(record.path, area, ref) if problem is None else link.href
+        if href != link.href:
+            changes.append(f"link {link.href} -> {href}")
+        links.append(adr_markdown.EdgeLink(link.edge_type, href))
+    return (adr_markdown.render_edges_section(text, links), changes) if changes else (record.body, [])
+
+
+# Prose references: a record named by its bare id (or `<rel>:<id>`) in the text becomes a relative link.
+_SKIP = re.compile(r"(?ms)^(```|~~~).*?^\1[^\n]*$|\[[^\]\n]*\]\([^)\s]*\)|`[^`\n]+`")
+_PROSE_REF = re.compile(r"(?<![\w/.:\[-])((?:\.\.?(?:/[\w.-]+)*:)?)([A-Za-z0-9][\w-]*[_-][\w-]*)(?![\w/-])(?!\.[A-Za-z])")
+
+
+def _prose_target(area: Area, record: RawRecord, prefix: str, entry_id: str,
+                  cache: dict[Path, set[str]], areas: Callable[[], list[Area]]) -> str | None:
+    """The reference a prose token names, or None when it names no record, reference doc or source (or several)."""
+    if entry_id == record.path.stem or not is_safe_entry_id(entry_id):
+        return None
+    if prefix:
+        resolved = resolve_ref(area, prefix + entry_id)
+        return prefix + entry_id if resolved is not None and resolved[1] in _stems(resolved[0], cache) else None
+    if entry_id in _stems(area, cache):
+        return entry_id
+    return _unique_holder_ref(area, entry_id, cache, areas)
+
+
+def _link_prose(area: Area, record: RawRecord, text: str, cache: dict[Path, set[str]],
+                areas: Callable[[], list[Area]]) -> tuple[str, list[str]]:
+    """`text` with every record id named in prose turned into a relative link; fenced code, existing links
+    and inline code longer than one id stay as they are. Returns the new text and the ids it linked."""
+    linked: list[str] = []
+
+    def link(prefix: str, entry_id: str) -> str | None:
+        ref = _prose_target(area, record, prefix, entry_id, cache, areas)
+        if ref is None:
+            return None
+        linked.append(ref)
+        return f"[{entry_id}]({href_for_ref(record.path, area, ref)})"
+
+    def plain(segment: str) -> str:
+        return _PROSE_REF.sub(lambda m: link(m.group(1), m.group(2)) or m.group(0), segment)
+
+    out, pos = [], 0
+    for match in _SKIP.finditer(text):
+        out.append(plain(text[pos:match.start()]))
+        token = match.group(0)
+        whole = _PROSE_REF.fullmatch(token[1:-1]) if token.startswith("`") else None
+        out.append((link(whole.group(1), whole.group(2)) if whole else None) or token)
+        pos = match.end()
+    out.append(plain(text[pos:]))
+    return "".join(out), linked
 
 
 def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]]) -> None:
@@ -309,9 +427,11 @@ def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]
     elif not conflict and record.text != _canonical(modern, record.body, legacy_key if legacy else "topic"):
         add(Code.FRONTMATTER_FORMAT, "field order or spacing is not canonical", True)
 
-    for key in ("id", "type"):
-        if not fields.get(key):
-            add(Code.MISSING_FIELD, f"required field {key!r} is missing")
+    legacy_refs = [key for key in adr_markdown.LEGACY_REF_KEYS if key in fields]
+    if legacy_refs:
+        add(Code.LEGACY_REFS, f"{', '.join(legacy_refs)} in the frontmatter (now: the file name, and links in '{adr_markdown.EDGES_HEADING}')", True)
+    if not fields.get("type"):  # no `id:` needed: the file name is the record's name
+        add(Code.MISSING_FIELD, "required field 'type' is missing")
     for key in _FIXABLE_REQUIRED:
         if not fields.get(key):
             add(Code.MISSING_FIELD, f"required field {key!r} is missing", True)
@@ -354,6 +474,11 @@ def _check_record(area: Area, record: RawRecord, add, cache: dict[Path, set[str]
         conflict = bool(fields.get("perspective"))
         add(Code.PERSPECTIVE_USER, "user record must carry 'perspective: user'" + (f" (found {fields['perspective']!r})" if conflict else ""), not conflict)
     _check_edges(area, record, add, cache)
+    if not record.section_problem:
+        text, _ = adr_markdown.split_edges_section(record.body)
+        _, linked = _link_prose(area, record, text, cache, lambda: [area])
+        if linked:
+            add(Code.BARE_ID, f"names {len(linked)} record(s) by bare id in the text, e.g. {linked[0]!r}: write a relative link", True)
 
 
 def _check_index(area: Area, records: list[RawRecord]) -> list[Finding]:
@@ -438,7 +563,7 @@ def _created_from_history(area: Area, path: Path) -> str:
     return str(float(stamps[-1])) if stamps else str(path.stat().st_mtime)
 
 
-def _normalise(area: Area, record: RawRecord, edges: str) -> tuple[str, list[str]] | str:
+def _normalise(area: Area, record: RawRecord, edges: str, body: str) -> tuple[str, list[str]] | str:
     """`(new_text, changes)` for a readable record with `edges` as its edges value, or the reason it is not fixable."""
     assert record.fields is not None
     fields, conflict = _modernise(list(record.fields))
@@ -478,10 +603,42 @@ def _normalise(area: Area, record: RawRecord, edges: str) -> tuple[str, list[str
         put("perspective", "user")
         changes.append("perspective: user")
 
-    new_text = _canonical(fields, record.body)
+    migrated = _migrate_refs(area, record, fields, edges, body)
+    if isinstance(migrated, str):
+        return migrated
+    if migrated is not None:
+        fields, body = migrated
+        changes.append(f"id/edges/superseded_by -> file name and '{adr_markdown.EDGES_HEADING}' links")
+
+    new_text = _canonical(fields, body)
     if new_text != record.text and not changes:
         changes.append("field order / spacing")
     return new_text, changes
+
+
+def _migrate_refs(area: Area, record: RawRecord, fields: list[tuple[str, str]], edges: str, body: str) -> tuple[list[tuple[str, str]], str] | str | None:
+    """`(fields, body)` with `id`, `edges` and `superseded_by` moved out of the frontmatter, None when there is
+    nothing to move, or the reason it cannot be done. Frontmatter edges come first in the section, then the
+    links already there, then `superseded_by`."""
+    values = dict(fields)
+    if not any(key in values for key in adr_markdown.LEGACY_REF_KEYS):
+        return None
+    if values.get("id") and values["id"] != record.path.stem:
+        return "id: differs from the file name; decide by hand"
+    if record.section_problem:
+        return f"'{adr_markdown.EDGES_HEADING}' cannot be read: {record.section_problem}"
+    text, existing = adr_markdown.split_edges_section(body)
+    try:
+        frontmatter_edges = parse_edges(edges) if edges else []
+        links = [adr_markdown.EdgeLink(e["edge_type"], href_for_ref(record.path, area, e["target_id"])) for e in frontmatter_edges]
+        links += [link for link in existing if link.edge_type != adr_markdown.SUPERSEDED_BY]
+        superseded = [link for link in existing if link.edge_type == adr_markdown.SUPERSEDED_BY]
+        if values.get("superseded_by"):
+            superseded = [adr_markdown.EdgeLink(adr_markdown.SUPERSEDED_BY, href_for_ref(record.path, area, values["superseded_by"]))]
+    except ValueError as exc:
+        return f"a reference cannot become a link: {exc}"
+    kept = [(key, value) for key, value in fields if key not in adr_markdown.LEGACY_REF_KEYS]
+    return kept, adr_markdown.render_edges_section(text, links + superseded)
 
 
 def _same_edges_but_targets(old: str, new: str) -> bool:
@@ -492,31 +649,61 @@ def _same_edges_but_targets(old: str, new: str) -> bool:
     return [e["edge_type"] for e in before] == [e["edge_type"] for e in after]
 
 
-def _preserved(record: RawRecord, new_text: str, edges: str) -> bool:
-    """Content-preservation guard: every original frontmatter value and the whole body survive the rewrite.
+def _parsed(area: Area, record: RawRecord, text: str) -> adr_markdown.ParsedAdr:
+    return adr_markdown.parse(text, entry_id=record.path.stem, ref_for_href=lambda href: ref_for_href(record.path, area, href))
 
-    The one allowed change is `edges` becoming `edges` with the same edge types in the same order (repointed targets).
+
+def _preserved(area: Area, record: RawRecord, new_text: str, edges: str, body: str) -> bool:
+    """Content-preservation guard: every frontmatter value, the text and every reference survive the rewrite.
+
+    Allowed: `id`, `edges` and `superseded_by` moving from the frontmatter into the file name and the
+    `## Edges` links (same references, same order), and edge targets repointed or relinked (`body` is the
+    relinked body) with the same edge types in the same order.
     """
     assert record.fields is not None
     again = _split(new_text)
     if isinstance(again, str):
         return False
-    new_fields, new_body, _, _ = again
+    new_fields, _, _, _ = again
     new_values = dict(new_fields)
-    if new_body != record.body or (record.body and record.body not in new_text):
-        return False
     old_fields, _ = _modernise(record.fields)
-    if len(new_fields) < len(old_fields):
-        return False
     try:
-        adr_markdown.parse(new_text)
+        before = _parsed(area, record, _canonical(old_fields, record.body))
+        after = _parsed(area, record, new_text)
     except ValueError:
         return False
+    if after.text.rstrip("\n") != before.text.rstrip("\n") or (before.text.strip() and before.text.strip() not in new_text):
+        return False
     old_edges = record.value("edges")
-    if edges != old_edges and not (new_values.get("edges") == edges and _same_edges_but_targets(old_edges, edges)):
+    if edges != old_edges and not _same_edges_but_targets(old_edges, edges):
+        return False
+    try:
+        relinked = _parsed(area, record, _canonical([("type", "x")], body))
+        _, relinked_links = adr_markdown.split_edges_section(body)
+    except ValueError:
+        return False
+    if [link.edge_type for link in relinked_links] != [link.edge_type for link in record.section_links or []]:
+        return False
+    expected = (parse_edges(edges) if edges else []) + relinked.edges
+    superseded = relinked.superseded_by or before.superseded_by
+    if after.edges != expected or after.superseded_by != superseded or after.id != record.path.stem:
         return False
     return all(new_values.get(key) == value and (not value or value in new_text)
-               for key, value in old_fields if value and not (key == "edges" and edges != old_edges))
+               for key, value in old_fields if value and key not in adr_markdown.LEGACY_REF_KEYS)
+
+
+def _with_prose_links(area: Area, record: RawRecord, new_text: str, cache: dict[Path, set[str]],
+                      areas: Callable[[], list[Area]]) -> tuple[str, list[str]]:
+    """`new_text` with the ids in its text linked (only the matched tokens change, see `_link_prose`)."""
+    frontmatter, separator, body = new_text.partition("\n---\n\n")
+    try:
+        text, links = adr_markdown.split_edges_section(body)
+    except ValueError:
+        return new_text, []
+    linked_text, linked = _link_prose(area, record, text, cache, areas)
+    if not linked:
+        return new_text, []
+    return frontmatter + separator + adr_markdown.render_edges_section(linked_text, links), linked
 
 
 def _emit(args: argparse.Namespace, area: Area, **payload) -> None:
@@ -545,16 +732,21 @@ def _fix(area: Area, args: argparse.Namespace) -> list[RawRecord]:
         if record.fields is None:
             continue
         edges, repointed = _repoint_edges(area, record, cache, areas)
-        outcome = _normalise(area, record, edges)
+        body, relinked = _relink_section(area, record, cache, areas)
+        repointed += relinked
+        outcome = _normalise(area, record, edges, body)
         if isinstance(outcome, str):
             _emit(args, area, action="skipped", file=str(record.path), message=f"not fixable: {outcome}")
             continue
         new_text, changes = outcome
         changes = [c for c in changes if c != "field order / spacing" or not repointed] + repointed
-        if new_text == record.text:
-            continue
-        if not _preserved(record, new_text, edges):
+        if new_text != record.text and not _preserved(area, record, new_text, edges, body):
             _emit(args, area, action="skipped", file=str(record.path), message="not fixable: content-preservation guard refused the rewrite")
+            continue
+        new_text, linked = _with_prose_links(area, record, new_text, cache, areas)
+        if linked:
+            changes.append(f"linked {len(linked)} id(s) in the text")
+        if new_text == record.text:
             continue
         write_atomic(record.path, new_text)
         changed = True

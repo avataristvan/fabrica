@@ -40,6 +40,7 @@ from ai_mem.infrastructure.adr_paths import (
     write_atomic,
 )
 from ai_mem.infrastructure.areas import find_area
+from ai_mem.infrastructure.record_links import area_of_records_dir, href_for_ref, ref_for_href
 
 STORED_TYPES = ADR_TYPES | {REFERENCE_TYPE}
 _TERM = re.compile(r"[\wäöüß-]{3,}", re.IGNORECASE)
@@ -76,9 +77,11 @@ class FileMemoryRepository:
         return reference_dir(records_dir) / f"{entry_id}.md" if is_safe_entry_id(entry_id) else None
 
     @staticmethod
-    def _record_entry(path: Path) -> MemoryEntry | None:
+    def _record_entry(path: Path, records_dir: Path, text: str | None = None) -> MemoryEntry | None:
+        area = area_of_records_dir(records_dir)
         try:
-            parsed = adr_markdown.parse(path.read_text())
+            parsed = adr_markdown.parse(path.read_text() if text is None else text, entry_id=path.stem,
+                                        ref_for_href=lambda href: ref_for_href(path, area, href))
         except (OSError, ValueError):
             return None
         metadata: dict = {"type": parsed.type, "area": parsed.area}
@@ -107,7 +110,7 @@ class FileMemoryRepository:
         if entry_id == FOCUS_ID:
             return self._plain_entry(FOCUS_ID, focus_path(records_dir), FOCUS_TYPE)
         for path in find_adr_files(records_dir, entry_id):
-            entry = self._record_entry(path)
+            entry = self._record_entry(path, records_dir)
             if entry is not None:
                 return entry
         reference = self._reference_file(records_dir, entry_id)
@@ -129,7 +132,7 @@ class FileMemoryRepository:
         records_dir = self._records_dir(collection)
         if records_dir is None:
             return []
-        entries = [self._record_entry(path) for path in iter_record_files(records_dir)]
+        entries = [self._record_entry(path, records_dir) for path in iter_record_files(records_dir)]
         entries.append(self._plain_entry(FOCUS_ID, focus_path(records_dir), FOCUS_TYPE))
         entries += [self._plain_entry(path.stem, path, REFERENCE_TYPE) for path in self._reference_files(records_dir)]
         return [entry for entry in entries if entry is not None]
@@ -260,12 +263,28 @@ class FileMemoryRepository:
         entry_type = entry.metadata["type"]
         area = entry.metadata.get("area") or DEFAULT_AREA
         target = record_file_path(records_dir, entry.id, entry_type, area)
-        content = adr_markdown.serialize(entry.id, entry_type, entry.text, {**entry.metadata, "area": area})
+        source_area = area_of_records_dir(records_dir)
+        content = adr_markdown.serialize(entry.id, entry_type, entry.text, {**entry.metadata, "area": area},
+                                         href_for=lambda ref: href_for_ref(target, source_area, ref))
         changed = self._write_if_changed(target, content)
         others = [path for path in find_adr_files(records_dir, entry.id) if path != target]
         remove_files(records_dir, others)
-        self._drop_reference(records_dir, entry.id)
+        dropped = self._drop_reference(records_dir, entry.id)
+        if others or dropped:
+            self._relink_referrers(records_dir, entry.id)
         return changed or bool(others)
+
+    def _relink_referrers(self, records_dir: Path, entry_id: str) -> None:
+        """Rewrite the records of this area that link to `entry_id`, after its file moved (retype, new topic):
+        a link is rendered against where its target lies now. Other areas heal with `mem lint --fix`."""
+        suffix = f"{entry_id}.md)"
+        for path in iter_record_files(records_dir):
+            text = _read_or_none(path)
+            if path.stem == entry_id or text is None or suffix not in text:
+                continue
+            referrer = self._record_entry(path, records_dir, text)
+            if referrer is not None:
+                self._write_record(records_dir, referrer)
 
     def add_edge(self, collection: str, source_id: str, edge: MemoryEdge) -> None:
         entries = self.get_by_ids(collection, [source_id])

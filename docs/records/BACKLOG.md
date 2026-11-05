@@ -1,18 +1,22 @@
-Ordered, the next candidate on top; reorder by moving lines. One line per item; the former todo id finds the full text with `git log -S <id>`.
+Ordered, the next candidate on top; reorder by moving lines. One line per item; a line's history is `git log -S '<words of the line>'`.
 
-- Settle whether the librarian is the core of Fabrica or optional; include that it cannot read docs/handoff-*.md. (todo_decide_librarian_core_or_optional_2026_10_24, todo_librarian_cannot_read_handoffs_2026_10_20)
-- Show a second environment beyond Claude Code (e.g. AGENTS.md + a librarian prompt) to back "a practice, not a tool". (todo_show_second_environment_beyond_claude_code_2026_10_24)
-- A doctor/lint check before a push: configurable private names, machine paths, commit SHAs the remote lacks. (todo_doctor_scan_private_names_paths_unpushed_shas_2026_10_13)
-- Settle the rule for pseudonymising foreign evidence at filing, not only for publication (docs/reference/record-format.md "Sources"). (todo_pseudonymise_foreign_evidence_on_filing_rule_open_2026_10_24)
-- A policy for edges and evidence paths to reference docs and sources; `mem link`/`mem find` do not resolve source slugs. (todo_policy_for_edges_to_reference_docs_and_sources_2026_10_12)
-- The archivist looks for duplicates of a candidate in other areas. (todo_archivist_flag_cross_area_duplicates_2026_10_13)
-- `mem doctor` detects a skipped reflect, e.g. commits since the last record or FOCUS.md change. (todo_detect_skipped_reflect_gate_2026_10_11)
-- Fixed pull trigger points per situation, each tested; includes querying anti-patterns at plan time and the recall/precision hypothesis. (todo_pull_trigger_points_per_situation, todo_plan_time_anti_pattern_query_and_retrieval_hypotheses_2026_10_12)
-- `mem doctor` Wiring reads environment records so external teams stop showing as findings. (todo_doctor_reads_environment_records_2026_10_11)
-- Verify the retro-log measurement against a real the-coder report. (todo_verify_retro_log_measurement_against_real_report_2026_10_12)
-- A hostile-input test for the librarian; decide whether to harden its scope beyond the prompt. (todo_librarian_hostile_input_test_2026_10_11)
-- `mem doctor` Wiring reads project settings too, not only ~/.claude/settings.json. (todo_doctor_wiring_deferred_from_4c_2026_10_11)
-- reflect_reminder stops rescanning the whole transcript on every Stop. (todo_reflect_reminder_rescans_transcript_2026_10_11)
-- ai_mem.hooks.state_dir as the single definition of the $AI_MEM_PATH default. (todo_state_dir_single_stdlib_definition_2026_10_11)
-- mem CLI cleanup: TargetNotFound exception, qualify validates its output, one reference-doc lookup. (todo_mem_cli_simplify_deferred_from_1b4_2026_10_11)
-- A resolve_area method on the AreaRefs protocol instead of the '<path>:probe' trick in dream_memory.py. (todo_dream_area_refs_refactor)
+- After galaxy-tab-a-2016, the same rollout for the other areas (ai-architecture, briefing-interviewer, …), the generic way it produced.
+- `mem lint` flags a record whose evidence or link points at docs/handoff-*.md.
+- Link record names in docs/ prose (outside docs/records/) the way `mem lint --fix` does in records.
+- dev-team plugin: `anchors:` name records by path instead of id.
+- Settle whether the librarian is the core of Fabrica or optional; include that it cannot read docs/handoff-*.md.
+- Show a second environment beyond Claude Code (e.g. AGENTS.md + a librarian prompt) to back "a practice, not a tool".
+- A doctor/lint check before a push: configurable private names, machine paths, commit SHAs the remote lacks.
+- Settle the rule for pseudonymising foreign evidence at filing, not only for publication (docs/reference/record-format.md "Sources").
+- A policy for edges and evidence paths to reference docs and sources; `mem link`/`mem find` do not resolve source slugs.
+- The archivist looks for duplicates of a candidate in other areas.
+- `mem doctor` detects a skipped reflect, e.g. commits since the last record or FOCUS.md change.
+- Fixed pull trigger points per situation, each tested; includes querying anti-patterns at plan time and the recall/precision hypothesis.
+- `mem doctor` Wiring reads environment records so external teams stop showing as findings.
+- Verify the retro-log measurement against a real the-coder report.
+- A hostile-input test for the librarian; decide whether to harden its scope beyond the prompt.
+- `mem doctor` Wiring reads project settings too, not only ~/.claude/settings.json.
+- reflect_reminder stops rescanning the whole transcript on every Stop.
+- ai_mem.hooks.state_dir as the single definition of the $AI_MEM_PATH default.
+- mem CLI cleanup: TargetNotFound exception, qualify validates its output, one reference-doc lookup.
+- A resolve_area method on the AreaRefs protocol instead of the '<path>:probe' trick in dream_memory.py.

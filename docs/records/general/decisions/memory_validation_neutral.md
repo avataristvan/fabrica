@@ -1,4 +1,3 @@
-id: memory_validation_neutral
 type: pattern
 topic: general
 perspective: agent

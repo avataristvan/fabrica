@@ -1,10 +1,7 @@
-id: ai_mem_redesign_2026_06_13
 type: domain
 topic: general
 created: 1781302341.02234
-superseded_by: domain_drop_confidence_for_evidence_and_librarian_2026_09_26
 valid_until: 1790440703.114531
-edges: [{"target_id": "key_invariants", "edge_type": "related"}]
 ---
 
 # ai-mem architecture redesign: confidence lifecycle model (2026-06-13)
@@ -26,4 +23,9 @@ Cosine similarity suffices for retrieval when the collection is clean.
 ## Memory hierarchy
 - ephemeral: confidence < 0.3 → decay candidate
 - retrievable: 0.3–0.9 → reachable via query
-- available (renamed 2026-07-31 from always-present): confidence > 0.9 + access_count ≥ 3 → **Update 2026-09-16**: no longer "injected every session" — since the pull-based redesign (arch_decision_..._2026_09_16, see hook_system) SessionStart is by default only a routing hint. The [available] list appears only with `session_start_verbose: true` in agents.yaml, or when an agent queries it explicitly. **Update 2026-09-26:** the gate additionally requires boost_count ≥ 1 (see key_invariants).
+- available (renamed 2026-07-31 from always-present): confidence > 0.9 + access_count ≥ 3 → **Update 2026-09-16**: no longer "injected every session" — since the pull-based redesign (arch_decision_..._2026_09_16, see hook_system) SessionStart is by default only a routing hint. The [available] list appears only with `session_start_verbose: true` in agents.yaml, or when an agent queries it explicitly. **Update 2026-09-26:** the gate additionally requires boost_count ≥ 1 (see [key_invariants](../../../sources/key_invariants.md)).
+
+## Edges
+
+- related: [key_invariants](../../../sources/key_invariants.md)
+- superseded_by: [domain_drop_confidence_for_evidence_and_librarian_2026_09_26](../../architecture/decisions/domain_drop_confidence_for_evidence_and_librarian_2026_09_26.md)

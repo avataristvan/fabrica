@@ -1,4 +1,3 @@
-id: learning_pretool_push_dominated_context_footprint_2026_09_12
 type: learning
 topic: architecture
 created: 1790678546.434832

@@ -1,4 +1,3 @@
-id: pattern_bypass_gate_for_safety_signals
 type: pattern
 topic: general
 perspective: agent

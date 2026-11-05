@@ -1,4 +1,3 @@
-id: learning_abstraction_vs_verbatim_tradeoff_2026_10_04
 type: domain
 topic: general
 perspective: user

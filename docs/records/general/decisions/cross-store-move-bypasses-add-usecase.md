@@ -1,4 +1,3 @@
-id: cross-store-move-bypasses-add-usecase
 type: anti-pattern
 topic: general
 perspective: the-coder

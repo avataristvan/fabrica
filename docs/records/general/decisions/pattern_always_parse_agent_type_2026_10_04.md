@@ -1,4 +1,3 @@
-id: pattern_always_parse_agent_type_2026_10_04
 type: pattern
 topic: general
 perspective: agent

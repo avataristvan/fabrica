@@ -1,4 +1,3 @@
-id: learning_config_rewrite_keeps_file_mode_and_backs_up_once_2026_10_12
 type: learning
 topic: plugin
 perspective: agent

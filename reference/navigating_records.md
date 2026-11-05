@@ -51,17 +51,16 @@ Layout: `docs/records/<topic>/<kind>/<id>.md`. `<kind>` follows from the type:
 (`user`). The topic is a plain subfolder such as `architecture`; its
 frontmatter key is `topic:` (old records may still say `area:`, the same thing).
 
-Each file starts with `key: value` lines, then `---`, then the text:
+Each file starts with `key: value` lines, then `---`, then the text, then (when it has
+edges) a closing `## Edges` section. The file name without `.md` is the record's name; there is
+no separate id.
 
 | Key | Meaning |
 |---|---|
-| `id` | the file name without `.md` |
 | `type` | `domain`, `pattern`, `anti-pattern`, `learning`, `user` |
 | `topic` | the topic folder (old records may still say `area:`) |
 | `perspective` | optional: whose knowledge or experience it is (`user`, `agent`, or a role such as `coder`, `reviewer`). A lens, not a location: it never decides where the file lives. Records of kind `user` also carry `perspective: user`. |
 | `created` | when the record was first written |
-| `superseded_by` | optional: the id of the record that replaces this one |
-| `edges` | optional: one line of JSON, `[{"target_id": ..., "edge_type": ...}]` |
 | other keys | kept as written (hand-written records may carry some) |
 | `cue` | optional, always last: one sentence naming the situation in which the record helps |
 
@@ -74,20 +73,25 @@ headings); read them for meaning, not for form.
 
 Edge types: `derived_from` (the source rests on the target, e.g. a decision on a
 learning), `causes`, `fixes`, `contradicts`, `confirms` (a later record shows the target
-held again), `supersedes`, `related`. An edge is stored on its source record only.
+held again), `supersedes`, `related`; `superseded_by` marks the record as overtaken. An edge
+is stored on its source record only, as one line of its `## Edges` section:
 
-- **Same area:** `target_id` is a bare id.
-- **Other area:** `target_id` is `<rel>:<id>`. `<rel>` is the path from the source's area
-  folder to the target's area folder and always starts with `.` or `..`, e.g.
-  `../ai-architecture:learning_x`, `..:pattern_y`,
-  `./sub:domain_z`. Resolve it relative to the source area's folder, then find the id in
-  that area's `docs/records/`. A reference is never an absolute path.
+```
+- derived_from: [learning_x](../../search/learnings/learning_x.md)
+```
+
+- The link is relative to the record file. Resolve it from the record's folder and `Read`
+  the file it names; a link that leaves `docs/records/` leads into another area (or to a
+  source in `docs/sources/`, a plain doc in `docs/reference/`).
+- The text names records the same way, as links (`Evidence: [learning_x](...)`). Older
+  records may still name them bare, or as `<rel>:<name>`; then `Glob` `**/<name>.md`.
 - `supersedes` never crosses areas. Across areas, records relate by `related` or
   `derived_from`.
 
 ## The catalogue files
 
-- `docs/records/INDEX.md`: one row per record (`id | topic | type | title | status`).
+- `docs/records/INDEX.md`: one row per record (`record | topic | type | title | status`);
+  the record column is a link to the file.
   Hand-kept areas may have a different INDEX or none; then `Glob` the folder.
 - `docs/records/FOCUS.md`: what is being worked on right now (plain text, state).
 - `cue:` lines: the index of "situation -> record". A cue is written from the point of view
@@ -108,16 +112,15 @@ string matched.
 3. **Pick candidates by judgment.** From titles and cues, decide which records could
    plausibly bear on the question. Prefer records whose title *means* the same thing over
    ones that merely share a keyword. Zero candidates is a valid outcome.
-4. **Read the candidates** (`<topic>/<kind>/<id>.md`; topic and type come from the INDEX
-   row, `Glob` `**/<id>.md` if unsure). Does the text actually bear on the question, or
+4. **Read the candidates** (the INDEX row links the file; `Glob` `**/<name>.md` if unsure). Does the text actually bear on the question, or
    did the title mislead you? Drop what does not hold up. Note each record's
    `perspective:` when it has one.
 5. **Follow edges, one hop.** `superseded_by` -> read the successor; that is the current
    answer. But if the older record carries the "Why" the successor dropped, keep the
-   older id too. Superseded does not mean discard. `edges` (`derived_from`, `causes`,
-   `fixes`, `contradicts`, `confirms`, `related`) may point at a better answer: follow one
-   hop when it looks relevant, then stop. A qualified target (`<rel>:<id>`) is followed
-   into the other area the same way. An `Evidence:` path leads to the source, when proof
+   older record too. Superseded does not mean discard. The other `## Edges` links
+   (`derived_from`, `causes`, `fixes`, `contradicts`, `confirms`, `related`) may point at a
+   better answer: follow one hop when it looks relevant, then stop. A link into another
+   area is followed the same way. An `Evidence:` path leads to the source, when proof
    is asked for.
 6. **Background.** `Glob` `docs/reference/*.md` and read a reference doc when the question
    is about how the system is built rather than about a decision.

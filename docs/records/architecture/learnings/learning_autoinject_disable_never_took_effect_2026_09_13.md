@@ -1,4 +1,3 @@
-id: learning_autoinject_disable_never_took_effect_2026_09_13
 type: learning
 topic: architecture
 created: 1790678548.382843

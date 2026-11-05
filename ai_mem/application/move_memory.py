@@ -243,3 +243,8 @@ class MoveToAreaUseCase:
             self._repo.upsert(area, [op.entry for op in ops])
         for area, ops in plan._ops("delete").items():
             self._repo.delete(area, [op.id for op in ops])
+        # Rewrite what was written once every record is in its final place: a stored reference is
+        # rendered against where its target lies at write time, and a target moved in the same plan
+        # may have landed only after its referrer (unchanged files are not rewritten).
+        for area, ops in plan._ops("write").items():
+            self._repo.upsert(area, self._repo.get_by_ids(area, [op.id for op in ops]))

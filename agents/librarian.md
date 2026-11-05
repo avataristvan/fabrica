@@ -43,7 +43,7 @@ Reply in exactly this shape:
 
 ```
 Answer: <the answer, as short as the question allows>
-Relied on: <comma-separated record ids you actually used to construct the answer, or "none">
+Relied on: <comma-separated record paths relative to the area (`docs/records/<topic>/<kind>/<name>.md`) you actually used, or "none">
 ```
 
 If nothing plausibly answers the question, say so explicitly instead of answering:

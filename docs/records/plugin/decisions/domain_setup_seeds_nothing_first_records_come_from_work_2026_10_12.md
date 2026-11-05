@@ -1,9 +1,7 @@
-id: domain_setup_seeds_nothing_first_records_come_from_work_2026_10_12
 type: domain
 topic: plugin
 perspective: the-coder
 created: 1791833918.959855
-edges: [{"target_id": "domain_archivist_mechanism_mem_and_mem_dream_2026_10_11", "edge_type": "related"}, {"target_id": "domain_dream_proposes_never_applies_2026_10_13", "edge_type": "related"}]
 cue: Someone asks how a new project gets its first records now that /mem-init is gone
 ---
 
@@ -11,3 +9,8 @@ Decision: The setup skill (`ai-mem:setup`, successor of /mem-init) does no seedi
 Why: Only the archivist and the user write records; seeding by exploration would bypass the archivist. The librarian found no earlier record deciding this.
 Scope: skills/setup/SKILL.md.
 Evidence: docs/sources/automation_repo_seeder.md (the retired seeder this replaces)
+
+## Edges
+
+- related: [domain_archivist_mechanism_mem_and_mem_dream_2026_10_11](../../architecture/decisions/domain_archivist_mechanism_mem_and_mem_dream_2026_10_11.md)
+- related: [domain_dream_proposes_never_applies_2026_10_13](../../workflow/decisions/domain_dream_proposes_never_applies_2026_10_13.md)

@@ -1,4 +1,3 @@
-id: learning_lint_fix_in_foreign_area_normalises_everything_2026_11_02
 type: learning
 topic: records
 perspective: agent

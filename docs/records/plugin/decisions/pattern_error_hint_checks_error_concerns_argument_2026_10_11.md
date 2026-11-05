@@ -1,4 +1,3 @@
-id: pattern_error_hint_checks_error_concerns_argument_2026_10_11
 type: pattern
 topic: plugin
 perspective: reviewer

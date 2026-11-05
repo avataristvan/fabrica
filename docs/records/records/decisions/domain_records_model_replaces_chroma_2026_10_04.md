@@ -1,15 +1,24 @@
-id: domain_records_model_replaces_chroma_2026_10_04
 type: domain
 topic: records
 created: 1791065383.941984
-edges: [{"target_id": "domain_learning_decision_split_subfolders_2026_09_29", "edge_type": "related"}, {"target_id": "learning_librarian_scope_was_the_game_changer_2026_10_11", "edge_type": "related"}, {"target_id": "domain_records_home_stays_for_migration_2026_10_13", "edge_type": "related"}, {"target_id": "domain_bmad_vs_ai_mem_epistemology_2026_09_25", "edge_type": "confirms"}, {"target_id": "domain_record_edges_single_line_json_with_ids_2026_10_23", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "derived_from"}, {"target_id": "domain_record_key_topic_replaces_area_2026_11_01", "edge_type": "related"}, {"target_id": "domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02", "edge_type": "related"}]
 cue: I am about to change ai-mem storage, retrieval or hooks, or introduce a new record type.
 ---
 
 Decision: ChromaDB is replaced. The source of truth is git-native files in four kinds: decisions/ (domain, pattern, anti-pattern), learnings/ (learning, retros, insight feedback), todos/ (open = file exists; done = delete the file and write a learning with the commit SHA) and FOCUS.md (one file per repo, overwritten, Git keeps the history; replaces current_focus). reference entries become normal documentation under docs/reference/ of the repo, decisions/insights from them move into the logs. Counters (boost_count, last_accessed_at) and the ranker are dropped; cue belongs in the files, because it carries the experience index. Retrieval without a DB: docs/records/INDEX.md + grep, linked via CLAUDE.md.
-Why: The pull gap test showed that agents hardly ever call mem_query anyway; status strings in a DB go stale unnoticed (pattern_status_markers_rot_in_memory); files are reviewable in Git, distributable and readable without tooling. Round-trip test 2026-10-03: all 584 typed entries came back identical from the files.
+Why: The pull gap test showed that agents hardly ever call mem_query anyway; status strings in a DB go stale unnoticed ([pattern_status_markers_rot_in_memory](../../workflow/decisions/pattern_status_markers_rot_in_memory.md)); files are reviewable in Git, distributable and readable without tooling. Round-trip test 2026-10-03: all 584 typed entries came back identical from the files.
 Scope: all collections (repo.*, global, workspace, subagent.*). global/workspace/subagent.* live in the private repo ai-mem-records. User preferences do not belong in records (CLAUDE.md/memory). Implementation in four steps: placement of the 282 non-ADR entries, transfer, switch-over (hook reads FOCUS.md/todos), removal of mem_query/mem_boost/embeddings.
 
-Addendum 2026-10-04: The removal step is implemented (domain_file_backend_replaces_chroma_2026_10_04). Narrowed: preferences that must act in every session go to CLAUDE.md, a role's yardstick stays a user record (domain_user_records_as_role_perspective_2026_10_04).
-Addendum 2026-10-13: 'git keeps the history' did not hold while ai-mem's own records were gitignored; going public changed that, see domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13.
-Addendum 2026-11-02 (OUTDATED PART): the todos/ kind (open = file exists) is retired. Open work lives in FOCUS.md and BACKLOG.md; see domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02. The rest of this decision (files instead of ChromaDB) still holds.
+Addendum 2026-10-04: The removal step is implemented ([domain_file_backend_replaces_chroma_2026_10_04](../../architecture/decisions/domain_file_backend_replaces_chroma_2026_10_04.md)). Narrowed: preferences that must act in every session go to CLAUDE.md, a role's yardstick stays a user record ([domain_user_records_as_role_perspective_2026_10_04](../../architecture/decisions/domain_user_records_as_role_perspective_2026_10_04.md)).
+Addendum 2026-10-13: 'git keeps the history' did not hold while ai-mem's own records were gitignored; going public changed that, see [domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13](domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13.md).
+Addendum 2026-11-02 (OUTDATED PART): the todos/ kind (open = file exists) is retired. Open work lives in FOCUS.md and BACKLOG.md; see [domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02](../../workflow/decisions/domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02.md). The rest of this decision (files instead of ChromaDB) still holds.
+
+## Edges
+
+- related: [domain_learning_decision_split_subfolders_2026_09_29](../../architecture/decisions/domain_learning_decision_split_subfolders_2026_09_29.md)
+- related: [learning_librarian_scope_was_the_game_changer_2026_10_11](../../architecture/learnings/learning_librarian_scope_was_the_game_changer_2026_10_11.md)
+- related: [domain_records_home_stays_for_migration_2026_10_13](../../architecture/decisions/domain_records_home_stays_for_migration_2026_10_13.md)
+- confirms: [domain_bmad_vs_ai_mem_epistemology_2026_09_25](../../architecture/decisions/domain_bmad_vs_ai_mem_epistemology_2026_09_25.md)
+- related: [domain_record_edges_single_line_json_with_ids_2026_10_23](domain_record_edges_single_line_json_with_ids_2026_10_23.md)
+- derived_from: [pattern_status_markers_rot_in_memory](../../workflow/decisions/pattern_status_markers_rot_in_memory.md)
+- related: [domain_record_key_topic_replaces_area_2026_11_01](domain_record_key_topic_replaces_area_2026_11_01.md)
+- related: [domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02](../../workflow/decisions/domain_next_steps_live_in_focus_and_backlog_todo_records_retired_2026_11_02.md)

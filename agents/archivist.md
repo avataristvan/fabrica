@@ -31,7 +31,12 @@ you adopt them.
   values in single quotes (an embedded `'` is written `'\''`), and pass bodies only through
   a quoted heredoc, `--file - <<'EOF'` ... `EOF`, the one shell construct you may use.
 - **Never edit a record file directly**, never `Write`/`Edit` anything. State files
-  (`FOCUS.md`, `docs/handoff-*.md`) belong to the caller, not to you.
+  (`FOCUS.md`, `docs/handoff-*.md`) belong to the caller, not to you. They carry no ids: an
+  id-like string in `FOCUS.md` or `BACKLOG.md` (a former `todo_…` id) is a leftover, never an
+  edge target and never a missing record to report.
+- **A handoff is never evidence.** A candidate whose evidence is a `docs/handoff-*.md` is not
+  written with that path: name the source it was frozen into, or report it back so the caller
+  freezes the evidence as a source first. A handoff is deleted when its work is done.
 - **Evidence is never changed.** Nothing under `docs/sources/` is written, moved or deleted. The one
   exception is a source's status: `mem source <slug> --status processed` once every conclusion that
   still holds is a record (it changes only that frontmatter line).
@@ -46,8 +51,8 @@ you adopt them.
   a hand-kept INDEX would be overwritten by the write, so report it as "for <area>, not
   written" instead.
 - **`mem add` on an existing id updates it in place**, in any area, and keeps its edges,
-  `created` and any field you do not pass (checked: a rewrite with new text leaves `edges:`
-  untouched). So rewrite a record to correct it; do not write a contradicting twin out of
+  `created` and any field you do not pass (checked: a rewrite with new text leaves its
+  `## Edges` links untouched). So rewrite a record to correct it; do not write a contradicting twin out of
   doubt about edges. Before every `mem add`
   meant as a new record, `Glob` `**/<id>.md` under that area's `docs/records/` (if `Glob`
   is not available to you, `mem find <id>` or `Grep` with `output_mode: files_with_matches`
@@ -156,7 +161,7 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
      point of view of that person (what they are doing or about to do), not a keyword of the
      solution.
    - A learning that rests on a source names it in `Evidence:` (a path under
-     `docs/sources/`, a commit, a test, or record ids), or has an edge to it:
+     `docs/sources/`, a commit, a test, or a link to a record), or has an edge to it:
      `mem link <record> <slug> --type derived_from` (a source can be any edge's target except
      `supersedes`; `mem find <slug>` locates it).
    - **`Observed:` holds only what was seen.** An explanation in the candidate's observation
@@ -167,7 +172,11 @@ Work the batch in this order. Steps 1 to 9 are mandatory (3 to 7 per candidate, 
    - Edges: sibling edges from step 4 first, then edges to existing records:
      `mem link <source> <target> --type <edge>`, with `--to-area <path>` when the target is in
      another area. Types: `derived_from` (a decision resting on a learning), `causes`,
-     `fixes`, `confirms`, `contradicts`, `supersedes`, `related`.
+     `fixes`, `confirms`, `contradicts`, `supersedes`, `related`. `mem link` writes them as
+     relative links in the record's `## Edges` section.
+   - **Records are named by link, not by bare name**, in the body too
+     (`Evidence: [learning_x](../../topic/learnings/learning_x.md)`). Write the name; after the
+     batch, `mem lint --fix --area <area>` turns every bare name into the relative link.
 9. **Back-references are mandatory, and you write them.** Never hand the caller a `mem link`
    command for one: the caller must not write records. They are written in any area,
    including those outside your write scope. Every edge from a new record to an existing record gets

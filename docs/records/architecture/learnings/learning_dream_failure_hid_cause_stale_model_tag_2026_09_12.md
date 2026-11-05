@@ -1,4 +1,3 @@
-id: learning_dream_failure_hid_cause_stale_model_tag_2026_09_12
 type: learning
 topic: architecture
 created: 1790678547.177738

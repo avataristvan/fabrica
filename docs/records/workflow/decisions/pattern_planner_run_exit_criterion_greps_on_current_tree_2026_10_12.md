@@ -1,4 +1,3 @@
-id: pattern_planner_run_exit_criterion_greps_on_current_tree_2026_10_12
 type: pattern
 topic: workflow
 perspective: reviewer

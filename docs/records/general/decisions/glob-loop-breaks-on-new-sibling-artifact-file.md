@@ -1,4 +1,3 @@
-id: glob-loop-breaks-on-new-sibling-artifact-file
 type: anti-pattern
 topic: general
 perspective: the-coder

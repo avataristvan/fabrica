@@ -1,4 +1,3 @@
-id: pattern_saturating_transform_nonnegativity_precondition
 type: pattern
 topic: general
 perspective: agent

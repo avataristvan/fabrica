@@ -1,4 +1,3 @@
-id: pattern_status_markers_rot_in_memory
 type: pattern
 topic: workflow
 perspective: agent

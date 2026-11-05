@@ -24,7 +24,7 @@ Questions:
 - The area is the nearest ancestor of the working directory with `docs/records/` (`mem context` prints it). Name the path, not a collection. For work that crosses areas, name each.
 - Perspective: a coder asks for experience of the-coder first, a reviewer for the reviewer's, a skill for its own role's.
 - If your spawn cannot start another agent, the parent asks the librarian before spawning you and passes the answer in your prompt. A direct read of `<area>/docs/records/FOCUS.md` and `INDEX.md` is the fallback when no agent is available.
-- Rely on a record only after reading it yourself (the `Relied on:` ids). A finding that rests on a record cites its id.
+- Rely on a record only after reading it yourself (the `Relied on:` paths). A finding that rests on a record cites its path.
 
 ## 2. Check the work against what it names
 
@@ -35,7 +35,7 @@ Compare the diff, plan or answer with each named decision, invariant and learnin
 Every subagent that ends a boundary adds, besides `learned:` / `blocked:` / `next:`:
 
 ```
-records_consulted: <ids that carried a decision or a finding, or "none">
+records_consulted: <record paths relative to the area (`docs/records/<topic>/<kind>/<name>.md`; another area's as `../<area>/docs/records/...`) that carried a decision or a finding, or "none">
 record_candidates: <plain text: what from this work should become a record, or which existing record it touches or refutes, or "none">
 ```
 
@@ -51,7 +51,7 @@ If `records_consulted` stays `none` over many boundaries, the step has become ri
 
 | Boundary | Who asks | What it carries |
 |---|---|---|
-| `/chunk-plan`, before decomposing | planner | task, the spot where it would guess; the answer's `Relied on:` ids go into each chunk spec as id plus one line of why (`domain_why_travels_with_chunk_spec_2026_10_10`) |
+| `/dev-team:chunk-plan`, before decomposing | planner | task, the spot where it would guess; the answer's `Relied on:` paths go into each chunk spec as path plus one line of why (`domain_why_travels_with_chunk_spec_2026_10_10`) |
 | chunk start | coder | only what the spec does not carry: experience with the files, libraries and tools the chunk touches, the-coder's perspective first |
 | code to review | the caller asks first and passes the answer to `anchor-lint`, which asks again if it can spawn | changed paths against decisions/learnings and the chunk's anchors (`domain_librarian_at_review_handoff_2026_10_10`) |
 | reflect gate | orchestrator | the coder's and reviewer's `record_candidates` are the first source for the archivist, then `learned:` |

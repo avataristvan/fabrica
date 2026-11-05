@@ -1,4 +1,3 @@
-id: learning_bulk_change_bypassing_mem_needs_backup_first_2026_11_02
 type: learning
 topic: workflow
 perspective: agent

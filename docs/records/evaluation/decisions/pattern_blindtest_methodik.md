@@ -1,13 +1,11 @@
-id: pattern_blindtest_methodik
 type: pattern
 topic: evaluation
 created: 1780077541.217354
-edges: [{"target_id": "learning_hooks_do_not_inherit_mcp_env_2026_07_03", "edge_type": "derived_from"}, {"target_id": "pattern_rubric_levels_defined_with_boundary_examples_2026_10_18", "edge_type": "related"}]
 ---
 
 # Blind-test methodology for ai-mem evaluation
 
-Counterpart (what does NOT work: setting AI_MEM_PATH only via the MCP `env` block): antipattern_ai_mem_path_via_mcp_env_misses_hooks.
+Counterpart (what does NOT work: setting AI_MEM_PATH only via the MCP `env` block): [antipattern_ai_mem_path_via_mcp_env_misses_hooks](antipattern_ai_mem_path_via_mcp_env_misses_hooks.md).
 
 ## What works
 
@@ -26,3 +24,8 @@ This makes hooks AND MCP server run without the real DB. Afterwards reset + rest
 - Ask the test question only AFTER the restart
 
 Status 2026-10-04 (checked in code): On the file backend an empty AI_MEM_PATH isolates nothing -- collections still resolve through cwd detection (git worktrees map to the main checkout), and an agent can Read/Grep docs/records directly. A blind arm needs the records out of reach: a fresh clone in another directory without docs/records, or a temporary copy of the repository without it.
+
+## Edges
+
+- derived_from: [learning_hooks_do_not_inherit_mcp_env_2026_07_03](../../architecture/learnings/learning_hooks_do_not_inherit_mcp_env_2026_07_03.md)
+- related: [pattern_rubric_levels_defined_with_boundary_examples_2026_10_18](pattern_rubric_levels_defined_with_boundary_examples_2026_10_18.md)

@@ -1,4 +1,3 @@
-id: learning_claude_p_json_result_is_last_message_grade_stream_json_2026_10_12
 type: learning
 topic: plugin
 perspective: the-coder

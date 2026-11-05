@@ -1,4 +1,3 @@
-id: feedback_dilemma_frame_leverage
 type: learning
 topic: general
 perspective: user

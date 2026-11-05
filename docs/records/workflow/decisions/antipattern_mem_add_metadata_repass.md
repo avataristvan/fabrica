@@ -1,4 +1,3 @@
-id: antipattern_mem_add_metadata_repass
 type: anti-pattern
 topic: workflow
 created: 1781434290.659998

@@ -17,7 +17,6 @@ import time
 from pathlib import Path
 
 from ai_mem.doctor_sources import collect_sources
-from ai_mem.domain.memory import parse_edges
 from ai_mem.hooks import DOCTOR_STAMP, RETRO_LOG, state_dir
 from ai_mem.infrastructure.adr_paths import focus_path, write_atomic
 from ai_mem.infrastructure.areas import Area, discover_areas, find_area, resolve_ref
@@ -239,7 +238,7 @@ def collect(areas: list[Area]) -> dict:
         for record in scans[area.root]:
             existing.add((area.root, record.path.stem))
             try:
-                edges = parse_edges(record.value("edges"))
+                edges = record.all_edges()
                 targets = [edge["target_id"] for edge in edges]
             except ValueError:  # lint's lenient reader still finds the targets of a half-valid list
                 edges, targets = [], edge_targets(record)
@@ -262,7 +261,7 @@ def collect(areas: list[Area]) -> dict:
         roots = [area.root, *([toplevel] if toplevel else [])]
         tokens = _index_tokens(area)
         fixable_files = sorted({f.file.relative_to(area.records_dir).as_posix() for f in findings if f.fixable and f.code not in _INDEX_CODES})
-        not_in_index = sorted(r.rel.as_posix() for r in records if r.fields is not None and r.value("id") and r.value("id") not in tokens)
+        not_in_index = sorted(r.rel.as_posix() for r in records if r.fields is not None and r.path.stem not in tokens)
         dead_weight = []
         for record in records:
             if record.fields is None or (area.root, record.path.stem) in incoming:

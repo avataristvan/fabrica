@@ -1,4 +1,3 @@
-id: learning_handwritten_records_drift_from_format_2026_10_10
 type: learning
 topic: architecture
 perspective: agent

@@ -1,4 +1,3 @@
-id: pattern_prospective_plan_validation
 type: pattern
 topic: general
 perspective: user

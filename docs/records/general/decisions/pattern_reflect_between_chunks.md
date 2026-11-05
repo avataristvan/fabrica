@@ -1,4 +1,3 @@
-id: pattern_reflect_between_chunks
 type: pattern
 topic: general
 perspective: user

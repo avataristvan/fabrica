@@ -3,13 +3,19 @@ from __future__ import annotations
 
 import pytest
 
-from ai_mem.infrastructure.adr_markdown import ParsedAdr, check_extra_frontmatter, parse, serialize
+from ai_mem.infrastructure.adr_markdown import ParsedAdr, check_extra_frontmatter, serialize
+from ai_mem.infrastructure.adr_markdown import parse as adr_parse
+
+
+def parse(md: str, entry_id: str = "from_file_name") -> ParsedAdr:
+    """The id of a record is its file name; these text-only tests name a file."""
+    return adr_parse(md, entry_id=entry_id)
 
 
 def test_perspective_is_written_after_area_and_roundtrips():
     md = serialize("user_x", "user", "body", {"area": "workflow", "perspective": "user", "created_at": 1.0})
 
-    assert md.startswith("id: user_x\ntype: user\ntopic: workflow\nperspective: user\ncreated: 1.0\n")
+    assert md.startswith("type: user\ntopic: workflow\nperspective: user\ncreated: 1.0\n")
     assert parse(md).perspective == "user"
     assert parse(serialize("d", "domain", "b", {})).perspective is None
 
@@ -25,7 +31,9 @@ def test_unknown_keys_are_preserved_before_cue_in_their_own_order():
     assert parsed.extra == {"status": "accepted", "Datum": "2026-10-10", "empty": ""}
     metadata = {"area": parsed.area, "created_at": parsed.created_at, "edges": parsed.edges, "cue": parsed.cue,
                 "extra_frontmatter": parsed.extra, "last_accessed_at": 9.0, "expires_at": 9.0}
-    assert serialize(parsed.id, parsed.type, parsed.text, metadata) == md
+    written = serialize(parsed.id, parsed.type, parsed.text, metadata, href_for=lambda ref: "../../../../other/docs/records/l.md")
+    assert written == ("type: domain\ntopic: arch\ncreated: 1.0\nstatus: accepted\nDatum: 2026-10-10\nempty:\ncue: when x\n"
+                       "---\n\nDecision: X\n\n## Edges\n\n- related: [l](../../../../other/docs/records/l.md)\n")
 
 
 def test_volatile_keys_in_a_file_are_dropped_not_kept_as_extra():
@@ -46,8 +54,9 @@ def test_check_extra_frontmatter_rejects_what_cannot_round_trip(extra):
 def test_roundtrip_id_type_text():
     text = "Decision: use X.\nWhy: Y.\nScope: Z."
     md = serialize("domain_foo", "domain", text, metadata={})
-    parsed = parse(md)
+    parsed = parse(md, entry_id="domain_foo")
 
+    assert "id:" not in md
     assert parsed.id == "domain_foo"
     assert parsed.type == "domain"
     assert parsed.text == text
@@ -131,13 +140,12 @@ def test_deterministic_field_order_ignores_dict_insertion_order():
     assert md_a == md_b
 
 
-def test_edges_serialized_as_single_line_json():
+def test_edges_written_as_links_in_the_edges_section():
     metadata = {"edges": [{"target_id": "t1", "edge_type": "related"}, {"target_id": "t2", "edge_type": "fixes"}]}
     md = serialize("domain_foo", "domain", "body", metadata)
 
-    frontmatter = md.split("\n---\n\n", 1)[0]
-    edges_lines = [line for line in frontmatter.splitlines() if line.startswith("edges:")]
-    assert len(edges_lines) == 1
+    assert "edges:" not in md.split("\n---\n\n", 1)[0]
+    assert md.endswith("body\n\n## Edges\n\n- related: [t1](t1.md)\n- fixes: [t2](t2.md)\n")
 
     parsed = parse(md)
     assert parsed.edges == [
@@ -159,7 +167,7 @@ def test_serialize_omits_absent_optional_fields():
     md = serialize("domain_foo", "domain", "body", metadata={})
 
     frontmatter = md.split("\n---\n\n", 1)[0]
-    assert frontmatter == "id: domain_foo\ntype: domain\ntopic: general"
+    assert frontmatter == "type: domain\ntopic: general"
 
 
 def test_parse_missing_separator_raises():
@@ -169,7 +177,9 @@ def test_parse_missing_separator_raises():
 
 def test_parse_missing_required_fields_raises():
     with pytest.raises(ValueError):
-        parse("type: domain\n---\n\nbody text")
+        adr_parse("type: domain\n---\n\nbody text")  # no id and no file name
+    with pytest.raises(ValueError):
+        parse("id: domain_foo\n---\n\nbody text")
 
 
 def test_parse_malformed_frontmatter_line_raises():
@@ -213,7 +223,7 @@ def test_frontmatter_order_puts_area_after_type():
         {"area": "hooks", "created_at": 1.0, "superseded_by": "domain_y", "valid_until": 2.0, "edges": [{"target_id": "t", "edge_type": "confirms"}]},
     )
     keys = [line.split(":")[0] for line in md.split("\n---\n")[0].splitlines()]
-    assert keys == ["id", "type", "topic", "created", "superseded_by", "valid_until", "edges"]
+    assert keys == ["type", "topic", "created", "valid_until"]
     assert parse(md).area == "hooks"
 
 
@@ -246,4 +256,4 @@ def test_parse_reads_new_and_legacy_topic_key_and_serialize_writes_topic():
     assert new.area == legacy.area == "hooks" and not legacy.extra
     assert parse("id: a\ntype: learning\ntopic: x\narea: y\n---\n\nb").area == "x"
     md = serialize("a", "learning", "body", {"area": legacy.area})
-    assert md.startswith("id: a\ntype: learning\ntopic: hooks\n---") and "area:" not in md
+    assert md.startswith("type: learning\ntopic: hooks\n---") and "area:" not in md

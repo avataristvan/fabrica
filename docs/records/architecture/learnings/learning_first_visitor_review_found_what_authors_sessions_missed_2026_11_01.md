@@ -1,4 +1,3 @@
-id: learning_first_visitor_review_found_what_authors_sessions_missed_2026_11_01
 type: learning
 topic: architecture
 perspective: agent

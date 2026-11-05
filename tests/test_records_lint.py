@@ -23,7 +23,8 @@ def _write(area, rel, text):
 
 
 def _record(entry_id="learning_a", entry_type="learning", topic="general", extra="", body="Observed: x\n"):
-    return f"id: {entry_id}\ntype: {entry_type}\ntopic: {topic}\ncreated: 1.0\n{extra}---\n\n{body}"
+    """A record in the current format: the id is the file name, so `entry_id` is not written."""
+    return f"type: {entry_type}\ntopic: {topic}\ncreated: 1.0\n{extra}---\n\n{body}"
 
 
 def _codes(area):
@@ -61,12 +62,15 @@ def test_missing_required_fields_and_fixability(tmp_path):
     by_file = {(f.file.name, f.message): f.fixable for f in records_lint.lint(area) if f.code == "missing-field"}
     assert by_file[("learning_b.md", "required field 'topic' is missing")] is True
     assert by_file[("learning_b.md", "required field 'created' is missing")] is True
-    assert by_file[("learning_c.md", "required field 'id' is missing")] is False
+    assert not any(name == "learning_c.md" for name, _ in by_file)  # no `id:` needed: the file name is the name
+    _write(area, "general/learnings/learning_d.md", "topic: general\ncreated: 1.0\n---\n\nObserved: x\n")
+    assert ("required field 'type' is missing" in
+            {f.message for f in records_lint.lint(area) if f.code == "missing-field" and f.file.name == "learning_d.md"})
 
 
 def test_id_stem_colon_and_control_characters(tmp_path):
     area = _clean_area(tmp_path)
-    _write(area, "general/learnings/learning_b.md", _record("learning_other"))
+    _write(area, "general/learnings/learning_b.md", "id: learning_other\n" + _record())  # older format: an id that differs
     _write(area, "general/learnings/learning_c:d.md", _record("learning_c:d"))
     _write(area, "general/learnings/learning_e\nf.md", _record("learning_e"))
     codes = _codes(area)
@@ -143,10 +147,11 @@ def test_fix_repoints_edges_whose_id_lives_in_exactly_one_area(tmp_path):
     path = _write(area, "general/learnings/learning_b.md", _record("learning_b", extra=f"edges: {json.dumps(edges)}\n", body="Body\n"))
     main(["lint", "--fix", "--area", str(area.root)])
     text = path.read_text()
-    assert [e["target_id"] for e in json.loads(text.split("edges: ", 1)[1].split("\n", 1)[0])] == [
+    stored = records_lint._read(area.records_dir, path).all_edges()
+    assert [e["target_id"] for e in stored] == [
         "../moved/deeper:learning_m", "../moved/deeper:learning_m", "learning_a", "../x:learning_twice", "learning_nowhere"]
-    assert [e["edge_type"] for e in json.loads(text.split("edges: ", 1)[1].split("\n", 1)[0])] == [e["edge_type"] for e in edges]
-    assert text.endswith("---\n\nBody\n")
+    assert [e["edge_type"] for e in stored] == [e["edge_type"] for e in edges]
+    assert "edges:" not in text and "---\n\nBody\n\n## Edges\n\n" in text
     assert sorted(f.message for f in records_lint.lint(area) if f.code.startswith("edge")) == [
         "edge target '../x:learning_twice' points at no area", "edge target 'learning_nowhere' does not exist in this area"]
 
@@ -196,7 +201,7 @@ def test_fix_normalises_shape_and_preserves_everything(tmp_path):
     fields = dict(line.partition(": ")[::2] for line in fixed.split("\n---\n\n")[0].splitlines())
     assert fields["learning"] == "yes" and fields["note"] == "keep me"
     assert fields["topic"] == "general" and float(fields["created"]) > 0
-    assert list(fields)[:3] == ["id", "type", "topic"]
+    assert list(fields)[:2] == ["type", "topic"] and "id" not in fields
     assert list(fields)[-2:] == ["learning", "note"]
 
 
@@ -301,9 +306,10 @@ def test_legacy_area_key_is_a_fixable_finding_and_fix_changes_only_the_key(tmp_p
     area = _clean_area(tmp_path)
     path = _write(area, "general/learnings/learning_b.md", LEGACY)
     findings = [f for f in records_lint.lint(area) if f.file == path]
-    assert [(f.code, f.fixable) for f in findings] == [("legacy-topic-key", True)]
+    assert sorted((f.code, f.fixable) for f in findings) == [("legacy-refs", True), ("legacy-topic-key", True)]
     main(["lint", "--fix", "--area", str(area.root)])
-    assert path.read_bytes() == LEGACY.replace("area: general", "topic: general").encode()
+    expected = LEGACY.replace("area: general", "topic: general").replace("id: learning_b\n", "").replace("edges: []\n", "")
+    assert path.read_bytes() == expected.encode()
     assert records_lint.lint(area) == []
 
 
@@ -312,7 +318,7 @@ def test_legacy_key_with_equal_topic_drops_the_old_line(tmp_path):
     text = "id: learning_b\ntype: learning\ntopic: general\narea: general\ncreated: 1.0\n---\n\nObserved: x\n"
     path = _write(area, "general/learnings/learning_b.md", text)
     main(["lint", "--fix", "--area", str(area.root)])
-    assert path.read_text() == text.replace("area: general\n", "")
+    assert path.read_text() == text.replace("area: general\n", "").replace("id: learning_b\n", "")
 
 
 def test_conflicting_topic_and_area_is_a_finding_that_fix_refuses(tmp_path):

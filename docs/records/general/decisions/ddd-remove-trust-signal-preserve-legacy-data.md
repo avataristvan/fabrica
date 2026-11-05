@@ -1,4 +1,3 @@
-id: ddd-remove-trust-signal-preserve-legacy-data
 type: pattern
 topic: general
 perspective: the-coder

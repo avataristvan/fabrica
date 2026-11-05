@@ -1,9 +1,7 @@
-id: learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23
 type: learning
 topic: records
 perspective: agent
 created: 1792747177.637129
-edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31", "edge_type": "related"}, {"target_id": "learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31", "edge_type": "related"}, {"target_id": "learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31", "edge_type": "related"}, {"target_id": "domain_mem_move_area_renames_with_references_rename_first_2026_11_01", "edge_type": "related"}]
 cue: I am moving or renaming an area folder (or the repo) and assume mem and its records keep working afterwards.
 ---
 
@@ -13,4 +11,12 @@ Evidence: mem doctor 2026-10-23 (edge-dangling-xarea 6, edge-unresolved 5); __ed
 
 pseudonymised for publication, 2026-10-31
 
-Addendum 2026-11-01: `mem move-area` now rewrites the edges and text references; the editable install is only reported, not touched (domain_mem_move_area_renames_with_references_rename_first_2026_11_01).
+Addendum 2026-11-01: `mem move-area` now rewrites the edges and text references; the editable install is only reported, not touched ([domain_mem_move_area_renames_with_references_rename_first_2026_11_01](../decisions/domain_mem_move_area_renames_with_references_rename_first_2026_11_01.md)).
+
+## Edges
+
+- related: [domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15](../../architecture/decisions/domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15.md)
+- related: [domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31](../../architecture/decisions/domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31.md)
+- related: [learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31](learning_lint_and_doctor_check_edge_fields_only_body_ids_go_stale_2026_10_31.md)
+- related: [learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31](../../workflow/learnings/learning_folder_rename_orphans_linked_worktrees_run_git_worktree_repair_2026_10_31.md)
+- related: [domain_mem_move_area_renames_with_references_rename_first_2026_11_01](../decisions/domain_mem_move_area_renames_with_references_rename_first_2026_11_01.md)

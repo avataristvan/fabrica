@@ -7,8 +7,7 @@ from pathlib import Path
 from ai_mem.hooks import lint_after_write
 from ai_mem.infrastructure.adr_index import regenerate_index
 
-GOOD = """id: learning_good
-type: learning
+GOOD = """type: learning
 topic: general
 created: 1791630404.0
 ---

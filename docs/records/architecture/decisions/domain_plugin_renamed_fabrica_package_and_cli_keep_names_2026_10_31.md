@@ -1,12 +1,17 @@
-id: domain_plugin_renamed_fabrica_package_and_cli_keep_names_2026_10_31
 type: domain
 topic: architecture
 perspective: user
 created: 1793485172.510591
-edges: [{"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}, {"target_id": "domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12", "edge_type": "related"}, {"target_id": "domain_hook_in_line_canonical_form_is_namespaced_2026_10_12", "edge_type": "related"}, {"target_id": "learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23", "edge_type": "related"}]
 cue: You wonder why the plugin is called fabrica while the code says ai_mem and mem, or want to rename the Python package or CLI.
 ---
 
 Decision: The plugin and marketplace are renamed to fabrica (agents fabrica:<agent>, skills /fabrica:<skill>, install fabrica@fabrica). The Python package ai_mem and the CLI mem keep their names.
 Why: Fabrica is the public name of the repo and the method; package and CLI are internals, and renaming them would only churn imports, the editable install and every `mem` call without a visible gain.
-Scope: the plugin identity. "ai-mem" stays as the name of the memory part in prose. Evidence: commit e2872a1 (pushed 2026-10-31). The rename is complete (2026-10-31): the folder is fabrica, mem doctor --root <workspace> shows no rename finding, fabrica@fabrica runs from ~/.local/share/fabrica-plugin, the editable install points at ai-architecture/fabrica, and a fabrica:librarian smoke test answered correctly. This replaces the plugin part of domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15, and makes `fabrica:anchor-lint` the default retro role and `fabrica:` the canonical hook-in prefix.
+Scope: the plugin identity. "ai-mem" stays as the name of the memory part in prose. Evidence: commit e2872a1 (pushed 2026-10-31). The rename is complete (2026-10-31): the folder is fabrica, mem doctor --root <workspace> shows no rename finding, fabrica@fabrica runs from ~/.local/share/fabrica-plugin, the editable install points at ai-architecture/fabrica, and a fabrica:librarian smoke test answered correctly. This replaces the plugin part of [domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15](domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15.md), and makes `fabrica:anchor-lint` the default retro role and `fabrica:` the canonical hook-in prefix.
+
+## Edges
+
+- related: [domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15](domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15.md)
+- related: [domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12](../../plugin/decisions/domain_retro_default_roles_only_plugin_shipped_agents_2026_10_12.md)
+- related: [domain_hook_in_line_canonical_form_is_namespaced_2026_10_12](../../plugin/decisions/domain_hook_in_line_canonical_form_is_namespaced_2026_10_12.md)
+- related: [learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23](../../records/learnings/learning_area_move_invalidates_relative_edges_and_editable_install_2026_10_23.md)

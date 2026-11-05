@@ -69,8 +69,10 @@ Write the handoff yourself, as plain files in the area — this is state, overwr
 
 - `docs/records/FOCUS.md` — the work in progress: the goal, what is being worked on now and what comes next (a few lines, plain text, no frontmatter), ending with a pointer to `BACKLOG.md`. Always update it. It is a focus, not a diary: no list of what was done, no reasons.
 - `docs/records/BACKLOG.md` — what is not in focus: one `- ` line per item, unnumbered; the order of the lines is the order of work, the next candidate on top, so a person reorders by moving a line. Plain text, no frontmatter. No sections and no "won't do" list: a dropped item leaves the backlog, and its reason, if worth keeping, is a decision record.
-- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points** (what is unresolved; the next steps stand in `FOCUS.md`, the handoff points there), **Start with** (the skill or command the next session loads first, with the file it takes, e.g. your planning or coding skill on a plan path). No history of how you got there — the reasons go into record candidates, not into the handoff.
-- Point, don't copy: what already stands in a spec, plan, record, commit or source is named by its path or id, not restated in the focus or the handoff.
+- `docs/handoff-<yyyy-mm-dd>.md` — only when the next session (or another agent) needs more than the focus: a carry-only-conclusions note with **Charter** (scope, terminology, mode), **Conclusions** (what holds now), **Open points** (what is unresolved; the next steps stand in `FOCUS.md`, the handoff points there), **Start with** (the skill or command the next session loads first, with the file it takes, e.g. your planning or coding skill on a plan path). No history of how you got there — the reasons go into record candidates, not into the handoff. No measurements or experiment logs either: they get a file of their own under `docs/`, which becomes a source when the work is done, and the handoff links to it.
+- The previous handoff, once this one replaces it or its work is done, is closed and deleted: its open points are in `FOCUS.md` or `BACKLOG.md`, its conclusions are record candidates, and evidence that lies in it (measurements, experiment results) is first frozen as a source (`docs/sources/`, format in `docs/reference/record-format.md`). A handoff is never evidence: a record cites the source, not the handoff.
+- Point, don't copy: what already stands in a spec, plan, record, commit or source is named by a relative link, not restated in the focus or the handoff. The pointing goes one way: the handoff links to records and sources, never the other way round.
+- No ids and no numbers on `FOCUS.md` and `BACKLOG.md` lines: the words of a line are enough to find it, and its history is `git log -S '<words of the line>'`.
 - The glossary (`docs/reference/glossary.md` in the area, when it has one): when this session coined a term or changed what one means, edit its line now. It is state like the focus; the reason for the change is a record candidate.
 
 ---
@@ -81,7 +83,7 @@ Collect the candidates as plain text, one per item. Sources:
 - `learned:` and `record_candidates:` lines from `[retro]` blocks (Step 1)
 - your observations (Step 2) and the user's answers (Step 3)
 - a dropped item whose "no" is worth knowing later (Step 4): what is not done, and why
-- records that made a difference this session: which ones (FOCUS.md, a record file, a librarian answer) changed a decision, prevented a mistake, or turned out wrong or outdated — say which id, and whether it held again or misled
+- records that made a difference this session: which ones (FOCUS.md, a record file, a librarian answer) changed a decision, prevented a mistake, or turned out wrong or outdated — say which record (its path), and whether it held again or misled
 
 Each candidate is a short paragraph:
 
@@ -89,8 +91,8 @@ Each candidate is a short paragraph:
 - <the claim: what was decided, observed, or is to be done; with its reason>
   who: <user | agent | the-coder | reviewer | ...>   (whose knowledge or experience it is)
   situation: <when someone would need this without knowing to ask>
-  evidence: <test, commit sha, file path, record ids>   (if any)
-  touches: <record ids it confirms, contradicts or replaces>   (if known)
+  evidence: <test, commit sha, file path, record paths>   (if any)
+  touches: <record paths it confirms, contradicts or replaces>   (if known)
 ```
 
 Do not decide the record type, id, area, edges or supersede yourself — that is the archivist's judgment. Leave out what is state (it is in the handoff, `FOCUS.md` or `BACKLOG.md`; next steps included) and what carries nothing beyond this session.

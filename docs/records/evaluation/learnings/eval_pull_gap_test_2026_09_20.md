@@ -1,9 +1,7 @@
-id: eval_pull_gap_test_2026_09_20
 type: learning
 topic: evaluation
 perspective: agent
 created: 1789925355.433306
-edges: [{"target_id": "arch_decision_push_vs_pull_2026_07_31", "edge_type": "related"}, {"target_id": "pattern_gap_test_evaluation", "edge_type": "related"}, {"target_id": "eval_seniority_available_not_used_confirms_pull_gap_2026_10_18", "edge_type": "related"}, {"target_id": "eval_seniority_main_run_result_2026_10_18", "edge_type": "related"}, {"target_id": "pattern_status_markers_rot_in_memory", "edge_type": "related"}, {"target_id": "learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23", "edge_type": "related"}]
 cue: I am about to claim that continuity or stored knowledge automatically saves tokens or gets used
 ---
 
@@ -13,14 +11,14 @@ Evidence: scripts/eval_pull/ (cases.json, replay.py); 7 cases + 2 controls, one 
 
 # Pull gap test: result (2026-09-20)
 
-Evidence for the open condition from arch_decision_push_vs_pull_2026_07_31 (do not delete push until it is proven that pull covers the gap of non-derivable knowledge). Method: pattern_gap_test_evaluation. Test set, answer key and replay script: scripts/eval_pull/ (cases.json, replay.py, README.md).
+Evidence for the open condition from [arch_decision_push_vs_pull_2026_07_31](../../architecture/decisions/arch_decision_push_vs_pull_2026_07_31.md) (do not delete push until it is proven that pull covers the gap of non-derivable knowledge). Method: [pattern_gap_test_evaluation](../decisions/pattern_gap_test_evaluation.md). Test set, answer key and replay script: scripts/eval_pull/ (cases.json, replay.py, README.md).
 
 ## Setup
 7 gap cases + 2 controls (the answer exists nowhere). Fresh subagents, question only, no hint about memory. Two arms: mem (all tools) and nomem (mem_* forbidden). Controls only in mem. Tool log verified from the transcripts, not just self-reports.
 
 ## Result, mem arm
 - ✓ g1 edit-push trigger, g3 dream history, g4 UserPromptSubmit trigger: all three directly via mem_get using an entry ID that is in CLAUDE.md (Critical Invariants). No mem_query.
-- ✗ g2 origin, g5 review before commit, g6 status notes: not a single mem_* call. No CLAUDE.md pointer present. g2 honestly reported 'not found', g5 never mentioned /code-review, g6 recommended explicit status fields (the first instinct that pattern_status_markers_rot_in_memory refutes).
+- ✗ g2 origin, g5 review before commit, g6 status notes: not a single mem_* call. No CLAUDE.md pointer present. g2 honestly reported 'not found', g5 never mentioned /code-review, g6 recommended explicit status fields (the first instinct that [pattern_status_markers_rot_in_memory](../../workflow/decisions/pattern_status_markers_rot_in_memory.md) refutes).
 - Controls c1 (a phone's latency), c2 (PyPI): mem_query was called only after an unsuccessful repo search; correctly 'not documented'. Top scores in global < 0.17.
 - nomem arm: gap confirmed for g1, g3, g4, g5 (generic or wrong answers with the predicted first instinct: cost story, outdated model tag), mostly marked as uncertain.
 
@@ -45,3 +43,12 @@ Evidence for the open condition from arch_decision_push_vs_pull_2026_07_31 (do n
 ## Follow-up question
 Which mechanism triggers retrieval when no ID is in context and the question has a plausible substitute answer from code/docs?
 pseudonymised for publication, 2026-10-11
+
+## Edges
+
+- related: [arch_decision_push_vs_pull_2026_07_31](../../architecture/decisions/arch_decision_push_vs_pull_2026_07_31.md)
+- related: [pattern_gap_test_evaluation](../decisions/pattern_gap_test_evaluation.md)
+- related: [eval_seniority_available_not_used_confirms_pull_gap_2026_10_18](eval_seniority_available_not_used_confirms_pull_gap_2026_10_18.md)
+- related: [eval_seniority_main_run_result_2026_10_18](eval_seniority_main_run_result_2026_10_18.md)
+- related: [pattern_status_markers_rot_in_memory](../../workflow/decisions/pattern_status_markers_rot_in_memory.md)
+- related: [learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23](learning_recall_moment_missed_librarian_asked_only_at_start_2026_10_23.md)

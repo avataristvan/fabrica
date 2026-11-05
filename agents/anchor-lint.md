@@ -19,17 +19,18 @@ write nothing.
 
 - chunk name and worktree path (you have no Bash: the caller runs `git diff` and passes it)
 - the diff as text
-- `anchors:` verbatim from the chunk entry (record ids, each with one line of why)
+- `anchors:` verbatim from the chunk entry (records, each with one line of why; older plans name them by bare id)
 - the area path (you get no SessionStart output, so the prompt is your only source for it)
 - the caller's librarian answer
 
 ## How
 
-1. **One verdict per anchor.** Read each anchored record yourself (`Glob` `<area>/docs/records/**/<id>.md`;
-   `<relative-area-path>:<id>` and `root:<id>` are cross-area ids, see `docs/reference/record-format.md`).
+1. **One verdict per anchor.** Read each anchored record yourself (an anchor given as a path or link: `Read` it;
+   one given as a bare name: `Glob` `<area>/docs/records/**/<name>.md`; `<relative-area-path>:<name>` points into
+   another area, see `docs/reference/record-format.md`).
    Then answer exactly one of:
    - `held` - the diff respects the record;
-   - `violated` - with a finding that cites the id and the diff line;
+   - `violated` - with a finding that cites the record's path and the diff line;
    - `not applicable` - with the reason.
    A record that cannot be found is `not applicable: record not found`, not a failure.
 2. **Records outside the list.** Use the librarian answer you were passed. Also ask the
@@ -48,11 +49,11 @@ Verdicts first, then findings, then:
 
 ```
 [retro]
-anchor_verdicts: <id: held | violated: <finding> | not applicable: <reason>, one per anchor>
+anchor_verdicts: <record path: held | violated: <finding> | not applicable: <reason>, one per anchor>
 learned: <...or "nothing">
 blocked: <...or "nothing">
 next: <...or "nothing">
-records_consulted: <ids that carried a verdict or finding, or "none">
+records_consulted: <record paths relative to the area that carried a verdict or finding, or "none">
 record_candidates: <plain text: what should become a record, or which record is touched or refuted, or "none">
 ```
 

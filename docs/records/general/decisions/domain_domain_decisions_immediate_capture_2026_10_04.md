@@ -1,4 +1,3 @@
-id: domain_domain_decisions_immediate_capture_2026_10_04
 type: domain
 topic: general
 perspective: user

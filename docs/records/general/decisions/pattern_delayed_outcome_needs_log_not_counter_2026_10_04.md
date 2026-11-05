@@ -1,4 +1,3 @@
-id: pattern_delayed_outcome_needs_log_not_counter_2026_10_04
 type: pattern
 topic: general
 perspective: agent

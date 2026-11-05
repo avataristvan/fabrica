@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal, Protocol
@@ -120,10 +121,14 @@ MAX_CUE_CHARS = 140
 _MAX_TITLE_LEN = 80
 
 
+_MARKDOWN_LINK = re.compile(r"\[([^\]\n]*)\]\([^)\s]*\)")
+
+
 def title_of(text: str, max_len: int = _MAX_TITLE_LEN) -> str:
-    """First non-empty line of an entry's text, without a Markdown heading marker, truncated: the title in listings, INDEX.md and queries."""
+    """First non-empty line of an entry's text, without a Markdown heading marker and with links reduced
+    to their text, truncated: the title in listings, INDEX.md and queries."""
     for line in text.splitlines():
-        stripped = line.strip().lstrip("#").strip()
+        stripped = _MARKDOWN_LINK.sub(r"\1", line.strip().lstrip("#").strip())
         if stripped:
             return stripped[:max_len]
     return ""

@@ -129,7 +129,7 @@ def test_edges_supersede_and_cue_through_the_use_cases(repo, root):
     repo.upsert(COLLECTION, [boosted])
 
     assert repo.get_edges(COLLECTION, "d_new") == [MemoryEdge(target_id="d_old", edge_type="supersedes")]
-    old = adr_markdown.parse((_records(root) / "general" / "decisions" / "d_old.md").read_text())
+    old = adr_markdown.parse((_records(root) / "general" / "decisions" / "d_old.md").read_text(), entry_id="d_old")
     assert old.superseded_by == "d_new"
     new = repo.get_by_ids(COLLECTION, ["d_new"])[0]
     assert new.metadata["cue"] == "when choosing" and json.loads(new.metadata["edges"])[0]["target_id"] == "d_old"
@@ -186,7 +186,7 @@ def test_perspective_and_unknown_keys_survive_a_rewrite_through_the_repository(r
     assert entry.metadata["perspective"] == "user"
     assert entry.metadata["extra_frontmatter"] == {"status": "accepted", "owner": "team-a"}
     repo.upsert(COLLECTION, [entry])
-    assert path.read_text() == original
+    assert path.read_text() == original.replace("id: domain_x\n", "")  # the file name is the id
 
     repo.upsert(COLLECTION, [_entry("domain_y", "Decision: Y", type="domain", area="arch")])
     AddEdgeUseCase(repo).execute(COLLECTION, "domain_x", "domain_y", "related")

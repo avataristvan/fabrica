@@ -1,4 +1,3 @@
-id: learning_daemon_latency_and_record_access_race_2026_08_23
 type: learning
 topic: architecture
 created: 1790678545.949146

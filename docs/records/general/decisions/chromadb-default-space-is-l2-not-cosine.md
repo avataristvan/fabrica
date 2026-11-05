@@ -1,4 +1,3 @@
-id: chromadb-default-space-is-l2-not-cosine
 type: anti-pattern
 topic: general
 perspective: the-coder

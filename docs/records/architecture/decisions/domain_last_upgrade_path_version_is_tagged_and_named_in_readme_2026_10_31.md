@@ -1,13 +1,16 @@
-id: domain_last_upgrade_path_version_is_tagged_and_named_in_readme_2026_10_31
 type: domain
 topic: architecture
 perspective: user
 created: 1793470086.23224
-edges: [{"target_id": "domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12", "edge_type": "related"}, {"target_id": "domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15", "edge_type": "related"}]
 cue: I am about to remove migration, upgrade or cleanup code while other installations that auto-update from main may still lag behind.
 ---
 
 Decision: Before an upgrade, migration or cleanup path is removed from main, the last version that still carries it gets a tag, and the README names that tag. Only after that may main lose the path.
 Why: An installation that auto-updates from main and has not migrated would otherwise pull a version with neither the migration nor the guard; the tag is its way forward. This replaces the reason "keep the migration code until it is known to have migrated" with a mechanism that does not depend on knowing the state of every installation.
-Scope: Removing migration, upgrade or cleanup code while other installations may lag behind. Done for the legacy path: tag v1-last-upgrade-path (ed7d282), README section "Upgrading from the earlier versions". Done in 3c64e27 (pushed, 2026-10-31): install.py, uninstall.py, UPGRADING.md, the records_v1 migration, the upgrade guard and scripts/upgrade_acceptance are removed from main; v1-last-upgrade-path is the way forward for unmigrated installations, v0-last-mcp the MCP rollback. The user pushed before the external installation was verified (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15, still open), because the tag is its path. Affected, now in effect: the clause "the migration code stays until it is known to have migrated" in domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12, and the "installed users" reason for keeping the plugin name in domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15 (the rename of folder and plugin to fabrica is planned, see todo_rename_folder_and_plugin_to_fabrica_2026_10_31; the area-path reason of that record still holds).
+Scope: Removing migration, upgrade or cleanup code while other installations may lag behind. Done for the legacy path: tag v1-last-upgrade-path (ed7d282), README section "Upgrading from the earlier versions". Done in 3c64e27 (pushed, 2026-10-31): install.py, uninstall.py, UPGRADING.md, the records_v1 migration, the upgrade guard and scripts/upgrade_acceptance are removed from main; v1-last-upgrade-path is the way forward for unmigrated installations, v0-last-mcp the MCP rollback. The user pushed before the external installation was verified (todo_verify_external_installation_migration_and_plugin_switch_2026_10_15, still open), because the tag is its path. Affected, now in effect: the clause "the migration code stays until it is known to have migrated" in [domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12](domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12.md), and the "installed users" reason for keeping the plugin name in [domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15](domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15.md) (the rename of folder and plugin to fabrica is planned, see todo_rename_folder_and_plugin_to_fabrica_2026_10_31; the area-path reason of that record still holds).
 Evidence: tag v1-last-upgrade-path; README.md "Upgrading from the earlier versions"; commit 3c64e27.
+
+## Edges
+
+- related: [domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12](domain_cutover_removed_mcp_server_and_chroma_stack_2026_10_12.md)
+- related: [domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15](domain_repo_renamed_fabrica_folder_and_plugin_stay_2026_10_15.md)

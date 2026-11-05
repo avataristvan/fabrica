@@ -1,9 +1,7 @@
-id: arch_decision_sessionstart_pull_based_2026_09_16
 type: domain
 topic: architecture
 perspective: agent
 created: 1791758069.215956
-edges: [{"target_id": "arch_decision_pretool_push_removed_2026_09_12", "edge_type": "related"}, {"target_id": "arch_decision_userprompt_push_removed_2026_09_13", "edge_type": "related"}, {"target_id": "design_three_tier_pull_the_coder_2026_09_12", "edge_type": "contradicts"}]
 cue: Someone proposes that SessionStart deliver the old push scope again (current_focus, [available], git commits)
 ---
 
@@ -15,8 +13,14 @@ Further changes in this commit: agents.yaml's `inject_agents` no longer automati
 
 Addendum: The [experience index] block (cue-based 'situation -> entry' lines from mem_boost during /reflect) was added to SessionStart only later (commit c8dbf6a) -- independent of session_start_verbose, gated via its own session_start_index setting (default true).
 
-See also: arch_decision_pretool_push_removed_2026_09_12, arch_decision_userprompt_push_removed_2026_09_13, docs/reference/hooks.md (holds the former reference doc hook_system, merged into it).
+See also: [arch_decision_pretool_push_removed_2026_09_12](arch_decision_pretool_push_removed_2026_09_12.md), [arch_decision_userprompt_push_removed_2026_09_13](arch_decision_userprompt_push_removed_2026_09_13.md), docs/reference/hooks.md (holds the former reference doc hook_system, merged into it).
 
-Addendum 2026-10-04: The core still holds (pull by default, routing line). Overtaken: the session_start_index setting (removed with the experience index, domain_librarian_replaces_experience_index_2026_10_04); 'only SessionStart + PostToolUse registered' (PostToolUse retired, domain_file_backend_replaces_chroma_2026_10_04); session_start_verbose remains an opt-in that reads little beyond FOCUS.md on the file backend.
+Addendum 2026-10-04: The core still holds (pull by default, routing line). Overtaken: the session_start_index setting (removed with the experience index, [domain_librarian_replaces_experience_index_2026_10_04](domain_librarian_replaces_experience_index_2026_10_04.md)); 'only SessionStart + PostToolUse registered' (PostToolUse retired, [domain_file_backend_replaces_chroma_2026_10_04](domain_file_backend_replaces_chroma_2026_10_04.md)); session_start_verbose remains an opt-in that reads little beyond FOCUS.md on the file backend.
 
 Evidence: docs/sources/automation.md (push-based automation retired in favour of pull; MEMORY.md auto-demotion has no trigger); docs/sources/automation_pipeline.md (index of the automation subsystems: two active, two retired, superseded by the pull decisions).
+
+## Edges
+
+- related: [arch_decision_pretool_push_removed_2026_09_12](arch_decision_pretool_push_removed_2026_09_12.md)
+- related: [arch_decision_userprompt_push_removed_2026_09_13](arch_decision_userprompt_push_removed_2026_09_13.md)
+- contradicts: [design_three_tier_pull_the_coder_2026_09_12](../../workflow/decisions/design_three_tier_pull_the_coder_2026_09_12.md)

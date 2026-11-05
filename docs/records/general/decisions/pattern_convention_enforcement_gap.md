@@ -1,4 +1,3 @@
-id: pattern_convention_enforcement_gap
 type: pattern
 topic: general
 perspective: agent

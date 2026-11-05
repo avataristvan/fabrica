@@ -33,12 +33,13 @@ def test_regenerate_index_lists_entries_sorted_by_id_with_status(tmp_path):
     content = (adr_dir / "INDEX.md").read_text()
     lines = content.splitlines()
     assert lines[0] == "# Decision Records Index"
-    header_idx = lines.index("| id | topic | type | title | status |")
+    header_idx = lines.index("| record | topic | type | title | status |")
     rows = lines[header_idx + 2:]
     assert rows == [
-        "| domain_alpha | general | domain | Decision: first alphabetically. | active |",
-        "| domain_old | general | domain | Decision: outdated. | superseded_by: domain_alpha |",
-        "| domain_zebra | general | domain | Decision: last alphabetically. | active |",
+        "| [domain_alpha](general/decisions/domain_alpha.md) | general | domain | Decision: first alphabetically. | active |",
+        "| [domain_old](general/decisions/domain_old.md) | general | domain | Decision: outdated. "
+        "| superseded_by: [domain_alpha](general/decisions/domain_alpha.md) |",
+        "| [domain_zebra](general/decisions/domain_zebra.md) | general | domain | Decision: last alphabetically. | active |",
     ]
 
 
@@ -65,7 +66,7 @@ def test_regenerate_index_excludes_itself_from_the_table(tmp_path):
     regenerate_index(adr_dir)
 
     content = (adr_dir / "INDEX.md").read_text()
-    assert content.count("domain_good") == 1
+    assert content.count("[domain_good]") == 1
 
 
 def test_regenerate_index_is_byte_identical_across_repeated_runs(tmp_path):
@@ -103,9 +104,9 @@ def test_regenerate_index_covers_areas_and_kinds_recursively(tmp_path):
 
     rows = (adr_dir / "INDEX.md").read_text().splitlines()[4:]
     assert rows == [
-        "| domain_a | hooks | domain | Decision: a. | active |",
-        "| learning_b | search | learning | Observed: b. | active |",
-        "| pattern_c | general | pattern | Decision: c. | active |",
+        "| [domain_a](hooks/decisions/domain_a.md) | hooks | domain | Decision: a. | active |",
+        "| [learning_b](search/learnings/learning_b.md) | search | learning | Observed: b. | active |",
+        "| [pattern_c](general/decisions/pattern_c.md) | general | pattern | Decision: c. | active |",
     ]
 
 
@@ -119,7 +120,7 @@ def test_regenerate_index_skips_only_top_level_index_and_readme(tmp_path):
     regenerate_index(adr_dir)
 
     content = (adr_dir / "INDEX.md").read_text()
-    assert "| README | general | domain | Decision: nested. |" in content
+    assert "| [README](general/decisions/README.md) | general | domain | Decision: nested. |" in content
     assert "handwritten" not in content
 
 

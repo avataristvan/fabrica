@@ -1,13 +1,19 @@
-id: domain_clear_dead_weight_keep_reasons_2026_10_10
 type: domain
 topic: architecture
 perspective: user
 created: 1791648559.642878
-edges: [{"target_id": "domain_superseded_flag_not_hide_2026_09_20", "edge_type": "related"}, {"target_id": "domain_archivist_who_what_how_2026_10_10", "edge_type": "related"}, {"target_id": "pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12", "edge_type": "related"}, {"target_id": "pattern_duplicate_ids_delete_covered_copy_2026_10_12", "edge_type": "related"}, {"target_id": "domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13", "edge_type": "related"}]
 ---
 
 Decision: Records should become a good blueprint, so they may be edited and cleaned up deliberately (Navigator, 2026-10-10). One question draws the line: does removing it lose a reason, or a step on the path to a decision? If yes, supersede: the record stays readable and is flagged. If no, it is dead weight and may be edited in place, merged or deleted. Examples of dead weight: stale pointers (file names, paths, counts), outdated status strings, duplicates, facts about code that no longer exists and on which no decision rests, poor wording. Edges give a checkable signal. An incoming derived_from means the record carries a reason. No incoming edges plus a vanished subject means it is probably dead weight. The doctor lists such candidates, the archivist decides, and consolidation's split and merge fall under the same rule. Precondition: cleanup is only safe where git stands behind the records. The record is the current blueprint, and git is the archive underneath. Every area that is cleaned must be versioned. As of 2026-10-10: the private records repository is a git repo. ai-mem's docs/records/ was taken out of .gitignore on 2026-10-10 and is versioned in the ai-mem repo; the Navigator reviews the user records before pushing. The ai-architecture area and the interview-notes project are not repos. Fabrica's records live in ai-mem's area and are versioned with it (decision of 2026-10-14, user); this replaces the earlier plan 'Fabrica will be versioned publicly as its own area/repo'. Open follow-up: todo_version_the_target_areas_2026_10_12 (in a private area).
-Why: Strict immutability turns records into a pile of corpses that hides the blueprint. Unrestricted editing loses the why. Separating reasons, which are superseded, from dead weight, which is cleaned up, keeps both. It refines domain_superseded_flag_not_hide_2026_09_20 (superseded entries are flagged, not hidden), which still applies to anything that carries a reason. Evidence stays immutable (domain_three_kinds_of_knowledge_age_differently_2026_10_10), except for the pseudonymisation exception for publication.
+Why: Strict immutability turns records into a pile of corpses that hides the blueprint. Unrestricted editing loses the why. Separating reasons, which are superseded, from dead weight, which is cleaned up, keeps both. It refines [domain_superseded_flag_not_hide_2026_09_20](domain_superseded_flag_not_hide_2026_09_20.md) (superseded entries are flagged, not hidden), which still applies to anything that carries a reason. Evidence stays immutable ([domain_three_kinds_of_knowledge_age_differently_2026_10_10](domain_three_kinds_of_knowledge_age_differently_2026_10_10.md)), except for the pseudonymisation exception for publication.
 Scope: archivist and consolidation rules, ai-mem's `mem doctor` (dead-weight candidates: no incoming edges and a missing subject), navigation reference, manifesto principle 'The record is tended' (draft: docs/sources/fabrica_manifesto_draft_2026_10_10.md, becoming a pattern in docs/fabrica/patterns/).
 
 pseudonymised for publication, 2026-10-11
+
+## Edges
+
+- related: [domain_superseded_flag_not_hide_2026_09_20](domain_superseded_flag_not_hide_2026_09_20.md)
+- related: [domain_archivist_who_what_how_2026_10_10](domain_archivist_who_what_how_2026_10_10.md)
+- related: [pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12](../../records/decisions/pattern_batch_referrer_rewrite_needs_versioned_areas_2026_10_12.md)
+- related: [pattern_duplicate_ids_delete_covered_copy_2026_10_12](../../records/decisions/pattern_duplicate_ids_delete_covered_copy_2026_10_12.md)
+- related: [domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13](../../records/decisions/domain_records_public_pseudonymised_internal_material_stays_local_2026_10_13.md)
