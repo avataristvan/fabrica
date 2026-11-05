@@ -1,6 +1,6 @@
 Fabrica 0.1.0: the method (docs/fabrica/) and the plugin fabrica@fabrica that implements it (memory part ai-mem: package ai_mem, command mem). The repository is in a presentable state: README with a runnable quick start, glossary, English-only agent texts, past handoffs published as sources.
 
-Now: bring the record format change (no ids; edges and mentions are relative links, `mem lint --fix` migrates) to another area, first galaxy-tab-a-2016 (388 records in the old format, local agents in .claude/agents/, cited handoffs to freeze as sources). Plan it with that session: who runs the migration, how its local agents and docs learn the new format, and when the plugin cache gets updated so the lint_after_write hook does not block old records there. What works there becomes the generic way for every area.
+Now: the documentation map and how a project gets there (plan: [plan_documentation_map](../plan_documentation_map.md)): every kind of content gets one place and lifecycle (experiments in docs/experiments/, raw data in a git-ignored data/), `mem doctor` and `/fabrica:setup` bring a project there, a triage skill dissolves handoffs. Pilot: galaxy-tab-a-2016, which then also gets the record format migration.
 
 Next:
 - README for the first impression: the problem first, then the practice, the plugin and the honest measurement report ([domain_public_face_experience_report_not_launch_2026_10_24](architecture/decisions/domain_public_face_experience_report_not_launch_2026_10_24.md)).
