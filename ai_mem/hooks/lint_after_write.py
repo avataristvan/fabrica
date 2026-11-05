@@ -1,8 +1,10 @@
-"""PostToolUse hook (Write|Edit|MultiEdit): lint the record file that was just written.
+"""PostToolUse hook (Write|Edit): lint the record file that was just written.
 
 Only a file under some area's `docs/records/` is checked, with `records_lint` over that one record plus
 INDEX.md, or over the format of BACKLOG.md when that is the file. Findings come back as a PostToolUse `block` reason (the tool already ran; the reason is shown
 next to its result); a clean file produces no output. Never `--fix`: the hook reports, the author repairs.
+When every finding is a migration finding (an older record format that `mem lint --fix` converts), the hook gives a
+hint instead of a block: a project whose plugin was updated keeps editing its old records until the migration runs.
 """
 from __future__ import annotations
 
@@ -13,6 +15,7 @@ from ai_mem.hooks import run
 
 _MAX_FINDINGS = 5
 _REASON_LIMIT = 800
+_MIGRATION_CODES = frozenset({"legacy-refs", "bare-id", "link-stale"})
 
 
 def _record_area(path: Path):
@@ -56,6 +59,10 @@ def handle(event: dict) -> dict | None:
     more = len(findings) - _MAX_FINDINGS
     if more > 0:
         lines.append(f"... and {more} more")
+    if all(f.code in _MIGRATION_CODES for f in findings):
+        hint = ("ai-mem lint: this area still has the older record format (" + "; ".join(lines)
+                + "). `mem lint --fix --area <area>` migrates it; editing on is fine.")
+        return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": hint[:_REASON_LIMIT]}}
     reason = "ai-mem lint (run `mem lint` for details): " + "; ".join(lines)
     return {"decision": "block", "reason": reason[:_REASON_LIMIT]}
 

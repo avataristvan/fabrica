@@ -119,3 +119,35 @@ def test_backlog_write_checks_its_format(tmp_path: Path) -> None:
     assert out["decision"] == "block" and "backlog-format" in out["reason"]
     backlog.write_text("Header.\n\n- first\n")
     assert lint_after_write.handle(_event(backlog)) is None
+
+
+LEGACY = """id: learning_old
+type: learning
+topic: general
+created: 1791630404.0
+---
+
+Observed: x
+Cause: y
+Evidence: z
+"""
+
+
+def test_old_format_only_gives_a_hint_not_a_block(tmp_path: Path) -> None:
+    area = _area(tmp_path)
+    old = area / "docs" / "records" / "general" / "learnings" / "learning_old.md"
+    old.write_text(LEGACY)
+    regenerate_index(area / "docs" / "records")
+    out = lint_after_write.handle(_event(old))
+    assert "decision" not in out
+    context = out["hookSpecificOutput"]["additionalContext"]
+    assert out["hookSpecificOutput"]["hookEventName"] == "PostToolUse"
+    assert "legacy-refs" in context and "mem lint --fix" in context
+
+
+def test_old_format_plus_a_real_finding_still_blocks(tmp_path: Path) -> None:
+    area = _area(tmp_path)
+    old = area / "docs" / "records" / "general" / "learnings" / "learning_old.md"
+    old.write_text(LEGACY.replace("type: learning\n", ""))
+    out = lint_after_write.handle(_event(old))
+    assert out["decision"] == "block" and "legacy-refs" in out["reason"]

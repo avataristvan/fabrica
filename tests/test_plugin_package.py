@@ -43,7 +43,7 @@ def test_hooks_json_runs_every_enforcing_module_through_the_runner() -> None:
     assert set(commands) == {"SessionStart", "SubagentStop", "PostToolUse", "Stop"}
     assert all(c.startswith('python3 "${CLAUDE_PLUGIN_ROOT}/hooks/run.py" ai_mem.') for c in commands.values())
     assert commands["SubagentStop"].endswith("ai_mem.hooks.retro_check")
-    assert hooks["PostToolUse"][0]["matcher"] == "Write|Edit|MultiEdit"
+    assert hooks["PostToolUse"][0]["matcher"] == "Write|Edit"
 
 
 def test_agents_and_skills_name_plugin_paths_and_namespaced_agents() -> None:

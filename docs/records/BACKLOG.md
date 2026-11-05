@@ -6,17 +6,14 @@ Ordered, the next candidate on top; reorder by moving lines. One line per item; 
 - dev-team plugin: `anchors:` name records by path instead of id.
 - Settle whether the librarian is the core of Fabrica or optional; include that it cannot read docs/handoff-*.md.
 - Show a second environment beyond Claude Code (e.g. AGENTS.md + a librarian prompt) to back "a practice, not a tool".
-- A doctor/lint check before a push: configurable private names, machine paths, commit SHAs the remote lacks.
 - Settle the rule for pseudonymising foreign evidence at filing, not only for publication (docs/reference/record-format.md "Sources").
 - A policy for edges and evidence paths to reference docs and sources; `mem link`/`mem find` do not resolve source slugs.
 - The archivist looks for duplicates of a candidate in other areas.
-- `mem doctor` detects a skipped reflect, e.g. commits since the last record or FOCUS.md change.
 - Fixed pull trigger points per situation, each tested; includes querying anti-patterns at plan time and the recall/precision hypothesis.
 - `mem doctor` Wiring reads environment records so external teams stop showing as findings.
 - Verify the retro-log measurement against a real the-coder report.
 - A hostile-input test for the librarian; decide whether to harden its scope beyond the prompt.
 - `mem doctor` Wiring reads project settings too, not only ~/.claude/settings.json.
-- reflect_reminder stops rescanning the whole transcript on every Stop.
-- ai_mem.hooks.state_dir as the single definition of the $AI_MEM_PATH default.
-- mem CLI cleanup: TargetNotFound exception, qualify validates its output, one reference-doc lookup.
-- A resolve_area method on the AreaRefs protocol instead of the '<path>:probe' trick in dream_memory.py.
+- Per-session hook state ($AI_MEM_PATH/reflect_scan/, reminded/) is never cleaned up; prune it, e.g. in mem doctor.
+- mem find rglobs every area; bound or index it.
+- mem move-area refuses a new folder name whose references parse_ref would reject (today qualify_unchecked writes them).
