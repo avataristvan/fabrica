@@ -3,6 +3,7 @@ Ordered, the next candidate on top; reorder by moving lines. One line per item; 
 - `mem` command for "which records cite path X" (link or plain path), and a repoint after a doc moves: the core of a tidy; the archivist fell back to grep|sed in the galaxy pilot.
 - mem lint --help (or the lint table) states exactly what the experiment and handoff checks accept, so "lint clean" is not over-read.
 - mem doctor mid-tidy: "no record links to it" / "processed source no record points to" fire for just-placed docs until the archivist repoints; mark them as pending instead of findings.
+- mem doctor checks code paths named in experiments too (today only backticked paths in records), so the doc → code direction stays checked.
 - After galaxy-tab-a-2016, the same rollout for the other areas (ai-architecture, briefing-interviewer, …), the generic way it produced.
 - Link record names in docs/ prose (outside docs/records/) the way `mem lint --fix` does in records.
 - dev-team plugin: `anchors:` name records by path instead of id.

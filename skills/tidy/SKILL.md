@@ -37,7 +37,7 @@ At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-pro
    | research on foreign material, dated | `docs/sources/<slug>.md` (frozen; with the source frontmatter from the map: `type`, `date`, `origin`, `status: unprocessed`) |
    | a path to raw data, history of how it went, stale state | drop |
 
-   A test plan whose results stand in a later handoff becomes one experiment: merge the hypotheses and the runs. A procedure goes to `docs/how-to/`, and the experiment links to it. A fact for `docs/reference/` whose currency you cannot check gets `(as of <date>, from <experiment>)`. Before you move a doc, run `git grep` for its path: if code, a build file or a package source links to it, keep the path, or name the change for the user (checksums, pkgrel).
+   A test plan whose results stand in a later handoff becomes one experiment: merge the hypotheses and the runs. A procedure goes to `docs/how-to/`, and the experiment links to it. A fact for `docs/reference/` whose currency you cannot check gets `(as of <date>, from <experiment>)`. Before you move a doc, run `git grep` for its path. Code that still links it does not stop the move, because code does not link docs (see the map). Name each hit in the report as "clean up the comment the next time this file is touched". The experiment or record names that code path from the doc side.
 
    Show the proposal as one table per file: part (its heading or first words), target, and for experiments the slug and status. Below it: the records that cite this file (`handoff-cited`) and what their evidence becomes (the experiment's path, or the commit `<sha>:docs/handoff-<date>.md` from `git log -1 --format=%h -- <file>` when the content does not move). Ask: "Apply, change, or skip this file?"
 

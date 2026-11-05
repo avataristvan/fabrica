@@ -14,3 +14,4 @@ Scope: skills/reflect/SKILL.md Step 5.
 - derived_from: [domain_reflect_yields_handoff_and_record_candidates_2026_10_10](../../architecture/decisions/domain_reflect_yields_handoff_and_record_candidates_2026_10_10.md)
 - related: [pattern_handoff_is_overwritten_not_appended_2026_10_12](pattern_handoff_is_overwritten_not_appended_2026_10_12.md)
 - related: [domain_handoffs_point_to_records_never_back_closed_and_deleted_2026_11_05](domain_handoffs_point_to_records_never_back_closed_and_deleted_2026_11_05.md)
+- related: [domain_links_between_code_and_docs_go_from_docs_to_code_2026_11_05](domain_links_between_code_and_docs_go_from_docs_to_code_2026_11_05.md)
