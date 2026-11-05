@@ -25,12 +25,29 @@ All paths are relative to the area (the folder that holds `docs/records/`).
 
 ## Rules that come with it
 
-- **Point, don't copy.** What stands in one place is linked from the others, never restated. The pointing goes one way: a handoff links to records, plans and experiments; a record links to experiments and sources; nothing links to a handoff.
+- **Point, don't copy.** What stands in one place is linked from the others, never restated. The pointing goes one way: a handoff links to records, plans and experiments; a record links to experiments and sources; nothing links to a handoff. One exception: a `done` experiment whose cause was only found later may end with a line `Concluded in: <link to the record>`.
 - **Write during the work into the experiment or the plan, never into the handoff.** A handoff holds only Charter (scope, terms, mode), Conclusions (what holds now), Open points, Start with. A dated section ("Update …", "Status …", "Result …") or a table of runs in a handoff belongs in an experiment. When FOCUS.md, the plan and the experiments carry the state, no handoff is needed.
 - **Closing a handoff:** each of its parts goes to its place in the map (open points to FOCUS/BACKLOG, conclusions as record candidates to the archivist, runs and results to an experiment, facts to reference, procedures to how-to); stale state is dropped (git keeps it); then the file is deleted. A record that cited the handoff cites the experiment instead, or, if the content did not move, the commit: `<sha>:docs/handoff-<date>.md`.
 - **Raw data is never committed and never referenced.** A link to a file on one machine is dead on every other. The experiment carries the numbers its result rests on: what a reader reads to follow the conclusion is in the document, what only a tool reads is raw data. Reproducibility comes from setup and method; a doubt is answered by a new run. Sharing a name (`docs/experiments/<slug>/`, `data/runs/<slug>/`) finds the raw data on the machine that has it, without a link.
-- **Frozen means frozen.** A `done` experiment and a source are not edited; a follow-up is a new experiment, a correction is a record.
+- **Frozen means frozen.** A `done` experiment and a source are not edited. A follow-up is a new experiment, and a correction is a record. Only two additions are allowed: a source's `status:` line, and the `Concluded in:` line of an experiment.
+- **One question, one experiment.** A test plan and its results belong together, even when the results came a day later in a handoff. The plan's hypotheses and the runs are merged into one experiment.
+- **A procedure has one current home, `docs/how-to/`.** An experiment keeps only the steps of its runs, as they were done, and links to the how-to for the current way.
+- **`docs/reference/` holds what is true now.** A fact whose currency nobody can re-check right now (taken from an old handoff) goes in with its origin, like this: `<fact> (as of <date>, from <experiment or source>)`, or it stays in the experiment or source it came from. The next one who verifies it drops the note.
+- **Names are fixed once code points at them.** A doc that code, a build file or a package source links to (and that a checksum may cover) keeps its path. Code links only stable places (`docs/reference/`, `docs/how-to/`), never an experiment, a plan or a handoff. Check `git grep <path>` before you move a doc.
 - **Plans are files when a team keeps a plan.** Who writes them and how is the team's business; the place is `docs/plans/<slug>/`.
+
+## Source format
+
+```
+---
+type: <research | measurement | design-doc | retired-system | origin | config-note | talk | paper | ...>
+date: <YYYY-MM-DD the evidence dates from, not the day it was filed>
+origin: <where it came from: former path, URL, session>
+status: <unprocessed | processed>
+---
+```
+
+`unprocessed` means not yet worked through by the archivist; `processed` means every conclusion that still holds is a record (`mem source <slug> --status processed`). `mem doctor` (Sources) reports a source with a missing field. More: `docs/reference/record-format.md`, section "Sources", in the plugin.
 
 ## Experiment format
 

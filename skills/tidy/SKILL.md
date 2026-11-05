@@ -11,7 +11,8 @@ At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-pro
 
 ## Rules
 
-- **Propose, then apply on approval.** One file at a time, oldest handoff first, then the loose docs. Never change a file the user has not seen a proposal for.
+- **Propose, then apply on approval.** For a few files, propose one file at a time, the oldest handoff first, then the loose docs. For many files (more than about five), show one overview table for all of them, with file, its parts, and their targets. The user approves that table once, or says which rows change. A standing approval the user gave in this session also counts. Never change a file that was in no proposal.
+- **Delegate per file when the run is large.** Spawn one agent per file or per group of related files, and hand each one the map, the approved targets and the slugs. Collect their record candidates and evidence repoints, and hand those to the archivist once at the end.
 - **Never write records, never write FOCUS.md.** Record candidates and evidence repoints go to the archivist. What belongs in FOCUS.md is named in your report for the next `/reflect` (the focus gate); next steps go to the bottom of BACKLOG.md.
 - **Never invent content.** An experiment carries only the question, setup, runs and result that the text gives. Where a number or a result is missing, the experiment says so; it does not get one.
 - **Keep history.** Move a doc with `git mv` when it moves whole; a frozen file (a `done` experiment, a source) is never edited. No commits: the user commits.
@@ -33,8 +34,10 @@ At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-pro
    | a plan with steps or chunks | `docs/plans/<slug>/brief.md` (what, why, decisions) or `chunks.md` (how) |
    | a fact about the system that stays true | `docs/reference/<page>.md` (existing page, or new) |
    | a procedure | `docs/how-to/<page>.md` |
-   | research on foreign material, dated | `docs/sources/<slug>.md` (frozen) |
+   | research on foreign material, dated | `docs/sources/<slug>.md` (frozen; with the source frontmatter from the map: `type`, `date`, `origin`, `status: unprocessed`) |
    | a path to raw data, history of how it went, stale state | drop |
+
+   A test plan whose results stand in a later handoff becomes one experiment: merge the hypotheses and the runs. A procedure goes to `docs/how-to/`, and the experiment links to it. A fact for `docs/reference/` whose currency you cannot check gets `(as of <date>, from <experiment>)`. Before you move a doc, run `git grep` for its path: if code, a build file or a package source links to it, keep the path, or name the change for the user (checksums, pkgrel).
 
    Show the proposal as one table per file: part (its heading or first words), target, and for experiments the slug and status. Below it: the records that cite this file (`handoff-cited`) and what their evidence becomes (the experiment's path, or the commit `<sha>:docs/handoff-<date>.md` from `git log -1 --format=%h -- <file>` when the content does not move). Ask: "Apply, change, or skip this file?"
 
@@ -52,7 +55,7 @@ At this boundary follow the Fabrica handoff protocol (skill `fabrica:handoff-pro
 
    Show the user its integration report.
 
-5. **Check and report.** Run `mem lint` and `mem doctor` again. Report in a few lines: files closed, files moved, experiments created (and their status), BACKLOG lines added, what belongs in FOCUS.md for the next `/reflect`, what the archivist did, what is still open and why.
+5. **Check and report.** Run `mem lint` and `mem doctor` again, after the archivist has repointed. Before that, "no record links to it" and "processed source no record points to" are expected for what you just placed. Report in a few lines: files closed, files moved, experiments created (and their status), BACKLOG lines added, what belongs in FOCUS.md for the next `/reflect`, what the archivist did, what is still open and why.
 
 ## In a reflect
 

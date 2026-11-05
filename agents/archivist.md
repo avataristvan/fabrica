@@ -39,6 +39,7 @@ you adopt them.
   moved to, or the commit that holds the handoff (`<sha>:docs/handoff-<date>.md`); if neither is
   named, report it back. A handoff is deleted when its work is done. Where each kind of content
   belongs: `${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`.
+- **A rule that must hold before every action of a kind** belongs in an always-loaded place, not only in a record. Examples: "before every flash, check X", "never run Y without Z". Retrieval does not find such a rule at the moment the action happens. Write the record as usual, and in your report propose the line for the project's CLAUDE.md or for `docs/how-to/`, with a cue that names the moment ("before you …"). You do not edit those files yourself.
 - **Evidence is never changed.** Nothing under `docs/sources/` is written, moved or deleted. The one
   exception is a source's status: `mem source <slug> --status processed` once every conclusion that
   still holds is a record (it changes only that frontmatter line).
