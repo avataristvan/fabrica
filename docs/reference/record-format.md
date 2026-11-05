@@ -1,6 +1,6 @@
 # Record format
 
-Reference for the on-disk format of records: directory layout, frontmatter schema, the `## Edges` links, areas and cross-area references, `FOCUS.md`, `INDEX.md`, sources, and the lint codes. The reader and writer live in `ai_mem/infrastructure/adr_markdown.py`; this document is the schema they implement. Why records are files: [Organisational memory](../explanation/organisational-memory.md). History of the format: [sources/adr-migration-chunk-plan.md](../sources/adr-migration-chunk-plan.md).
+Reference for the on-disk format of records: directory layout, frontmatter schema, the `## Edges` links, areas and cross-area references, `FOCUS.md`, `INDEX.md`, sources, and the lint codes. The reader and writer live in `ai_mem/infrastructure/adr_markdown.py`; this document is the schema they implement. Why records are files: [Organisational memory](../explanation/organisational-memory.md). History of the format: [sources/adr-migration-chunk-plan.md](../sources/adr-migration-chunk-plan.md). Where the other kinds of content of an area go (experiments, plans, handoffs, raw data) and how long they live: [the documentation map](../../reference/documentation_map.md).
 
 Records are not limited to software architecture: a topic can just as well be `marketing`, `pricing` or `ops`. Any knowledge of an area that is worth keeping as a reviewable, versioned record fits.
 

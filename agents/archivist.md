@@ -35,8 +35,10 @@ you adopt them.
   id-like string in `FOCUS.md` or `BACKLOG.md` (a former `todo_…` id) is a leftover, never an
   edge target and never a missing record to report.
 - **A handoff is never evidence.** A candidate whose evidence is a `docs/handoff-*.md` is not
-  written with that path: name the source it was frozen into, or report it back so the caller
-  freezes the evidence as a source first. A handoff is deleted when its work is done.
+  written with that path: cite the experiment (`docs/experiments/<slug>/`) or source the content
+  moved to, or the commit that holds the handoff (`<sha>:docs/handoff-<date>.md`); if neither is
+  named, report it back. A handoff is deleted when its work is done. Where each kind of content
+  belongs: `${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`.
 - **Evidence is never changed.** Nothing under `docs/sources/` is written, moved or deleted. The one
   exception is a source's status: `mem source <slug> --status processed` once every conclusion that
   still holds is a record (it changes only that frontmatter line).
@@ -75,7 +77,9 @@ you adopt them.
 
 First `Read` `${CLAUDE_PLUGIN_ROOT}/reference/navigating_records.md` and follow its reading procedure. It
 describes the areas, the three kinds of knowledge, the record format with `cue:`,
-`perspective:` and cross-area edges, and the order in which to read. If that file cannot be
+`perspective:` and cross-area edges, and the order in which to read. Evidence may be an experiment
+(`docs/experiments/<slug>/README.md`), linked like a source; the map of places is
+`${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`. If that file cannot be
 read, stop and report it; write nothing. Run it yourself for
 each candidate; do not call the librarian.
 

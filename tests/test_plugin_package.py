@@ -52,6 +52,9 @@ def test_agents_and_skills_name_plugin_paths_and_namespaced_agents() -> None:
         assert "${CLAUDE_PLUGIN_ROOT}/reference/navigating_records.md" in text
         assert "~/.claude/ai-mem" not in text
     assert (ROOT / "reference" / "navigating_records.md").is_file()
+    assert (ROOT / "reference" / "documentation_map.md").is_file()
+    for path in ("agents/archivist.md", "skills/reflect/SKILL.md", "skills/handoff-protocol/SKILL.md"):
+        assert "${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md" in (ROOT / path).read_text()
     assert (ROOT / "agents" / "anchor-lint.md").is_file() and (ROOT / "skills" / "reflect" / "SKILL.md").is_file()
     assert 'subagent_type="fabrica:archivist"' in (ROOT / "skills" / "reflect" / "SKILL.md").read_text()
 

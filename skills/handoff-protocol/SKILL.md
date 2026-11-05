@@ -47,6 +47,10 @@ Subagents deliver `record_candidates`. The orchestrator hands them to the archiv
 
 If `records_consulted` stays `none` over many boundaries, the step has become ritual and should be re-examined (`mem doctor` shows the rates).
 
+## 5. Where the rest of the work goes
+
+What a team writes besides record candidates has a fixed place, `${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`: a team that keeps a plan keeps it at `docs/plans/<slug>/` of the area (`brief.md`, `chunks.md`; progress lives in the chunks file), runs and results go into `docs/experiments/<slug>/README.md` while the work runs, never into a handoff, and raw data stays out of `docs/` and out of git. How a team makes its plans is its own business; the place is not.
+
 ## Who calls when
 
 | Boundary | Who asks | What it carries |
