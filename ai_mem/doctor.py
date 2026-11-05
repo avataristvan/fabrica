@@ -16,6 +16,7 @@ import sys
 import time
 from pathlib import Path
 
+from ai_mem.doctor_docs import collect_docs, render_docs, render_not_concluded
 from ai_mem.doctor_sources import collect_sources
 from ai_mem.hooks import DOCTOR_STAMP, RETRO_LOG, state_dir
 from ai_mem.infrastructure.adr_paths import focus_path, write_atomic
@@ -284,6 +285,7 @@ def collect(areas: list[Area]) -> dict:
             "versioned": versioned,
             "sources": collect_sources(area, [r.body for r in records],
                                        {entry_id for root, entry_id in incoming if root == area.root}),
+            **collect_docs(area, {r.path.stem for r in records}, [r.body for r in records], counts, versioned),
         })
         state += [{"root": str(area.root), **item} for item in _state(area, records, versioned)]
     confirmed = [{"root": str(root), "id": entry_id, "confirms": len(sources)} for (root, entry_id), sources in sorted(confirms.items())
@@ -376,6 +378,10 @@ def render(report: dict, base: Path) -> str:
     if unversioned:
         out += ["  areas not under version control:", *(f"    {name}" for name in unversioned)]
     out += ["", "Sources"] + _render_sources(areas, base)
+    docs = [line for a in areas for line in render_docs(_label(a["root"], base), a["root"], a["docs"])]
+    out += ["", "Docs (reference/documentation_map.md)"] + (docs or ["  every document has its place"])
+    open_items = [line for a in areas for line in render_not_concluded(_label(a["root"], base), a["not_concluded"])]
+    out += ["", "Not concluded (what a skipped reflect leaves behind)"] + (open_items or ["  nothing open"])
     out += ["", "State"]
     if report["state"]:
         out += [f"  {_label(s['root'], base)}: {s['file']} is {s['behind_days']} day(s) behind the newest change ({s['basis']})" for s in report["state"]]

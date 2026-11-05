@@ -55,7 +55,7 @@ Copies each record into the same topic/kind folder of the target area and delete
 
 ### `mem lint` and `mem doctor`
 
-`mem lint` checks one area; the codes are in [record format](record-format.md#lint-and-normalisation). `mem doctor` runs the same checks over every area below `--root` and adds the Sources, State, Wiring and Effect sections described in [architecture](architecture.md#doctor-ai_memdoctorpy). It changes nothing except `$AI_MEM_PATH/doctor_last_run`.
+`mem lint` checks one area; the codes are in [record format](record-format.md#lint-and-normalisation). `mem doctor` runs the same checks over every area below `--root` and adds the Sources, Docs, Not concluded, State, Wiring and Effect sections described in [architecture](architecture.md#doctor-ai_memdoctorpy). It changes nothing except `$AI_MEM_PATH/doctor_last_run`.
 
 ## `mem-dream`
 

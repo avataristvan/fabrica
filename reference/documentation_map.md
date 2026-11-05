@@ -17,6 +17,7 @@ All paths are relative to the area (the folder that holds `docs/records/`).
 | Plan of an undertaking: the brief (what, why, the user's decisions) and the chunks (how, status per chunk) | `docs/plans/<slug>/brief.md`, `docs/plans/<slug>/chunks.md` | the brief is approved by the user; progress lives in the chunks file; deleted when done, after its conclusions became records |
 | Facts about the system, kept current (interfaces, registers, pins, boot chain, configuration) | `docs/reference/` | edited in place |
 | Procedure (build, flash, deploy, connect) | `docs/how-to/` | edited in place |
+| Explanation (why the system is shaped this way, concepts) and tutorials | `docs/explanation/`, `docs/tutorial/` | edited in place |
 | Research on foreign material, dated (other code, mailing lists, papers, talks) and past documents | `docs/sources/<slug>.md` | frozen |
 | Handoff to the next session | `docs/handoff-<yyyy-mm-dd>.md` | short-lived: closed by this map, then deleted |
 | Raw data (logs, dumps, CSV, captures) | outside `docs/`, not in git (a convention: the project's `data/runs/<experiment slug>/`, `data/captures/`) | local; never referenced from docs |
