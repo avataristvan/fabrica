@@ -45,6 +45,11 @@ record_candidates: <plain text: what from this work should become a record, or w
 
 Subagents deliver `record_candidates`. The orchestrator hands them to the archivist through `/reflect`. No role other than the archivist and the user writes record files, and nothing is promoted into an agent or skill definition.
 
+An orchestrator that runs an undertaking on its own does not stop for the user. `/fabrica:reflect` runs by itself (it asks only a real question), and the user reviews the records at the push (`mem review`). Before that:
+- It keeps the candidates of each chunk in its plan (`docs/plans/<slug>/chunks.md`), and only the candidates of a chunk that was merged.
+- At the end of the undertaking, and at a session or context boundary in the middle, it runs `/fabrica:reflect`, which writes FOCUS, BACKLOG and the handoff and hands everything collected so far to the archivist.
+- It may also spawn `fabrica:archivist` directly with the area and the collected candidates, which is reflect's step 7 alone, after a batch of chunks. This hand-over never writes FOCUS, BACKLOG or a handoff, and never per chunk: the archivist integrates better over a batch, because it can merge duplicates, link related candidates and supersede.
+
 If `records_consulted` stays `none` over many boundaries, the step has become ritual and should be re-examined (`mem doctor` shows the rates).
 
 ## 5. Where the rest of the work goes
