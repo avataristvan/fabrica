@@ -12,7 +12,7 @@ The subagent summary is already the "done" — this adds only what matters beyon
 
 The area is the folder of the current work that holds `docs/records/` (nearest ancestor of the working directory; `mem context` prints it).
 
-**It runs by itself.** In most cases the user has nothing to correct, so reflect does not stop to ask: it skips the questions in Steps 3, 4 and 6 unless it has a real question (a decision only the user can make, a contradiction, a next focus it cannot derive), writes the handoff, hands the candidates to the archivist and reports. The user reviews the records before the push (`mem review`), the last good moment to fold in fix-ups and squash. When the user invoked reflect with an explicit wish to talk it through, ask as written.
+**It runs by itself.** In most cases the user has nothing to correct, so reflect does not stop to ask: it skips the questions in Steps 3, 4 and 6 unless it has a real question (a decision only the user can make, a contradiction, a next focus it cannot derive), writes the handoff, hands the candidates to the archivist and reports. The user reviews the records before the push (`mem review`), the last good moment to fold in fix-ups and squash. When the user invoked reflect with an explicit wish to talk it through, ask as written. Step 3 is the exception: when the user typed `/fabrica:reflect` themselves, always ask its two questions, because what the user learned is knowledge only they have, not a correction. Reflect runs by itself only when it was started on its own: by the agent, by an orchestrator, or at a focus change.
 
 ---
 
@@ -43,7 +43,7 @@ Ask both questions together:
 > **"What did you learn, or what surprised you?"**
 > **"What got in your way?"**
 
-Wait for the user's answer. Skip if the user has nothing to add. Running by itself: skip this step; what the user said during the session already counts.
+Wait for the user's answer. Skip if the user has nothing to add. Typed by the user (`/fabrica:reflect`): always ask, and wait. Running by itself: skip this step; what the user said during the session already counts.
 
 ---
 
