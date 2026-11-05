@@ -21,7 +21,7 @@ from ai_mem.doctor_sources import collect_sources
 from ai_mem.hooks import DOCTOR_STAMP, RETRO_LOG, state_dir
 from ai_mem.infrastructure.adr_paths import focus_path, write_atomic
 from ai_mem.infrastructure.areas import Area, discover_areas, find_area, resolve_ref
-from ai_mem.records_lint import Code, RawRecord, edge_targets, git_output, lint_records, read_area
+from ai_mem.records_lint import Code, RawRecord, check_docs, edge_targets, git_output, lint_records, read_area
 
 _DANGLING = (Code.EDGE_DANGLING, Code.EDGE_UNRESOLVED, Code.EDGE_DANGLING_XAREA)
 _INDEX_CODES = (Code.INDEX_MISSING, Code.INDEX_STALE)
@@ -256,7 +256,7 @@ def collect(areas: list[Area]) -> dict:
     report_areas, state = [], []
     for area in areas:
         records = scans[area.root]
-        findings = lint_records(area, records)
+        findings = lint_records(area, records) + check_docs(area)
         toplevel = _toplevel(area.root)
         versioned = toplevel is not None
         roots = [area.root, *([toplevel] if toplevel else [])]
@@ -270,6 +270,7 @@ def collect(areas: list[Area]) -> dict:
             gone = _missing_paths(record.body, roots)
             if gone:
                 dead_weight.append({"file": record.rel.as_posix(), "missing": gone})
+        bodies = [r.body for r in records]
         counts: dict[str, int] = {}
         for finding in findings:
             counts[finding.code] = counts.get(finding.code, 0) + 1
@@ -283,9 +284,8 @@ def collect(areas: list[Area]) -> dict:
                              "index_differs": any(f.code in _INDEX_CODES for f in findings)},
             "dead_weight": dead_weight,
             "versioned": versioned,
-            "sources": collect_sources(area, [r.body for r in records],
-                                       {entry_id for root, entry_id in incoming if root == area.root}),
-            **collect_docs(area, {r.path.stem for r in records}, [r.body for r in records], counts, versioned),
+            "sources": collect_sources(area, bodies, {entry_id for root, entry_id in incoming if root == area.root}),
+            **collect_docs(area, {r.path.stem for r in records}, bodies, counts, versioned),
         })
         state += [{"root": str(area.root), **item} for item in _state(area, records, versioned)]
     confirmed = [{"root": str(root), "id": entry_id, "confirms": len(sources)} for (root, entry_id), sources in sorted(confirms.items())

@@ -13,12 +13,14 @@ Writes through Bash bypass the gate; `mem doctor` (Not concluded) finds what sli
 from __future__ import annotations
 
 import os
+import time
 from pathlib import Path
 
 from ai_mem.hooks import is_safe_token, run, state_dir
 
 REFLECT_SKILLS = frozenset({"reflect", "fabrica:reflect", "ai-mem:reflect"})
 _WROTE_FOCUS = "wrote-focus\n"
+_MARKER_DAYS = 7
 _DENY = ("A focus change goes through /fabrica:reflect: run it first (it writes FOCUS.md with the handoff and hands "
          "record candidates to the archivist). The user may still edit FOCUS.md by hand.")
 
@@ -35,7 +37,15 @@ def _is_focus_file(file_path: object) -> bool:
     if path.name != "FOCUS.md":
         return False
     from ai_mem.infrastructure.adr_paths import records_dir_for_root
-    return path.parent == records_dir_for_root(path.parent.parent.parent) and path.parent.is_dir()
+    return path.parent.is_dir() and any(records_dir_for_root(root) == path.parent for root in path.parents)
+
+
+def _prune(directory: Path) -> None:
+    """Drop markers of sessions long gone: a reflect that never wrote FOCUS.md leaves one behind."""
+    cutoff = time.time() - _MARKER_DAYS * 86400
+    for old in directory.glob("*") if directory.is_dir() else []:
+        if old.is_file() and old.stat().st_mtime < cutoff:
+            old.unlink()
 
 
 def _mark(session_id: str) -> None:
@@ -63,6 +73,7 @@ def handle(event: dict) -> dict | None:
             marker = _marker(session_id)
             if marker.is_file() and marker.read_text() == _WROTE_FOCUS:
                 marker.unlink()
+            _prune(marker.parent)
             return None
         if name == "PreToolUse":
             tool_input = event.get("tool_input")

@@ -73,3 +73,10 @@ def test_hostile_or_missing_input_never_raises(tmp_path: Path) -> None:
                               "tool_input": {"file_path": str(_focus(tmp_path))}}) is None
     assert focus_gate.handle({"hook_event_name": "PreToolUse", "session_id": "s1", "tool_name": "Write", "tool_input": "x"}) is None
     assert focus_gate.handle({}) is None
+
+
+def test_a_moved_records_directory_is_still_gated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AI_MEM_ADR_DIR", "notes/adr")
+    records = tmp_path / "area" / "notes" / "adr"
+    records.mkdir(parents=True)
+    assert _denied(_write(records / "FOCUS.md"))

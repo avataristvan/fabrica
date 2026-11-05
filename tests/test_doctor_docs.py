@@ -76,3 +76,11 @@ def test_versioned_area_counts_commits_since_the_records_and_flags_unignored_dat
     assert report["docs"]["data_not_ignored"] is True
     (tmp_path / ".gitignore").write_text("/data/\n")
     assert collect_docs(area, set(), [], {}, versioned=True)["docs"]["data_not_ignored"] is False
+
+
+def test_a_record_citing_a_longer_slug_does_not_conclude_a_shorter_one(tmp_path: Path) -> None:
+    area = _area(tmp_path)
+    _experiment(area, "foo", "done")
+    _experiment(area, "foobar", "done")
+    nc = collect_docs(area, set(), ["[r](../../../experiments/foobar/README.md)"], {}, versioned=False)["not_concluded"]
+    assert nc["done_without_record"] == ["docs/experiments/foo/README.md"]

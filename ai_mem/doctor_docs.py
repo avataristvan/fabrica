@@ -12,24 +12,19 @@ from pathlib import Path
 
 from ai_mem import docs_lint
 from ai_mem.infrastructure.areas import Area
-from ai_mem.records_lint import git_output
+from ai_mem.doctor_sources import _text as _read_capped
+from ai_mem.records_lint import MIGRATION_CODES, git_output
 
 # Folders of docs/ that have a place in the map (Diátaxis plus records, experiments, plans, sources).
 MAP_FOLDERS = frozenset({"records", "experiments", "plans", "reference", "how-to", "tutorial", "explanation", "sources"})
-MIGRATION_CODES = frozenset({"legacy-refs", "bare-id", "link-stale"})
 _DAY = 86400
-_READ_LIMIT = 1_000_000
 _BARE_NAME = r"(?<![\w/.\[-]){name}(?![\w-])(?!\.md)"
-
-
-def _git(root: Path, *args: str) -> str | None:
-    return git_output(root, *args)
 
 
 def _age_days(root: Path, path: Path, versioned: bool, now: float) -> float:
     stamp = None
     if versioned:
-        out = (_git(root, "log", "-1", "--format=%ct", "--", str(path)) or "").strip()
+        out = (git_output(root, "log", "-1", "--format=%ct", "--", str(path)) or "").strip()
         stamp = float(out) if out else None
     if stamp is None:
         stamp = path.stat().st_mtime
@@ -37,13 +32,7 @@ def _age_days(root: Path, path: Path, versioned: bool, now: float) -> float:
 
 
 def _text(path: Path) -> str:
-    try:
-        if path.is_symlink() or not path.is_file():
-            return ""
-        with open(path, "rb") as handle:
-            return handle.read(_READ_LIMIT).decode("utf-8", errors="replace")
-    except OSError:
-        return ""
+    return _read_capped(path) or ""
 
 
 def _project_texts(root: Path) -> list[Path]:
@@ -88,23 +77,23 @@ def collect_docs(area: Area, record_stems: set[str], record_texts: list[str], fi
             texts.append({"file": path.relative_to(area.root).as_posix(), "names": named[:5], "count": len(named)})
 
     data = area.root / "data"
-    data_unignored = versioned and data.is_dir() and _git(area.root, "check-ignore", "-q", "data/") is None
+    data_unignored = versioned and data.is_dir() and git_output(area.root, "check-ignore", "-q", "data/") is None
 
     running, unconcluded = [], []
     corpus = "\n".join(record_texts)
     for path in docs_lint.experiment_files(records_dir):
         slug = path.parent.name
-        status = _status(_text(path))
+        status = docs_lint.experiment_status(_text(path))
         if status == "running":
             running.append({"file": path.relative_to(area.root).as_posix(), "age_days": _age_days(area.root, path, versioned, now)})
-        elif status == "done" and f"experiments/{slug}" not in corpus:
+        elif status == "done" and f"experiments/{slug}/" not in corpus:
             unconcluded.append(path.relative_to(area.root).as_posix())
 
     commits_since_records = None
     if versioned:
-        last = (_git(area.root, "log", "-1", "--format=%H", "--", str(records_dir)) or "").strip()
+        last = (git_output(area.root, "log", "-1", "--format=%H", "--", str(records_dir)) or "").strip()
         if last:
-            count = (_git(area.root, "rev-list", "--count", f"{last}..HEAD", "--", str(area.root)) or "").strip()
+            count = (git_output(area.root, "rev-list", "--count", f"{last}..HEAD", "--", str(area.root)) or "").strip()
             commits_since_records = int(count) if count.isdigit() else None
 
     return {
@@ -115,9 +104,6 @@ def collect_docs(area: Area, record_stems: set[str], record_texts: list[str], fi
     }
 
 
-def _status(text: str) -> str:
-    match = re.search(r"(?m)^status:\s*(\S+)", text.split("\n---\n", 1)[0]) if text.startswith("---\n") else None
-    return match.group(1) if match else ""
 
 
 def render_docs(area_label: str, area_root: str, docs: dict) -> list[str]:

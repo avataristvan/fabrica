@@ -87,6 +87,10 @@ class Code:
     BACKLOG_LINE = "backlog-line"
 
 
+# Findings of an older record format that `mem lint --fix` converts: a hint, not a block, in the write-time hook.
+MIGRATION_CODES = frozenset({Code.LEGACY_REFS, Code.BARE_ID, Code.LINK_STALE})
+
+
 @dataclass(frozen=True)
 class Finding:
     file: Path

@@ -46,7 +46,7 @@ def test_flags_machine_paths_private_names_and_unpushed_commits(repo: Path, tmp_
     (tmp_path / "state" / "private_names").write_text("# names\nKaustabh\n")
     _record(repo, "learning_b", "x")
     _git(repo, "add", "-A"); _git(repo, "commit", "-qm", "b")
-    local = _git(repo, "rev-parse", "--short=7", "HEAD")
+    local = _git(repo, "rev-parse", "HEAD")  # full hash: a short one may be all digits
     _record(repo, "learning_b", f"Evidence: /home/someone/x.log, commit {local}, reported to kaustabh.")
     _git(repo, "add", "-A"); _git(repo, "commit", "-qm", "b2")
     flags = review.collect(repo, repo / "docs" / "records", "base")[0]["flags"]
@@ -59,7 +59,7 @@ def test_a_commit_off_this_branch_is_flagged(repo: Path) -> None:
     _git(repo, "checkout", "-qb", "side")
     (repo / "x.txt").write_text("x\n")
     _git(repo, "add", "-A"); _git(repo, "commit", "-qm", "side")
-    side = _git(repo, "rev-parse", "--short=7", "HEAD")
+    side = _git(repo, "rev-parse", "HEAD")
     _git(repo, "checkout", "-q", "-")
     _record(repo, "learning_c", f"Evidence: commit {side}")
     _git(repo, "add", "-A"); _git(repo, "commit", "-qm", "c")
@@ -70,3 +70,8 @@ def test_a_commit_off_this_branch_is_flagged(repo: Path) -> None:
 def test_unknown_base_is_an_error(repo: Path) -> None:
     with pytest.raises(ValueError):
         review.collect(repo, repo / "docs" / "records", "@{upstream}")
+
+
+def test_hash_regex_ignores_numbers_uuids_and_hex_words() -> None:
+    found = review._SHA.findall("epoch 1793900526, uuid 2c93b5d7-4baf, word defaced, zabc1234x, commit 6f40c13.")
+    assert found == ["6f40c13"]

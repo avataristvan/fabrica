@@ -15,7 +15,6 @@ from ai_mem.hooks import run
 
 _MAX_FINDINGS = 5
 _REASON_LIMIT = 800
-_MIGRATION_CODES = frozenset({"legacy-refs", "bare-id", "link-stale"})
 
 
 def _record_area(path: Path):
@@ -42,13 +41,13 @@ def handle(event: dict) -> dict | None:
     if not isinstance(file_path, str) or not os.path.isabs(file_path) or not file_path.endswith(".md"):
         return None
     path = Path(os.path.normpath(file_path))
-    if "/docs/records/" not in file_path.replace(os.sep, "/"):  # cheap exit before any import or stat
+    if "/docs/records/" not in file_path.replace(os.sep, "/"):  # not a record: maybe an experiment or a handoff
         return _docs_findings(path)
     area = _record_area(path)
     if area is None or not (path.is_file() or path.is_symlink()):
         return None
     from ai_mem.infrastructure.adr_paths import BACKLOG_FILENAME
-    from ai_mem.records_lint import _read, check_backlog, lint_records  # lazy: an import failure must stay inside run()'s guard
+    from ai_mem.records_lint import MIGRATION_CODES, _read, check_backlog, lint_records  # lazy: an import failure must stay inside run()'s guard
     if path.parent == area.records_dir and path.name == BACKLOG_FILENAME:
         findings = check_backlog(area)
     else:
@@ -59,7 +58,7 @@ def handle(event: dict) -> dict | None:
     more = len(findings) - _MAX_FINDINGS
     if more > 0:
         lines.append(f"... and {more} more")
-    if all(f.code in _MIGRATION_CODES for f in findings):
+    if all(f.code in MIGRATION_CODES for f in findings):
         hint = ("ai-mem lint: this area still has the older record format (" + "; ".join(lines)
                 + "). `mem lint --fix --area <area>` migrates it; editing on is fine.")
         return {"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": hint[:_REASON_LIMIT]}}
@@ -72,13 +71,9 @@ def _docs_findings(path: Path) -> dict | None:
     if path.name != "README.md" and not path.name.startswith("handoff-"):
         return None
     from ai_mem import docs_lint
-    from ai_mem.infrastructure.adr_paths import records_dir_for_root
 
-    for root, check in ((path.parent.parent.parent.parent, docs_lint.check_experiment),
-                        (path.parent.parent, docs_lint.check_handoff)):
-        records_dir = records_dir_for_root(root)
-        is_kind = docs_lint.is_experiment_file if check is docs_lint.check_experiment else docs_lint.is_handoff_file
-        if records_dir.is_dir() and is_kind(path, records_dir) and path.is_file() and not path.is_symlink():
+    for kind, check in (("experiment", docs_lint.check_experiment), ("handoff", docs_lint.check_handoff)):
+        if docs_lint.records_dir_holding(path, kind) is not None and path.is_file() and not path.is_symlink():
             findings = check(path)
             if not findings:
                 return None

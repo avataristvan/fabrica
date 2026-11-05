@@ -33,6 +33,20 @@ def experiments_dir(records_dir: Path) -> Path:
     return docs_dir(records_dir) / EXPERIMENTS_DIRNAME
 
 
+def records_dir_holding(path: Path, kind: str) -> Path | None:
+    """The records directory of the area whose experiment (`kind="experiment"`) or handoff (`"handoff"`) `path` is.
+
+    The area is found by walking up `path` (lexically, as `AI_MEM_ADR_DIR` may move the records directory)."""
+    from ai_mem.infrastructure.adr_paths import records_dir_for_root
+
+    is_kind = is_experiment_file if kind == "experiment" else is_handoff_file
+    for root in path.parents:
+        records_dir = records_dir_for_root(root)
+        if is_kind(path, records_dir):
+            return records_dir if records_dir.is_dir() else None
+    return None
+
+
 def is_experiment_file(path: Path, records_dir: Path) -> bool:
     return path.name == EXPERIMENT_FILENAME and path.parent.parent == experiments_dir(records_dir)
 
@@ -50,17 +64,23 @@ def _read(path: Path) -> str | None:
 
 def _frontmatter(text: str) -> tuple[dict[str, str], str] | None:
     """(fields, body) of a `---`-fenced frontmatter, or None when the file has none."""
-    if not text.startswith("---\n"):
+    lines = text.replace("\r\n", "\n").split("\n")
+    if not lines or lines[0].strip() != "---":
         return None
-    end = text.find("\n---\n", 4)
-    if end < 0:
-        return None
-    fields = {}
-    for line in text[4:end].splitlines():
-        key, sep, value = line.partition(":")
-        if sep and key.strip():
-            fields[key.strip()] = value.strip()
-    return fields, text[end + 5:]
+    for end in range(1, len(lines)):
+        if lines[end].strip() == "---":
+            fields = {}
+            for line in lines[1:end]:
+                key, sep, value = line.partition(":")
+                if sep and key.strip():
+                    fields[key.strip()] = value.strip()
+            return fields, "\n".join(lines[end + 1:])
+    return None
+
+
+def experiment_status(text: str) -> str:
+    parsed = _frontmatter(text)
+    return parsed[0].get("status", "") if parsed else ""
 
 
 def check_experiment(path: Path) -> list[tuple[str, str]]:
@@ -104,9 +124,8 @@ def handoff_citations(text: str) -> list[str]:
     """Handoff file names a record text cites, except as a commit reference `<sha>:docs/handoff-<date>.md`."""
     cited = []
     for match in _HANDOFF_MENTION.finditer(text):
-        before = text[:match.start()]
-        token = re.split(r"[\s(\[`'\"<]", before)[-1]
-        if not _COMMIT_PREFIX.search(token):
+        start = max(text.rfind(sep, 0, match.start()) for sep in " \t\n([`'\"<") + 1
+        if not _COMMIT_PREFIX.search(text[start:match.start()]):
             cited.append(match.group())
     return cited
 

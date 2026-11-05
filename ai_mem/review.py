@@ -24,7 +24,9 @@ from ai_mem.records_lint import git_output
 
 PRIVATE_NAMES = "private_names"
 _HOME_PATH = re.compile(r"/(?:home|Users)/[A-Za-z0-9._-]+/")
-_SHA = re.compile(r"(?<![0-9a-f])[0-9a-f]{7,40}(?![0-9a-f])")
+# A cited hash: 7-40 hex digits with at least one digit and one letter, not part of a word, path or UUID.
+# (An all-numeric short hash is missed; a measurement or an epoch is far more common in a record.)
+_SHA = re.compile(r"(?<![\w-])(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}(?![\w-])")
 _STATUS = {"A": "added", "M": "changed", "D": "deleted", "R": "renamed"}
 
 
@@ -36,35 +38,50 @@ def _private_names() -> list[str]:
     return [line.strip() for line in lines if line.strip() and not line.startswith("#")]
 
 
-def _commit_problem(root: Path, sha: str, base: str) -> str | None:
-    if git_output(root, "cat-file", "-e", f"{sha}^{{commit}}") is None:
-        return None  # not a commit here: a hash of something else, or an unknown one, is not judged
-    if git_output(root, "merge-base", "--is-ancestor", sha, "HEAD") is None:
-        return f"cites commit {sha}, which is not on this branch (squashed away or local-only)"
-    if git_output(root, "merge-base", "--is-ancestor", sha, base) is None:
-        return f"cites commit {sha}, not yet in {base}: a squash at the push would orphan it"
-    return None
+class _Commits:
+    """Which cited hashes are commits, on this branch, and already in the base: two rev-lists, one rev-parse per hash."""
+
+    def __init__(self, root: Path, base: str) -> None:
+        self._root, self._base = root, base
+        self._on_branch = set((git_output(root, "rev-list", "HEAD") or "").split())
+        self._unpushed = set((git_output(root, "rev-list", f"{base}..HEAD") or "").split())
+        self._full: dict[str, str | None] = {}
+
+    def problem(self, sha: str) -> str | None:
+        if sha not in self._full:
+            out = git_output(self._root, "rev-parse", "--verify", "--quiet", f"{sha}^{{commit}}")
+            self._full[sha] = out.strip() if out else None
+        full = self._full[sha]
+        if full is None or not self._on_branch:
+            return None  # not a commit here (a hash of something else, an unknown one), or git failed: not judged
+        if full not in self._on_branch:
+            return f"cites commit {sha}, which is not on this branch (squashed away or local-only)"
+        if full in self._unpushed:
+            return f"cites commit {sha}, not yet in {self._base}: a squash at the push would orphan it"
+        return None
 
 
-def _flags(root: Path, text: str, base: str, names: list[str]) -> list[str]:
+def _flags(text: str, commits: _Commits, names: list[str]) -> list[str]:
     flags = [f"machine path {path}" for path in sorted(set(_HOME_PATH.findall(text)))]
     flags += [f"private name {name!r}" for name in names if re.search(rf"(?i)\b{re.escape(name)}\b", text)]
-    for sha in sorted(set(_SHA.findall(text))):
-        problem = _commit_problem(root, sha, base)
-        if problem:
-            flags.append(problem)
+    flags += [problem for sha in sorted(set(_SHA.findall(text))) if (problem := commits.problem(sha))]
     return flags
 
 
 def collect(root: Path, records_dir: Path, base: str) -> list[dict]:
-    out = git_output(root, "diff", "--relative", "--name-status", "--find-renames", f"{base}..HEAD", "--", str(records_dir))
+    out = git_output(root, "diff", "-z", "--relative", "--name-status", "--find-renames", f"{base}..HEAD", "--", str(records_dir))
     if out is None:
         raise ValueError(f"cannot compare with {base!r} (no upstream? pass --since <ref>)")
-    names = _private_names()
+    names, commits = _private_names(), _Commits(root, base)
+    fields, changes = out.split("\0"), []
+    i = 0
+    while i + 1 < len(fields):  # -z: status, path (renames: status, old path, new path)
+        status = fields[i][:1]
+        step = 3 if status in ("R", "C") else 2
+        changes.append((status, fields[i + step - 1]))
+        i += step
     items = []
-    for line in out.splitlines():
-        parts = line.split("\t")
-        status, path = parts[0][:1], parts[-1]
+    for status, path in changes:
         file = root / path
         if file.suffix != ".md" or file.parent == records_dir:  # INDEX.md, FOCUS.md, BACKLOG.md are not records
             continue
@@ -76,7 +93,7 @@ def collect(root: Path, records_dir: Path, base: str) -> list[dict]:
                 item["title"], item["superseded"] = title_of(parsed.text), bool(parsed.superseded_by)
             except ValueError:
                 item["title"] = "(unparsable)"
-            item["flags"] = _flags(root, text, base, names)
+            item["flags"] = _flags(text, commits, names)
         items.append(item)
     return items
 
