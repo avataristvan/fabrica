@@ -69,6 +69,16 @@ Give a verdict for every flagged file: path, real or spurious, the evidence (the
 
 The documentation map, `${CLAUDE_PLUGIN_ROOT}/reference/documentation_map.md`, says where each kind of content goes. Read it. Propose its folders only as they are needed, never as empty scaffolding: when the project already has experiments, plans or research lying loose in `docs/`, name the folders they would go to and hand the placing to `/fabrica:tidy`. When the project keeps raw data (logs, dumps, captures) or a `data/` folder exists and is not git-ignored, propose the `.gitignore` addition (`/data/`) as a diff; the folder layout inside it is the project's convention.
 
+The review of the records comes at the push (`mem review`). Claude Code has no push event and the user often pushes from an IDE, so the reminder is git's own pre-push hook. Name it with the snippet; the user installs it (`.git/hooks/pre-push`, executable), you never do:
+
+```sh
+#!/bin/sh
+# remind of the record review before a push; never blocks
+n=$(mem review --json 2>/dev/null | wc -l)
+[ "$n" -gt 0 ] && echo "fabrica: $n record change(s) in this push; mem review lists them" >&2
+exit 0
+```
+
 ## 5. Update (after a Fabrica update, or for a project set up earlier)
 
 What a project lacks is read from its files every time, not from a version stamp: run `mem doctor` from the area and use its Records, Docs and Not-concluded sections.

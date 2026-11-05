@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import get_args
 
-from ai_mem import doctor, records_lint
+from ai_mem import doctor, records_lint, review
 from ai_mem.application.add_edge import AddEdgeUseCase
 from ai_mem.application.add_memory import AddMemoryUseCase
 from ai_mem.application.delete_memory import DeleteMemoryUseCase
@@ -648,7 +648,7 @@ def _build_parser() -> argparse.ArgumentParser:
     context.add_argument("--json", action="store_true")
     context.set_defaults(handler=_context)
 
-    for name, module in (("lint", records_lint), ("doctor", doctor)):
+    for name, module in (("lint", records_lint), ("doctor", doctor), ("review", review)):
         stub = sub.add_parser(name)
         module.configure(stub)
         stub.set_defaults(handler=module.run)

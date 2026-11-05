@@ -12,6 +12,8 @@ The subagent summary is already the "done" — this adds only what matters beyon
 
 The area is the folder of the current work that holds `docs/records/` (nearest ancestor of the working directory; `mem context` prints it).
 
+**It runs by itself.** In most cases the user has nothing to correct, so reflect does not stop to ask: it skips the questions in Steps 3, 4 and 6 unless it has a real question (a decision only the user can make, a contradiction, a next focus it cannot derive), writes the handoff, hands the candidates to the archivist and reports. The user reviews the records before the push (`mem review`), the last good moment to fold in fix-ups and squash. When the user invoked reflect with an explicit wish to talk it through, ask as written.
+
 ---
 
 ## Step 1 — Collect
@@ -41,7 +43,7 @@ Ask both questions together:
 > **"What did you learn, or what surprised you?"**
 > **"What got in your way?"**
 
-Wait for the user's answer. Skip if the user has nothing to add.
+Wait for the user's answer. Skip if the user has nothing to add. Running by itself: skip this step; what the user said during the session already counts.
 
 ---
 
@@ -56,6 +58,8 @@ Aggregate next-step suggestions:
 This is backlog refinement. Present them as a short list and ask where each one goes:
 
 > **"Which of these are next, where do the others go in the backlog, and which are dropped?"**
+
+Running by itself: what continues the current focus stays in `FOCUS.md`; every new suggestion goes to the bottom of `BACKLOG.md` (it is mostly out of scope for the active focus; the user reorders when picking work up together); nothing is dropped without the user.
 
 Every item lives in exactly one place: `FOCUS.md` (now and next) or `BACKLOG.md` (ordered, the next candidate on top), written in Step 5. Moving an item between the two is a cut, never a copy. A finished item is deleted (the commit is the increment). A dropped item is deleted; when the "no" is worth knowing later — the idea could come back — its reason becomes a record candidate (Step 6). Next steps are never record candidates, and there are no todo records.
 
@@ -100,6 +104,8 @@ Do not decide the record type, id, area, edges or supersede yourself — that is
 Show the list to the user once:
 
 > **"These candidates go to the archivist — is anything missing, or should something come out?"**
+
+Running by itself: show the list and hand it over without waiting; corrections come at the push review.
 
 ---
 

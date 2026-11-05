@@ -27,6 +27,7 @@ mem move --batch FILE [--dry-run] [--scan-root DIR]          # move many records
 mem move-area OLD NEW --root DIR [--dry-run] [--include-unversioned]  # rename or move an area folder, references included
 mem lint [--fix] [--json]                                    # check (and normalise) the area's record files and BACKLOG.md
 mem doctor [--root DIR] [--days N] [--json]                  # diagnosis of the whole practice, changes nothing
+mem review [--since REF] [--json]                            # records a push would publish: added/changed/superseded, machine paths, private names, commits a squash would orphan
 ```
 
 Edge types for `mem link`: `contradicts`, `fixes`, `causes`, `related`, `supersedes`, `confirms`, `derived_from`. `mem delete` changes no other record: it names each edge in the area that pointed at a deleted record (`dangling:` lines; edges from other areas are left to `mem doctor`), to be repointed with `mem link` or dropped with `mem unlink`. A link target may also be a source slug, for every edge type except `supersedes` (a source is frozen); nothing is written into the source. `mem unlink` removes an edge, also one whose target no longer exists; removing a `supersedes` edge also clears `superseded_by` and `valid_until` on the target. The format of the files these commands write: [record format](record-format.md).

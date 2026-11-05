@@ -15,6 +15,7 @@ ai_mem/
   doctor_sources.py  doctor's Sources section (sources nothing points to)
   doctor_docs.py     doctor's Docs and Not-concluded sections (the documentation map; what a skipped reflect leaves)
   docs_lint.py       lint of experiments, handoff shape and records citing a handoff
+  review.py          `mem review`: the records a push would publish, flagged for a last look
   hook.py            SessionStart hook: Area: line, Records: pointer, doctor pointer
   hooks/             enforcing hooks: retro_check, lint_after_write, reflect_reminder
   dream_cli.py       `mem-dream`: consolidates an area's records with the claude CLI
